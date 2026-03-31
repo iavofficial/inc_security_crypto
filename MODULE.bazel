@@ -50,7 +50,7 @@ llvm = use_extension(
 )
 llvm.toolchain(
     cxx_standard = {"": "c++17"},
-    llvm_version = "19.1.0",
+    llvm_version = "16.0.0",
 )
 use_repo(llvm, "llvm_toolchain")
 use_repo(llvm, "llvm_toolchain_llvm")
