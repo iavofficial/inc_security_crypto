@@ -1,41 +1,43 @@
-# 📖 Contribution Proposal: Post-Quantum Cryptography (PQC) for Eclipse S-Core
+# 📖 Contribution Proposal: Comprehensive Crypto, Security & Identity Stack for Eclipse S-Core
 
 ## 1. Motivation
-* **The Quantum Threat:** Quantum computers could become available in the next 5 to 10 years, putting current asymmetric cryptography and digital infrastructures at risk.
-* **Lack of Hardware Support:** Upcoming microcontroller generations lack hardware support for the new NIST post-quantum cryptography (PQC) standards. Therefore, software-based PQC calculation is strictly required.
-* **Crypto-Agility for SDVs:** Software Defined Vehicles require flexible, updatable cryptographic algorithms over their entire service life.
+* **Unified Security Foundation:** For the S-Core 1.0 release, a robust, standardized security layer is mandatory. This requires a seamless integration of Cryptography, Key/Certificate Management, and User Management.
+* **Standardized Interfaces:** Applications require clear APIs for authentication, authorization, hashing, and encryption, backed by industry standards like PKCS#11 for key management.
+* **Crypto-Agility & The Quantum Threat:** Software Defined Vehicles (SDVs) must remain secure over their entire lifecycle. The architecture must support current classical cryptography while being fully prepared to integrate upcoming Post-Quantum Cryptography (PQC) standards without altering application logic.
 
 ## 2. Proposed Contribution
-We propose contributing a reliable, modular PQC integration for Eclipse S-Core based on [**PQClean Automotive**](https://github.com/iavofficial/PQCleanAutomotive), our open-source, embedded-ready PQC library. This library represents the world's first implementation of NIST PQC candidates specifically optimized for embedded systems. It is designed to be open-source, transparent, secure, and free of backdoors.
+We propose contributing the complete foundational **Crypto, Security & Identity Stack** to fulfill the S-Core 1.0 feature requests. Our contribution establishes a highly modular, crypto-agile architecture that serves as the central security authority.
 
-Our approach is heavily backed by our practical experience. Internally, we successfully integrate PQClean Automotive into AUTOSAR architectures using our product "IAV Primula", which acts as a Crypto Driver Software (Cry SW PQC) connecting seamlessly to the Crypto Service Manager.
+We will provide the standardized APIs and service logic for Crypto, Key Management, and User Management. As a major addition to ensure immediate crypto-agility, we will also integrate a fully functional Post-Quantum provider based on [**PQClean Automotive**](https://github.com/iavofficial/PQCleanAutomotive), our open-source, embedded-ready PQC library.
 
-We plan to transfer this proven, two-part architecture to Eclipse S-Core:
+This approach is backed by our practical experience at IAV, where we successfully build and integrate modular, PQC-ready crypto architectures (like "IAV Primula") for complex automotive systems.
 
-* **PQClean Automotive (Core):** A highly modular, platform-independent library containing the mathematical PQC algorithms. It is currently available in MISRA-C, with individual algorithms already being ported to Rust. It provides a scalable, lifelong updatable solution ensuring true crypto agility.
-* **S-Core PQC Adapter (Wrapper):** A platform-dependent integration layer designed specifically for this project. This adapter connects the PQClean Automotive core seamlessly into the S-Core ecosystem's native crypto interfaces. It handles the Bazel build rules, Foreign Function Interfaces (FFI) between C and Rust, and necessary context management.
-
-By clearly separating the cryptographic logic from the platform-specific implementation, S-Core will gain a flexible foundation that can easily be extended with future NIST standardized algorithms (e.g., NIST selection round 4) without altering the core infrastructure.
 ## 3. High-Level Architecture
-Our architecture strictly separates the cryptographic logic from the platform-specific implementation.
+Our architecture securely separates application requests from the underlying cryptographic and system-level implementations.
 
-1. **Eclipse S-Core Application Layer**
-2. **S-Core Crypto Interface** (Standardized API)
-3. **S-Core PQC Adapter** (*Our Contribution* - Handles Bazel build rules, FFI between Rust/C++, and context management).
-4. **PQClean Automotive Library** (Provides the mathematical PQC primitives in C/Rust).
+1. **Eclipse S-Core Application Layer:** Applications request security services via generic APIs.
+2. **S-Core Security Services (Our Core Contribution):**
+    * **Crypto API:** Provides generic interfaces to compute Cryptographic Hashes (init, ingest, finalize, output), generate and authenticate digital signatures, and handle symmetric en-/decryption.
+    * **Key & Certificate Management:** Tightly coupled with the Crypto API. It handles secure key derivation, secure storage (covering all extensive key management capabilities known from AUTOSAR), as well as storing and verifying certificates, and extracting keys directly from certificates.
+    * **User Management:** Local in-device user and resource access control, handling privilege management for applications and APIs (designed with POSIX compliance and QNX 8.0 readiness in mind).
+3. **Crypto Provider Interface (Abstraction Layer):** A standardized adapter routing API calls to the appropriate backend.
+4. **Pluggable Cryptographic Providers:**
+    * **Classical Provider:** Hardware or software modules for standard algorithms (AES, RSA, ECC).
+    * **IAV PQC Provider:** Seamlessly integrates PQClean Automotive, handling Bazel build rules, FFI (Rust/C/C++), and context management for NIST PQC candidates.
 
-## 4. Supported Algorithms & Practical Experience
-We have been working with the NIST-standardized PQC algorithms and their precursors for several years. Our expertise includes:
+## 4. Supported Algorithms & PQC Expertise
+Alongside the architectural framework for classical cryptography, we bring deep expertise in NIST-standardized PQC algorithms to future-proof the stack:
 
-* **ML-KEM (CRYSTALS-Kyber) – Lattice-based KEM:** Utilized as a highly performant, quantum-safe foundation for key exchange in embedded systems. We have practical experience with various security levels (e.g., NIST Level 1/3/5) regarding their impact on key/ciphertext sizes and runtimes, specifically evaluating their suitability for sporadic key exchanges in resource-constrained environments like ECUs.
-* **HQC (Hamming Quasi-Cyclic) – Code-based KEM:** Experienced in implementation and optimization on microcontrollers (e.g., Cortex-M, AURIX) based on current research. We understand its distinct security assumptions compared to lattice-based methods (error correction vs. lattice problems) and evaluate its use cases as an alternative or complement to ML-KEM.
-* **ML-DSA (CRYSTALS-Dilithium) – Lattice-based Signature:** Applied for Secure Boot, firmware updates, and authentication. We have practical experience with NIST levels (e.g., 2/3/5) and the trade-offs between signature size, key size, and verification time, allowing us to assess its viability for real-time systems and ECU boot chains.
-* **FN-DSA (Falcon) – Lattice-based Signature:** Focused on compact signatures. We have analyzed its algorithmic properties and implementation requirements. Our practical insights show its limited suitability for certain automotive real-time systems due to higher complexity, though we understand exactly when it makes sense to use (e.g., in backends or on more powerful platforms).
-* **SLH-DSA (SPHINCS+) – Hash-based, Stateless Signature:** Experienced in embedded implementation and optimization, including necessary adaptations like replacing dynamic arrays with static structures. We evaluate its highly conservative security model against its significant computational and memory demands, targeting use cases with maximum security requirements but lower signature frequencies.
+* **ML-KEM (CRYSTALS-Kyber):** Highly performant, quantum-safe foundation for key exchange in resource-constrained environments.
+* **HQC (Hamming Quasi-Cyclic):** Code-based KEM alternative with distinct security assumptions.
+* **ML-DSA (CRYSTALS-Dilithium):** Lattice-based signatures optimized for Secure Boot, firmware updates, and authentication.
+* **FN-DSA (Falcon):** Lattice-based signatures utilized for highly compact signature requirements.
+* **SLH-DSA (SPHINCS+):** Hash-based, stateless signatures for maximum security use cases.
 
-
-## 5. Proven Performance
+## 5. Proven Performance & Stack Expertise
 PQC algorithms require significant computing resources. We have already conducted extensive runtime and memory measurements of these algorithms on embedded automotive hardware (Infineon Aurix TC3), proving their real-world feasibility for vehicle microcontrollers.
+
+Furthermore, at IAV, we have already designed and developed our own internal AUTOSAR stack, successfully integrating these PQC algorithms natively. This hands-on experience proves our deep understanding of not just individual algorithms, but of creating, integrating, and managing an entire, production-ready Security Stack from the ground up.
 
 ## 6. Proof of Concept
 This proposal already includes a small integrated module (`pqc_iav_contribution:pqc_crypto`) which demonstrates the basic integration and usage of the PQClean Automotive library (All mentioned algorithms and their variants) within the S-Core toolchain. Please note that this is currently intended as a minimal usage example for the scope of this proposal and does not yet represent the final, fully-featured S-Core PQC Adapter.
