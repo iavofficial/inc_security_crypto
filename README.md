@@ -1,4 +1,17 @@
+<!--
+*******************************************************************************
+Copyright (c) 2026 Contributors to the Eclipse Foundation
 
+See the NOTICE file(s) distributed with this work for additional
+information regarding copyright ownership.
+
+This program and the accompanying materials are made available under the
+terms of the Apache License Version 2.0 which is available at
+https://www.apache.org/licenses/LICENSE-2.0
+
+SPDX-License-Identifier: Apache-2.0
+*******************************************************************************
+-->
 # C++ & Rust Bazel Template Repository
 
 This repository serves as a **template** for setting up **C++ and Rust projects** using **Bazel**.
@@ -17,16 +30,44 @@ It provides a **standardized project structure**, ensuring best practices for:
 | File/Folder                         | Description                                       |
 | ----------------------------------- | ------------------------------------------------- |
 | `README.md`                         | Short description & build instructions            |
-| `src/`                              | Source files for the module                       |
+| `score/`                            | Crypto component                                  |
 | `tests/`                            | Unit tests (UT) and integration tests (IT)        |
 | `examples/`                         | Example files used for guidance                   |
+| `third_party/`                      | Build file for external dependencies (e.g. gRPC)  |
 | `docs/`                             | Documentation (Doxygen for C++ / mdBook for Rust) |
-| `.github/workflows/`                | CI/CD pipelines                                   |
 | `.vscode/`                          | Recommended VS Code settings                      |
 | `.bazelrc`, `MODULE.bazel`, `BUILD` | Bazel configuration & settings                    |
 | `project_config.bzl`                | Project-specific metadata for Bazel macros        |
-| `LICENSE.md`                        | Licensing information                             |
-| `CONTRIBUTION.md`                   | Contribution guidelines                           |
+
+### Score Folder Layout
+
+```
+score/                            ← Source code  ◄ main
+├── mw/crypto/
+│   └── api/                      ← [LIBRARY]
+│       ├── common/
+│       ├── config/               ← API config
+│       ├── contexts/             ← Crypto contexts
+│       ├── objects/              ← Key/cert objects
+│       └── src/                  ← Entry point
+│
+└── crypto/
+    ├── api/
+    │   └── control_plane/        ← [LIB CTRL-PLANE]
+    │
+    ├── ipc/
+    │   └── grpc_adapter/         ← [IPC — gRPC]
+    │
+    └── daemon/
+        ├── control_plane/        ← [DAEMON CTRL-PLANE]
+        ├── mediator/             ← [MEDIATOR]
+        ├── data_manager/         ← [DATA MANAGER]
+        ├── key_management/       ← [KEY MANAGEMENT]
+        ├── config/               ← [CONFIG]
+        └── provider/
+            ├── score_provider/   ← [SW PROVIDER / OpenSSL]
+            └── pkcs11/           ← [HW PROVIDER / PKCS#11]
+```
 
 ---
 
@@ -47,28 +88,26 @@ cd YOUR_PROJECT
 To build all targets of the module the following command can be used:
 
 ```sh
-bazel build //src/...
+# host platform
+bazel build //score/...
+# linux ARM architecture
+# check .bazelrc for available host (x86_64) and target (aarch64) configurations
+bazel build //score/... --config=target_config_3
 ```
-
-This command will instruct Bazel to build all targets that are under Bazel
-package `src/`. The ideal solution is to provide single target that builds
-artifacts, for example:
-
-```sh
-bazel build //src/<module_name>:release_artifacts
-```
-
-where `:release_artifacts` is filegroup target that collects all release
-artifacts of the module.
-
-> NOTE: This is just proposal, the final decision is on module maintainer how
-> the module code needs to be built.
 
 ### 3️⃣ Run Tests
 
 ```sh
+# pre-requisite: pull ubuntu docker image within devcontainer (once)
+docker pull ubuntu:24.04
+
+# host platform
 bazel test //tests/...
+# with detailed output and no caching
+bazel test //tests/... --test_output=all --cache_test_results=no
 ```
+
+Note: Run the `docker pull` command from a VS Code Terminal associated with the devcontainer. This properly sets up all environment variables, which may not be the case when just using docker to attach to the running container.
 
 ---
 
@@ -85,6 +124,10 @@ The template integrates **tools and linters** from **centralized repositories** 
 ## 📖 Documentation
 
 - A **centralized docs structure** is planned.
+
+```sh
+bazel run //:docs
+```
 
 ---
 
@@ -112,3 +155,24 @@ PROJECT_CONFIG = {
 
 When used with macros like `dash_license_checker`, it allows dynamic selection of file types
  (e.g., `cargo`, `requirements`) based on the languages declared in `source_code`.
+
+## DevContainer Setup
+
+### Known Issue: Pre-commit Hook Not Running
+**Problem:** The pre-commit hook does not run when using `git commit` inside the DevContainer.
+
+**Cause:** A stale `core.hooksPath` configuration overrides the default hook lookup path.
+
+**Fix:** Unset the custom hooks path:
+
+```bash
+git config --unset core.hooksPath
+```
+
+Note: For a permanent fix, run this command on the **host machine** (outside the DevContainer).
+The DevContainer only receives a copy of the host's Git configuration at build time, so changes
+made inside the container will not persist after a rebuild.
+
+# Use of genAI in this repository
+The repository partially contains AI-generated code by using GitHub Copilot Business.
+This notice needs to remain attached to any reproduction of this repository.
