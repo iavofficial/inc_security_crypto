@@ -15,7 +15,7 @@ load("@rules_rust//rust:defs.bzl", "rust_library")
 
 rust_library(
     name = "iav_primula",
-    srcs = ["src/lib.rs"],
+    srcs = ["src/main.rs"],
     crate_name = "iav_primula",
     edition = "2021",
     visibility = ["//visibility:public"],
