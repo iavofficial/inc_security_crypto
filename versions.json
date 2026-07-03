@@ -2,5 +2,9 @@
   {
     "version": "main",
     "url": "https://iavofficial.github.io/inc_security_crypto/main/"
+  },
+  {
+    "version": "pr-1",
+    "url": "https://iavofficial.github.io/inc_security_crypto/pr-1/"
   }
 ]
