@@ -12,42 +12,38 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-Example: Detailed Design
-========================
+IAV Primula Detailed Design
+===========================
 
-.. document:: [Your Component Name] Detailed Design
-   :id: doc__mod_temp_component_name_detailed_design
+.. document:: IAV Primula Detailed Design
+   :id: doc__iav_primula_detailed_design
    :status: draft
-   :safety: ASIL_B
+   :safety: QM
    :security: NO
    :realizes: wp__sw_implementation
-   :tags: template
+   :tags: iav_primula
 
-.. attention::
-    The above directive must be updated according to your Component.
-
-    - Modify ``Your Component Name`` to be your Component Name
-    - Modify ``id`` to be your Component Name in upper snake case preceded by ``doc__`` and followed by ``_detailed_design``
-    - Adjust ``status`` to be ``valid``
-    - Adjust ``safety`` and ``tags`` according to your needs
-
-Detailed Design for Component: <Component Name>
-===============================================
+Detailed Design for Component: IAV Primula
+==========================================
 
 Description
 -----------
 
-| Design Decisions - For the documentation of the decision the :need:`gd_temp__change_decision_record` can be used.
-| Design Constraints
+The implementation is intentionally small and centralized in ``src/lib.rs``.
 
-Example:
+Design constraints:
 
- - component is split into two units unit1 and unit2 based on single responsibility principle.
- - unit2 is injected to unit1 one via dependency injection for testability.
+- Keep public API simple for onboarding.
+- Keep deterministic output for stable first tests.
+- Avoid unnecessary abstractions until additional behavior is introduced.
+
+Current unit split:
+
+- ``src/lib.rs``: public API and implementation of ``get_hello_message()``.
 
 Rationale Behind Decomposition into Units
 ******************************************
-| mandatory: a motivation for the decomposition into one or more units.
+No further unit decomposition is needed at this stage.
 
 .. note:: Reason for split into multiple units could be-
 	    - Based on design principles like SOLID,DRY etc
@@ -60,7 +56,7 @@ A static view provides an overview of the units and their relationships using
 UML 2.0 notations (e.g. class diagrams, component diagrams). Use ``.. uml::``
 or ``.. image::`` directives to include the diagram.
 
-.. uml:: dd_example_ex_sta.puml
+For this first baseline implementation no additional static UML is required.
 
 Dynamic Diagrams for Unit Interactions (optional)
 --------------------------------------------------
@@ -73,7 +69,7 @@ and interface documentation alone.
 Use standard UML behavioural diagrams (sequence diagrams, state machine diagrams)
 with ``.. uml::`` or ``.. image::`` directives.
 
-.. uml:: dd_example_ex_dyn.puml
+For this first baseline implementation no additional dynamic UML is required.
 
 Units within the Component
 --------------------------
@@ -86,7 +82,6 @@ in the source code itself. A separate static diagram per unit is not required.
 Interface documentation of a software unit is part of the source code (e.g. public
 API headers, trait definitions, or documented function signatures).
 
-Example:
+Current unit list:
 
-- unit1: implements the main logic (see source code for details)
-- unit2: injected into unit1 via dependency injection for testability
+- ``lib.rs``: returns constant hello message string.

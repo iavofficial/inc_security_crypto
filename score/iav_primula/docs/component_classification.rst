@@ -17,28 +17,22 @@ Component Classification
 
 .. note:: Document header
 
-.. document:: [Your Component Name] Component Classification
-   :id: doc__mod_temp_component_name_comp_class
+.. document:: IAV Primula Component Classification
+   :id: doc__iav_primula_comp_class
    :status: draft
-   :safety: ASIL_B
+   :safety: QM
    :security: NO
    :realizes: wp__sw_component_class
-   :tags: template
+   :tags: iav_primula
 
-.. attention::
-    The above directive must be updated according to your Component.
-
-    - Modify ``Your Component Name`` to be your Component Name
-    - Modify ``id`` to be your Component Name in upper snake case preceded by ``doc__``
-    - Adjust ``status`` to be ``valid``
-    - Adjust ``safety`` and ``tags`` according to your needs
-
-| Classification of <component>
+| Classification of ``iav_primula``
 |
-| <Link to OSS component source (e.g. in github) including the selected version>
+| GitHub: ``https://github.com/eclipse-score/inc_security_crypto/tree/main/score/t.b.d``
 |
 | Additional documentation considered:
-| <list of documentation links>
+| - ``docs/index.rst``
+| - ``docs/requirements/requirements.rst``
+| - ``docs/architecture/component_architecture.rst``
 
 
 Step 1: Determine (P): the uncertainty of the Processes applied
@@ -60,33 +54,33 @@ Step 1: Determine (P): the uncertainty of the Processes applied
 
         * - 1
           - Are rules, state-of-the art processes applied for the design, implementation and verification?
-          - <HE|PE|NE>
-          - <Rationale for result>
+          - HE
+          - Basic project rules are applied (Rust 2021 crate, tests, standard docs structure).
 
         * - 2
           - Are requirements available?
-          - <HE|PE|NE>
-          - <Rationale for result>
+          - HE
+          - Initial component requirements are documented.
 
         * - 3
           - Are specifications for functionalities and properties available (architecture)?
-          - <HE|PE|NE>
-          - <Rationale for result>
+          - HE
+          - Initial component architecture documentation is available.
 
         * - 4
           - Are design specifications available?
-          - <HE|PE|NE>
-          - <Rationale for result>
+          - HE
+          - Detailed design baseline exists for current low complexity scope.
 
         * - 5
           - Are configuration specification and data available, if applicable?
-          - <HE|PE|NE>
-          - <Rationale for result>
+          - HE
+          - No dedicated configuration data is currently required.
 
         * - 6
           - Are verification measures including tests and reports available?
-          - <HE|PE|NE>
-          - <Rationale for result>
+          - HE
+          - Hello-world test exists and verifies expected output.
 
 
 | (P=1) shall be selected when none of the determined process measures indicate PE or NE.
@@ -94,7 +88,7 @@ Step 1: Determine (P): the uncertainty of the Processes applied
 |       the risk of systematic faults due to these gaps is sufficiently low or manageable by mitigating the gaps.
 | (P=3) in all other cases.
 
-<component name> is determined as P=<1|2|3>
+``iav_primula`` is determined as ``P=1``
 
 
 Step 2: Determine (C): the uncertainty of finding systematic faults based on the Complexity
@@ -106,9 +100,7 @@ Step 2: Determine (C): the uncertainty of finding systematic faults based on the
 | - HM: High but Manageable
 | - NM: high and Not Manageable
 |
-| **Complexity measure for programming language: <C++ or RUST>**
-
-<select the correct table below (table for C++ is TBD)>
+| **Complexity measure for programming language: RUST**
 
 .. list-table:: Determine (C) for RUST
     :header-rows: 1
@@ -122,35 +114,35 @@ Step 2: Determine (C): the uncertainty of finding systematic faults based on the
     * - 1
       - High amount of Lines of Code
       - Lines of Code (without comments) (generated code is excluded, e.g. ProtoCmpl)
-      - <NH|HM|NM>
-      - <Number>
+      - NH
+      - 1 function
 
     * - 2
       - Unsafe code used / total unsafe code
       - Count:
             * LoUC+N: lines of unsafe code with safety note
             * LoUC  : lines of unsafe code, no safety note
-      - <NH|HM|NM>
-      - <Number>
+      - NH
+      - 0
 
     * - 3
       - | Test exists / Coverage (Function, Line)
         | (maybe better: testability, but how to measure?)
       - Existing Tests Coverage
-      - <NH|HM|NM>
-      - <Number>
+      - NH
+      - 1 test present
 
     * - 4
       - High amount of public function interfaces
       - Number of public function interfaces
-      - <NH|HM|NM>
-      - <RNumber>
+      - NH
+      - 1 public function
 
     * - 5
       - High amount of function parameters
       - Number of parameters
-      - <NH|HM|NM>
-      - <Number>
+      - NH
+      - 0 parameters for public API
 
 
 | (C=1) shall be selected when none of the determined complexity measures indicate HM or NM.
@@ -159,7 +151,7 @@ Step 2: Determine (C): the uncertainty of finding systematic faults based on the
 | (C=3) in all other cases.
 |
 
-<component name> is determined as C=<1|2|3>
+``iav_primula`` is determined as ``C=1``
 
 
 Step 3: Determine (CLAS_OUT): the classification outcome
@@ -179,7 +171,7 @@ Step 3: Determine (CLAS_OUT): the classification outcome
 | 3     |  QR   | QR    | NQ    |
 +-------+-------+-------+-------+
 
-<component name> is classified as CLAS_OUT=<Q|QR|NQ>
+``iav_primula`` is classified as ``CLAS_OUT=Q``
 
 
 Step 4: Document all results and rationale for choosing (P) and (C) and (CLAS_OUT)

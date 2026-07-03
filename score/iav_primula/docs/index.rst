@@ -14,48 +14,58 @@
 
 .. _component_template:
 
-[Your Component Name]
+IAV Primula Component
 #####################
 
 .. note:: Document header
 
-.. document:: [Your Component Name]
-   :id: doc__mod_temp_component_name
+.. document:: IAV Primula Component
+   :id: doc__iav_primula
    :status: draft
-   :safety: ASIL_B
+   :safety: QM
    :security: NO
    :realizes: wp__cmpt_request
-   :tags: template
+   :tags: iav_primula
 
-.. code-block:: rst
-
-   .. comp:: Component Name
-      :id: comp__mod_temp_component_name_template
-      :security: YES
-      :safety: ASIL_B
-      :status: invalid
-      :implements: logic_arc_int__feature_name__interface_name1
-      :consists_of: comp__component_name_internal_1, comp__component_name_internal_2, comp__component_name_internal_3
-      :belongs_to: feat__feature_name
-
-.. attention::
-    The above directives must be updated according to your Component.
-
-    - Modify ``document`` to be your Component Name
-    - Modify ``id`` to be your Component Name in upper snake case preceded by ``doc__``
-    - Adjust ``status`` to be ``valid``
-    - Adjust ``safety`` and ``tags`` according to your needs
+.. comp:: IAV Primula
+   :id: comp__iav_primula
+   :security: NO
+   :safety: QM
+   :status: valid
 
 Abstract
 ========
 
-[A short (~200 word) description of the component.]
+IAV_Primula is a cryptographic driver in Rust focused on integrating
+post-quantum (PQ) algorithms and establishing a future-ready foundation for
+cryptographic processing in the S-CORE context. The component emphasizes a
+clear, robust, and maintainable architecture that provides safe and structured
+integration paths for quantum-resistant methods. At the current planning stage,
+integrating classical cryptographic algorithms is not intended; the initial
+scope is fully focused on PQ-based capabilities and their clean technical
+embedding.
+
+The cryptodriver is designed around a consistent job-processing model. The
+offered processing jobs include, among others, Signature Generate, Signature
+Verification, Key Generate, and Key Exchange. Processing is intended to follow
+clearly defined interfaces and traceable request/response flows, enabling
+integrators to use cryptographic operations and key-related processes in a
+uniform way. Extensibility is also considered from the beginning so that
+additional PQ algorithms and operations can be added in a controlled manner.
+
+By being implemented in Rust, IAV_Primula benefits from strong memory-safety
+properties and improved robustness against common implementation errors.
+Overall, the component addresses the need for a modern, integration-friendly,
+and post-quantum-focused cryptographic driver baseline designed for long-term
+security and structured evolution.
 
 
 Rationale
 =========
 
-[Describe why particular design decisions were made.]
+The initial implementation is intentionally minimal. A deterministic and
+side-effect-free function allows us to validate repository setup, Rust crate
+integration, and first test execution with very low complexity.
 
 .. note::
    The rationale should provide evidence of consensus within the community and discuss important objections or concerns raised during discussion.
@@ -64,19 +74,26 @@ Rationale
 Specification
 =============
 
-[Describe the requirements, architecture of any component.] or
+The component currently provides a single public interface:
+
+- ``get_hello_message() -> &'static str``
+
+The requirement, architecture, and implementation inspection preparation are
+documented in the linked sub-documents.
 
 
 Backwards Compatibility
 =======================
 
-[Describe potential impact (especially including safety and security impacts) and severity on pre-existing platform/project elements.]
+No backwards compatibility impact is expected at this stage. The component is
+new and currently has no consumers with compatibility constraints.
 
 
 Security Impact
 ===============
 
-[How could a malicious user take advantage of this new/modified component?]
+No relevant security impact is identified for the current scope. The API
+returns a constant string and performs no external interaction.
 
 .. note::
    If there are security concerns in relation to the CR, those concerns should be explicitly written out to make sure reviewers of the CR are aware of them.
@@ -95,7 +112,8 @@ If applicable, which additional security measures must be implemented to mitigat
 Safety Impact
 =============
 
-[How could the safety be impacted by the new/modified component?]
+No safety impact is identified for the current scope. The component is
+classified as ``QM`` and currently does not implement safety mechanisms.
 
 .. note::
    If there are safety concerns in relation to the CR, those concerns should be explicitly written out to make sure reviewers of the CR are aware of them.
@@ -110,8 +128,8 @@ If applicable, which additional safety measures must be implemented to mitigate 
 
 For new feature/component contributions:
 
-[What is the expected ASIL level?]
-[What is the expected classification of the contribution?]
+- Expected ASIL level: ``QM``
+- Expected classification of the contribution: preliminary ``Q``
 
 .. note::
    Use the component classification method here to classify your component, if it shall to be used in a safety context: :need:`gd_temp__component_classification`.
@@ -119,13 +137,15 @@ For new feature/component contributions:
 License Impact
 ==============
 
-[How could the copyright impacted by the license of the new contribution?]
+No additional license impact is currently expected. Implementation is original
+project code under Apache-2.0.
 
 
 How to Teach This
 =================
 
-[How to teach users, new and experienced, how to apply the CR to their work.]
+Use the component as a simple Rust library baseline and reference the test
+``returns_expected_message`` as a minimal example for unit/integration flow.
 
 .. note::
    For a CR that adds new functionality or changes behaviour, it is helpful to include a section on how to teach users, new and experienced, how to apply the CR to their work.
@@ -133,7 +153,7 @@ How to Teach This
 Rejected Ideas
 ==============
 
-[Why certain ideas that were brought while discussing this CR were not ultimately pursued.]
+No alternatives were evaluated yet due to the intentionally small first scope.
 
 .. note::
    Throughout the discussion of a CR, various ideas will be proposed which are not accepted.
@@ -146,7 +166,10 @@ Rejected Ideas
 Open Issues
 ===========
 
-[Any points that are still being decided/discussed.]
+- Extend API beyond baseline hello message.
+- Decide whether detailed design document remains needed after growth.
+- Confirm if safety analysis artifacts are required once safety-relevant
+  behavior is introduced.
 
 .. note::
    While a CR is in draft, ideas can come up which warrant further discussion.
@@ -158,7 +181,7 @@ Open Issues
 Footnotes
 =========
 
-[A collection of footnotes cited in the CR, and a place to list non-inline hyperlink targets.]
+None.
 
 
 Further Documentation of the component can be found in the following sections:

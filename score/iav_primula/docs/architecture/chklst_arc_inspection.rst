@@ -13,21 +13,13 @@
    # *******************************************************************************
 
 
-.. document:: [Your Component Name] Architecture Inspection Checklist
-  :id: doc__mod_temp_component_name_arc_inspection
+.. document:: IAV Primula Architecture Inspection Checklist
+  :id: doc__iav_primula_arc_inspection
   :status: draft
-  :safety: ASIL_B
-  :security: YES
+  :safety: QM
+  :security: NO
   :realizes: wp__sw_arch_verification
-  :tags: template
-
-.. attention::
-    The above directive must be updated according to your component.
-
-    - Modify ``Your Component Name`` to be your component Name
-    - Modify ``id`` to be your component Name in lower snake case preceded by ``doc__`` and followed by ``_arc_inspection``
-    - Adjust ``status`` to be ``valid``
-    - Adjust ``safety``, ``security`` and ``tags`` according to your needs
+  :tags: iav_primula
 
 Architecture Inspection Checklist
 =================================
@@ -50,6 +42,8 @@ As described in the concept :need:`doc_concept__wp_inspections` the following "i
 - content responsible (author): <contributor/committer explicitly named here, who is the main author, as can be seen in config mgt tooling>
 - reviewer: <contributor/committer explicitly named here, who is the main content reviewer, must be different from content responsible>
 - moderator: <committer explicitly named here, who is is the safety manager, security manager or quality manager initiating the inspection>
+
+Current state: formal architecture inspection not executed yet.
 
 Checklist
 ---------
@@ -183,17 +177,17 @@ See also :need:`doc_concept__wp_inspections` for further information about revie
 
 
 .. attention::
-    The above checklist entries must be filled according to your component architecture in scope.
+    This checklist remains in draft until formal inspection is executed.
 
 Note: If a Review ID is not applicable for your architecture, then state ""n/a" in status and comment accordingly in remarks.
 
 The following static views in "valid" state and with "inspected" tag set are in the scope of this inspection:
 
 .. needtable::
-   :filter: "component_name" in docname and "architecture" in docname and docname is not None and status == "valid"
+   :filter: "iav_primula" in docname and "architecture" in docname and docname is not None and status == "valid"
    :style: table
    :types: comp_arc_sta
-   :tags: component_name
+   :tags: iav_primula
    :columns: id;status;tags
    :colwidths: 25,25,25
    :sort: title
@@ -201,15 +195,10 @@ The following static views in "valid" state and with "inspected" tag set are in 
 and the following dynamic views:
 
 .. needtable::
-   :filter: "component_name" in docname and "architecture" in docname and docname is not None and status == "valid"
+   :filter: "iav_primula" in docname and "architecture" in docname and docname is not None and status == "valid"
    :style: table
    :types: comp_arc_dyn
-   :tags: component_name
+   :tags: iav_primula
    :columns: id;status;tags
    :colwidths: 25,25,25
    :sort: title
-
-.. attention::
-    The above tables filtering must be updated according to your Component.
-
-    - Modify ``component_name`` to be your Component Name in lower snake case

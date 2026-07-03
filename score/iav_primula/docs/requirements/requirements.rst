@@ -12,90 +12,65 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-Component <Name> Requirements
-#############################
+IAV Primula Requirements
+########################
 
-.. document:: [Your Component Name] Requirements
-   :id: doc__mod_temp_component_name_requirements
+.. document:: IAV Primula Requirements
+   :id: doc__iav_primula_requirements
    :status: draft
-   :safety: ASIL_B
-   :security: YES
+   :safety: QM
+   :security: NO
    :realizes: wp__requirements_comp[version==1]
-   :tags: template
+   :tags: iav_primula
 
-.. attention::
-    The above directive must be updated according to your Component.
-
-    - Modify ``Your Component Name`` to be your Component Name
-    - Modify ``id`` to be your Component Name in upper snake case preceded by ``doc__`` and followed by ``_requirements``
-    - Adjust ``status`` to be ``valid``
-    - Adjust ``safety``, ``security`` and ``tags`` according to your needs
-
-<Headlines (for the list of requirements if structuring is needed)>
-===================================================================
+Scope
+=====
 
 Functional Requirements
 -----------------------
 
-.. comp_req:: Some Title
-   :id: comp_req__mod_temp_component_name__some_title
-   :reqtype: Process
-   :security: YES
-   :safety: ASIL_B
-   :derived_from: feat_req__example_feature__example_req
+.. comp_req:: Provide hello message function
+   :id: comp_req__iav_primula__provide_hello_message
+   :reqtype: Functional
+   :security: NO
+   :safety: QM
+   :derived_from: feat_req__security_crypto__hello_world_baseline
    :status: valid
-   :satisfied_by: comp__mod_temp_component_name_template
+   :satisfied_by: comp__iav_primula
 
-   The Component shall do xyz to another component to bring it to this condition at this time
+   The component shall provide a public Rust function
+   ``get_hello_message() -> &'static str``.
 
-   Note: (optional, not to be verified)
-
-.. attention::
-    The above directive must be updated according to your component requirements.
-
-    - Replace the example content by the real content for your first requirement
-    - Set ``derived_from`` with links to Feature requirements
-    - Set ``satisfied_by`` with a link to the right Component id
-    - Set ``safety`` and ``security`` to the right value
-    - Set the status to valid and start the review/merge process
-    - Add other needed requirements for your component
+.. Note:
+   ``get_hello_message()`` shall return the exact value
+   ``"Hello World from iav_primula"``.
 
 Assumption of Use Requirements
 ------------------------------
 
-.. aou_req:: Next Title
-   :id: aou_req__mod_temp_component_name__next_title
+.. aou_req:: Integrate as Rust library API
+   :id: aou_req__iav_primula__integrate_as_rust_library_api
    :reqtype: Process
-   :security: YES
-   :safety: ASIL_B
+   :security: NO
+   :safety: QM
    :status: valid
 
-   The Component User shall do xyz to use the component safely/securely
+   The component user shall link the crate ``iav_primula`` and call the public
+   API from Rust code.
 
 Environmental Requirements
 --------------------------
 
-.. aou_req:: Another Title
-   :id: aou_req__mod_temp_component_name__another
+.. aou_req:: Build environment supports Rust 2021
+   :id: aou_req__iav_primula__build_env_supports_rust_2021
    :reqtype: Process
-   :security: YES
-   :safety: ASIL_B
-   :status: invalid
+   :security: NO
+   :safety: QM
+   :status: valid
    :tags: environment
 
-   The Component shall only be used in a xyz environment to ensure its proper functioning.
+   The component shall be built in an environment that supports Rust edition
+   2021, consistent with the component BUILD definition.
 
-Hints
------
-
-.. attention::
-    The above directives must be updated according to your feature requirements.
-
-    - Replace the example content by the real content for your first requirement (according to :need:`gd_guidl__req_engineering`)
-    - Set ``safety`` and ``security`` to the right value (ASIL B/QM; YES/NO)
-    - Set ``reqtype`` with a link to the right value (<Functional|Interface|Process|Non-Functional>)
-    - Add other needed requirements for your feature
-    - Set ``status`` to ``valid`` and start the review/merge process
-
-.. needextend:: is_external == False and "component_name" in id
-   :+tags: component_name
+.. needextend:: is_external == False and "iav_primula" in id
+   :+tags: iav_primula

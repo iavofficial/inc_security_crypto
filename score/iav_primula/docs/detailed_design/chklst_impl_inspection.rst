@@ -12,21 +12,13 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-.. document:: [Your Component Name] Implementation Inspection Checklist
-  :id: doc__mod_temp_component_name_impl_inspection
+.. document:: IAV Primula Implementation Inspection Checklist
+  :id: doc__iav_primula_impl_inspection
   :status: draft
-  :safety: ASIL_B
-  :security: YES
+  :safety: QM
+  :security: NO
   :realizes: wp__sw_implementation_inspection
-  :tags: template
-
-.. attention::
-    The above directive must be updated according to your Component.
-
-    - Modify ``Your Component Name`` to be your Component Name
-    - Modify ``id`` to be your Component Name in lower snake case preceded by ``doc__`` and followed by ``_impl_inspection``
-    - Adjust ``status`` to be ``valid``
-    - Adjust ``safety``, ``security`` and ``tags`` according to your needs
+  :tags: iav_primula
 
 Implementation Inspection Checklist
 ===================================
@@ -48,6 +40,8 @@ As described in the concept :need:`doc_concept__wp_inspections` the following "i
 - content responsible (author): <contributor/committer explicitly named here, who is the main author, as can be seen in config mgt tooling>
 - reviewer: <contributor/committer explicitly named here, who is the main content reviewer, must be different from content responsible>
 - moderator: <committer explicitly named here, who is is the safety manager, security manager or quality manager initiating the inspection>
+
+Current state: formal implementation inspection not executed yet.
 
 Checklist
 ---------

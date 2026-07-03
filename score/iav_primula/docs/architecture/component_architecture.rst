@@ -15,27 +15,20 @@
 Component Architecture Documentation
 ====================================
 
-.. document:: [Your Component Name] Architecture
-   :id: doc__mod_temp_component_name_architecture
+.. document:: IAV Primula Architecture
+   :id: doc__iav_primula_architecture
    :status: draft
-   :safety: ASIL_B
+   :safety: QM
    :security: NO
    :realizes: wp__component_arch
-   :tags: template
-
-.. attention::
-    The above directive must be updated according to your needs.
-
-    - Modify ``Your Component Name`` to be your Component Name
-    - Modify ``id`` to be your Component Name in upper snake case preceded by ``doc__`` and followed by ``_architecture``
-    - Adjust ``status`` to be ``valid``
-    - Adjust ``safety`` and ``tags`` according to your needs
+   :tags: iav_primula
 
 
 Overview
 --------
 
-<Brief summary of the architecture.>
+The IAV Primula component is a lightweight Rust library exposing one public API
+to return a deterministic baseline message.
 
 Requirements Linked to Component Architecture
 ---------------------------------------------
@@ -51,16 +44,19 @@ Requirements Linked to Component Architecture
 Description
 -----------
 
-<General Description>
+The component currently has no internal sub-components. Public API and
+implementation are both located in ``src/lib.rs``.
 
-<Design Decisions - For the documentation of the decision the :need:`gd_temp__change_decision_record` can be used.>
+Design constraints:
 
-<Design Constraints>
+- Keep API deterministic and side-effect free.
+- Keep implementation simple for initial onboarding and traceability.
 
 Rationale Behind Architecture Decomposition
 *******************************************
 
-Mandatory: A motivation for the decomposition or reason for not further splitting it into internal components.
+No decomposition into lower-level components is introduced in this initial
+version because complexity is low and responsibilities are clear.
 
 .. note:: Common decisions across components / cross cutting concepts is at the higher level.
 
@@ -72,21 +68,20 @@ The components are designed to cover the expectations from the feature architect
 
 A component can optional also consist of lower level components to further structure the architecture. The component and its static views can also optionally use interfaces provided by other components.
 
-.. comp:: Component Name
-   :id: comp__mod_temp_component_name_template
-   :security: YES
-   :safety: ASIL_B
+.. comp:: IAV Primula
+   :id: comp__iav_primula
+   :security: NO
+   :safety: QM
    :status: valid
-   :consists_of: comp__mod_temp_archex_sub_component_1, comp__mod_temp_archex_sub_component_2, comp__mod_temp_archex_sub_component_3
-   :belongs_to: feat__mtef
+   :belongs_to: feat__security_crypto
 
-.. comp_arc_sta:: Component Name (Static View)
-   :id: comp_arc_sta__mod_temp_component_name__sv
-   :security: YES
-   :safety: ASIL_B
+.. comp_arc_sta:: IAV Primula Static View
+   :id: comp_arc_sta__iav_primula__sv
+   :security: NO
+   :safety: QM
    :status: valid
-   :belongs_to: comp__mod_temp_component_name_template
-   :fulfils: comp_req__mod_temp_component_name__some_title
+   :belongs_to: comp__iav_primula
+   :fulfils: comp_req__iav_primula__provide_hello_message, comp_req__iav_primula__return_stable_baseline_text
 
    .. needarch::
       :scale: 50
@@ -97,46 +92,31 @@ A component can optional also consist of lower level components to further struc
 Dynamic Architecture
 --------------------
 
-.. comp_arc_dyn:: Dynamic View
-   :id: comp_arc_dyn__mod_temp_component_name__dv
-   :security: YES
-   :safety: ASIL_B
+.. comp_arc_dyn:: IAV Primula Dynamic View
+   :id: comp_arc_dyn__iav_primula__dv
+   :security: NO
+   :safety: QM
    :status: valid
-   :belongs_to: comp__mod_temp_component_name_template
-   :fulfils: comp_req__mod_temp_component_name__some_title
+   :belongs_to: comp__iav_primula
+   :fulfils: comp_req__iav_primula__provide_hello_message
 
-   Put here a sequence diagram
+   Caller invokes ``get_hello_message()`` and receives the constant baseline
+   string response immediately.
 
 Interfaces
 ----------
 
-.. code-block:: rst
-
-   .. real_arc_int:: <Title>
-      :id: real_arc_int__<component>__<Title>
-      :security: <YES|NO>
-      :safety: <QM|ASIL_B>
-      :fulfils: <link to component requirement id>
-      :language: cpp
+.. real_arc_int:: Public hello message interface
+   :id: real_arc_int__iav_primula__get_hello_message
+   :security: NO
+   :safety: QM
+   :fulfils: comp_req__iav_primula__provide_hello_message
+   :language: rust
 
 Internal Components
 -------------------
 
-.. comp_arc_sta:: Component Name Static View
-   :id: comp_arc_sta__mod_temp_component_name__2
-   :status: valid
-   :safety: ASIL_B
-   :security: YES
-   :fulfils: comp_req__mod_temp_component_name__some_title
-   :belongs_to: comp__mod_temp_component_example_2
-
-   No architecture but detailed design
+No internal components are defined in this baseline version.
 
 .. note::
    Architecture can be split into multiple files. At component level the public interfaces to be used by the user and tester to be shown.
-
-.. attention::
-    The above directives must be updated according to your component architecture.
-
-    - Replace the example content by the real content (according to :need:`gd_guidl__arch_design`)
-    - Set the status to valid and start the review/merge process

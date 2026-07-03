@@ -16,43 +16,21 @@
 DFA (Dependent Failure Analysis)
 ================================
 
-.. document:: [Your Component Name] DFA
-   :id: doc__mod_temp_component_name_dfa
+.. document:: IAV Primula DFA
+   :id: doc__iav_primula_dfa
    :status: draft
-   :safety: ASIL_B
+   :safety: QM
    :security: NO
    :realizes: wp__sw_component_dfa
-   :tags: template
+   :tags: iav_primula
 
-.. note:: Use the content of the document to describe e.g. why a fault model is not applicable for the diagram.
-
-.. attention::
-    The above directive must be updated according to your Component.
-
-    - Modify ``Your Component Name`` to be your Component Name
-    - Modify ``id`` to be your Component Name in upper snake case preceded by ``doc__`` and succeeded by ``_dfa``
-    - Adjust ``status`` to be ``valid``
-    - Adjust ``safety`` and ``tags`` according to your needs
+.. note::
+   Current component scope is ``QM`` and contains only a deterministic pure
+   function returning a constant string. No dependent-failure initiators are
+   identified for this baseline.
 
 Dependent Failure Initiators
 ----------------------------
 
-.. code-block:: rst
-
-    .. comp_saf_dfa:: <Title>
-       :violates: <Component architecture>
-       :id: comp_saf_dfa__<Component>__<Element descriptor>
-       :failure_id: <ID from DFA failure initiators :need:`gd_guidl__dfa_failure_initiators`>
-       :failure_effect: "description of failure effect of the failure initiator on the element"
-       :mitigated_by: <ID from Component Requirement | ID from AoU Component Requirement>
-       :mitigation_issue: <ID from Issue Tracker>
-       :sufficient: <yes|no>
-       :status: <valid|invalid>
-
-.. note::   Argument is inside the 'content'. Therefore content is mandatory.
-
-.. attention::
-    The above directive must be updated according to your component DFA.
-
-    - The above "code-block" directive must be updated
-    - Fill in all the needed information in the <brackets>
+No ``comp_saf_dfa`` entries are required for the current baseline implementation.
+Re-evaluate and add entries once safety-relevant behavior is introduced.

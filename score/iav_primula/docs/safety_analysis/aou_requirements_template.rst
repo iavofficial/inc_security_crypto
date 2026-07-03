@@ -12,32 +12,31 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-AoU Component Requirements Template
+AoU Component Requirements Snippets
 ===================================
 
-This page contains Assumption of Use requirement snippets that belong to the
-template repository.
+This page contains the current Assumptions of Use snippets used by IAV Primula.
 
 Component AoU
 -------------
 
 .. code-block:: rst
 
-   .. aou_req:: Next Title
-      :id: aou_req__mod_temp_component_name__next_title
+   .. aou_req:: Integrate as Rust library API
+      :id: aou_req__iav_primula__integrate_as_rust_library_api
       :reqtype: Process
-      :security: YES
-      :safety: ASIL_B
-      :status: invalid
+      :security: NO
+      :safety: QM
+      :status: valid
 
-      The Component User shall do xyz to use the component safely/securely
+      The component user shall link the crate ``iav_primula`` and call the public API from Rust code.
 
-   .. aou_req:: Another Title
-      :id: aou_req__mod_temp_component_name__another
+   .. aou_req:: Build environment supports Rust 2021
+      :id: aou_req__iav_primula__build_env_supports_rust_2021
       :reqtype: Process
-      :security: YES
-      :safety: ASIL_B
-      :status: invalid
+      :security: NO
+      :safety: QM
+      :status: valid
       :tags: environment
 
-      The Component shall only be used in a xyz environment to ensure its proper functioning.
+      The component shall be built in an environment that supports Rust edition 2021.

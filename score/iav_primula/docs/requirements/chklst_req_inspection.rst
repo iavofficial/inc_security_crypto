@@ -13,21 +13,13 @@
    # *******************************************************************************
 
 
-.. document:: [Your Component Name] Requirements Inspection Checklist
-  :id: doc__mod_temp_component_name_req_inspection
+.. document:: IAV Primula Requirements Inspection Checklist
+  :id: doc__iav_primula_req_inspection
   :status: draft
-  :safety: ASIL_B
-  :security: YES
+  :safety: QM
+  :security: NO
   :realizes: wp__requirements_inspect
-  :tags: template
-
-.. attention::
-    The above directive must be updated according to your Component.
-
-    - Modify ``Your Component Name`` to be your Component Name
-    - Modify ``id`` to be your Component Name in lower snake case preceded by ``doc__`` and followed by ``_req_inspection``
-    - Adjust ``status`` to be ``valid``
-    - Adjust ``safety``, ``security`` and ``tags`` according to your needs
+  :tags: iav_primula
 
 Requirement Inspection Checklist
 ================================
@@ -46,6 +38,8 @@ As described in the concept :need:`doc_concept__wp_inspections` the following "i
 - reviewer: <contributor/committer explicitly named here, who is the main content reviewer, must be different from content responsible>
 - moderator: <committer explicitly named here, who is is the safety manager, security manager or quality manager initiating the inspection>
 - test expert: <one of the reviewers explicitly named here, to cover REQ_08_01 as described>
+
+Current state: formal requirement inspection not executed yet.
 
 Checklist
 ---------
@@ -157,17 +151,17 @@ See also :need:`doc_concept__wp_inspections` for further information about revie
 
 
 .. attention::
-    The above checklist entries must be filled according to your component requirements in scope.
+    This checklist remains in draft until formal inspection is executed.
 
 Note: If a Review ID is not applicable for your requirement, then state ""n/a" in status and comment accordingly in remarks.
 
 The following requirements in "valid" state and with "inspected" tag set are in the scope of this inspection:
 
 .. needtable::
-   :filter: "component_name" in docname and "requirements" in docname and docname is not None and status == "valid"
+   :filter: "iav_primula" in docname and "requirements" in docname and docname is not None and status == "valid"
    :style: table
    :types: comp_req
-   :tags: component_name
+   :tags: iav_primula
    :columns: id;status;tags
    :colwidths: 25,25,25
    :sort: title
@@ -175,15 +169,10 @@ The following requirements in "valid" state and with "inspected" tag set are in 
 And also the following AoUs in "valid" state and with "inspected" tag set (for these please answer the questions above as if the AoUs are requirements, except question REQ_03_01):
 
 .. needtable::
-   :filter: "component_name" in docname and "requirements" in docname and docname is not None and status == "valid"
+   :filter: "iav_primula" in docname and "requirements" in docname and docname is not None and status == "valid"
    :style: table
    :types: aou_req
-   :tags: component_name
+   :tags: iav_primula
    :columns: id;status;tags
    :colwidths: 25,25,25
    :sort: title
-
-.. attention::
-    The above tables filtering must be updated according to your Component.
-
-    - Modify ``component_name`` to be your Component Name in lower snake case
