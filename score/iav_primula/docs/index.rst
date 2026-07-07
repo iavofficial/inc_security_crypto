@@ -12,7 +12,7 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-.. _component_template:
+.. _iav_primula_component:
 
 IAV Primula Component
 #####################
@@ -26,12 +26,6 @@ IAV Primula Component
    :security: NO
    :realizes: wp__cmpt_request
    :tags: iav_primula
-
-.. comp:: IAV Primula
-   :id: comp__iav_primula
-   :security: NO
-   :safety: QM
-   :status: valid
 
 Abstract
 ========

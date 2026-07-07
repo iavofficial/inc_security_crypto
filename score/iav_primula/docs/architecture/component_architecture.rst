@@ -73,7 +73,6 @@ A component can optional also consist of lower level components to further struc
    :security: NO
    :safety: QM
    :status: valid
-   :belongs_to: feat__security_crypto
 
 .. comp_arc_sta:: IAV Primula Static View
    :id: comp_arc_sta__iav_primula__sv
@@ -81,7 +80,6 @@ A component can optional also consist of lower level components to further struc
    :safety: QM
    :status: valid
    :belongs_to: comp__iav_primula
-   :fulfils: comp_req__iav_primula__provide_hello_message, comp_req__iav_primula__return_stable_baseline_text
 
    .. needarch::
       :scale: 50
@@ -98,7 +96,6 @@ Dynamic Architecture
    :safety: QM
    :status: valid
    :belongs_to: comp__iav_primula
-   :fulfils: comp_req__iav_primula__provide_hello_message
 
    Caller invokes ``get_hello_message()`` and receives the constant baseline
    string response immediately.
@@ -110,7 +107,7 @@ Interfaces
    :id: real_arc_int__iav_primula__get_hello_message
    :security: NO
    :safety: QM
-   :fulfils: comp_req__iav_primula__provide_hello_message
+   :status: valid
    :language: rust
 
 Internal Components
