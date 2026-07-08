@@ -33,8 +33,7 @@ Functional Requirements
    :id: comp_req__iav_primula__provide_hello_message
    :reqtype: Functional
    :security: NO
-   :safety: QM
-   :derived_from: feat_req__security_crypto__hello_world_baseline
+   :safety: ASIL_B
    :status: valid
    :satisfied_by: comp__iav_primula
 
@@ -49,7 +48,7 @@ Assumption of Use Requirements
 ------------------------------
 
 .. aou_req:: Integrate as Rust library API
-   :id: aou_req__iav_primula__integrate_as_rust_library_api
+   :id: aou_req__iav_primula__rust_lib_api
    :reqtype: Process
    :security: NO
    :safety: QM
@@ -62,7 +61,7 @@ Environmental Requirements
 --------------------------
 
 .. aou_req:: Build environment supports Rust 2021
-   :id: aou_req__iav_primula__build_env_supports_rust_2021
+   :id: aou_req__iav_primula__rust2021_build_env
    :reqtype: Process
    :security: NO
    :safety: QM

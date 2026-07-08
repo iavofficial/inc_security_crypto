@@ -12,7 +12,7 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-.. _component_architecture_template:
+.. _iav_primula_component_architecture:
 
 Component Architecture
 ======================
