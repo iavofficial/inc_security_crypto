@@ -33,7 +33,7 @@ Functional Requirements
    :id: comp_req__iav_primula__provide_hello_message
    :reqtype: Functional
    :security: NO
-   :safety: ASIL_A
+   :safety: ASIL_B
    :status: valid
    :satisfied_by: comp__iav_primula
 
