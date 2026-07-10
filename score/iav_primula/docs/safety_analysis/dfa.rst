@@ -20,7 +20,7 @@ DFA (Dependent Failure Analysis)
    :id: doc__iav_primula_dfa
    :status: draft
    :safety: QM
-   :security: NO
+   :security: YES
    :realizes: wp__sw_component_dfa
    :tags: iav_primula
 

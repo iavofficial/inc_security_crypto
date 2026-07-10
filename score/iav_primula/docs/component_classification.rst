@@ -21,7 +21,7 @@ Component Classification
    :id: doc__iav_primula_comp_class
    :status: draft
    :safety: QM
-   :security: NO
+   :security: YES
    :realizes: wp__sw_component_class
    :tags: iav_primula
 

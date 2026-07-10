@@ -25,7 +25,7 @@ Component AoU
    .. aou_req:: Integrate as Rust library API
       :id: aou_req__iav_primula__integrate_as_rust_library_api
       :reqtype: Process
-      :security: NO
+      :security: YES
       :safety: QM
       :status: valid
 
@@ -34,7 +34,7 @@ Component AoU
    .. aou_req:: Build environment supports Rust 2021
       :id: aou_req__iav_primula__build_env_supports_rust_2021
       :reqtype: Process
-      :security: NO
+      :security: YES
       :safety: QM
       :status: valid
       :tags: environment
