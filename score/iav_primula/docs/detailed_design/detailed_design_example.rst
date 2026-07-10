@@ -19,7 +19,7 @@ IAV Primula Detailed Design
    :id: doc__iav_primula_detailed_design
    :status: draft
    :safety: QM
-   :security: NO
+   :security: YES
    :realizes: wp__sw_implementation
    :tags: iav_primula
 
@@ -29,7 +29,7 @@ Detailed Design for Component: IAV Primula
 Description
 -----------
 
-The implementation is intentionally small and centralized in ``src/lib.rs``.
+The implementation is intentionally small and centralized in ``src/main.rs``.
 
 Design constraints:
 
@@ -39,7 +39,7 @@ Design constraints:
 
 Current unit split:
 
-- ``src/lib.rs``: public API and implementation of ``get_hello_message()``.
+- ``src/main.rs``: public API and implementation of ``get_hello_message()``.
 
 Rationale Behind Decomposition into Units
 ******************************************
@@ -84,4 +84,4 @@ API headers, trait definitions, or documented function signatures).
 
 Current unit list:
 
-- ``lib.rs``: returns constant hello message string.
+- ``main.rs``: returns constant hello message string.

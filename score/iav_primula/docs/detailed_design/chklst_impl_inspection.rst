@@ -16,7 +16,7 @@
   :id: doc__iav_primula_impl_inspection
   :status: draft
   :safety: QM
-  :security: NO
+  :security: YES
   :realizes: wp__sw_implementation_inspection
   :tags: iav_primula
 

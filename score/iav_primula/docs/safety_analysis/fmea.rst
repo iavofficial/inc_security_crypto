@@ -20,7 +20,7 @@ FMEA (Failure Modes and Effects Analysis)
    :id: doc__iav_primula_fmea
    :status: draft
    :safety: QM
-   :security: NO
+   :security: YES
    :realizes: wp__sw_component_fmea
    :tags: iav_primula
 

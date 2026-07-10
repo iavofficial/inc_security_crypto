@@ -23,7 +23,7 @@ IAV Primula Component
    :id: doc__iav_primula
    :status: draft
    :safety: QM
-   :security: NO
+   :security: YES
    :realizes: wp__cmpt_request
    :tags: iav_primula
 

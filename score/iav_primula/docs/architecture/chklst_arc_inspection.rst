@@ -17,7 +17,7 @@
   :id: doc__iav_primula_arc_inspection
   :status: draft
   :safety: QM
-  :security: NO
+  :security: YES
   :realizes: wp__sw_arch_verification
   :tags: iav_primula
 

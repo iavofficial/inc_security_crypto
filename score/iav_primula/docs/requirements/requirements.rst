@@ -19,7 +19,7 @@ IAV Primula Requirements
    :id: doc__iav_primula_requirements
    :status: draft
    :safety: QM
-   :security: NO
+   :security: YES
    :realizes: wp__requirements_comp[version==1]
    :tags: iav_primula
 
@@ -50,7 +50,7 @@ Assumption of Use Requirements
 .. aou_req:: Integrate as Rust library API
    :id: aou_req__iav_primula__rust_lib_api
    :reqtype: Process
-   :security: NO
+   :security: YES
    :safety: QM
    :status: valid
 
@@ -63,7 +63,7 @@ Environmental Requirements
 .. aou_req:: Build environment supports Rust 2021
    :id: aou_req__iav_primula__rust2021_build_env
    :reqtype: Process
-   :security: NO
+   :security: YES
    :safety: QM
    :status: valid
    :tags: environment

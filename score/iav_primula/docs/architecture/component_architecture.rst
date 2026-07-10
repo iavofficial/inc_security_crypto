@@ -19,7 +19,7 @@ Component Architecture Documentation
    :id: doc__iav_primula_architecture
    :status: draft
    :safety: QM
-   :security: NO
+   :security: YES
    :realizes: wp__component_arch
    :tags: iav_primula
 
@@ -45,7 +45,7 @@ Description
 -----------
 
 The component currently has no internal sub-components. Public API and
-implementation are both located in ``src/lib.rs``.
+implementation are both located in ``src/main.rs``.
 
 Design constraints:
 
@@ -70,14 +70,14 @@ A component can optional also consist of lower level components to further struc
 
 .. comp:: IAV Primula
    :id: comp__iav_primula
-   :security: NO
+   :security: YES
    :safety: QM
    :status: valid
    :belongs_to: feat__mtef
 
 .. comp_arc_sta:: IAV Primula Static View
    :id: comp_arc_sta__iav_primula__sv
-   :security: NO
+   :security: YES
    :safety: QM
    :status: valid
    :belongs_to: comp__iav_primula
@@ -94,7 +94,7 @@ Dynamic Architecture
 
 .. comp_arc_dyn:: IAV Primula Dynamic View
    :id: comp_arc_dyn__iav_primula__dv
-   :security: NO
+   :security: YES
    :safety: QM
    :status: valid
    :belongs_to: comp__iav_primula
