@@ -495,6 +495,7 @@
 <li class="toctree-l2"><a class="reference internal" href="key_management_details.html">Key Management Architecture</a></li>
 <li class="toctree-l2"><a class="reference internal" href="chklst_arc_inspection.html">Architecture Inspection Checklist</a></li>
 <li class="toctree-l2"><a class="reference internal" href="design_decisions.html">Design Decisions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_plane_architecture.html">Data Plane Architecture</a></li>
 </ul>
 </details></li>
 </ul>
@@ -563,7 +564,7 @@
   <section id="interfaces">
 <span id="crypto-interfaces"></span><h1>Interfaces<a class="headerlink" href="#interfaces" title="Link to this heading">#</a></h1>
 <p>The public API surface is organized into the following interface groups:</p>
-<div class="need_container docutils container" id="SNCB-906ec0fd">
+<div class="need_container docutils container" id="SNCB-36591918">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__i_crypto_stack">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -582,8 +583,7 @@
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -615,7 +615,7 @@ deadline enforcement.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-f0533351">
+<div class="need_container docutils container" id="SNCB-638d0757">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__crypto_resource_guard">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -634,8 +634,7 @@ deadline enforcement.</p></td>
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -672,7 +671,7 @@ IPC and auto-deactivates the guard on success.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-7fce62fe">
+<div class="need_container docutils container" id="SNCB-697c9f66">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__i_crypto_context">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -691,8 +690,7 @@ IPC and auto-deactivates the guard on success.</p>
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -731,7 +729,7 @@ resolution (with ACL), twelve <code class="docutils literal notranslate"><span c
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-ee8b947f">
+<div class="need_container docutils container" id="SNCB-4e32f8b3">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__i_memory_allocator">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -750,8 +748,7 @@ resolution (with ACL), twelve <code class="docutils literal notranslate"><span c
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -759,10 +756,11 @@ resolution (with ACL), twelve <code class="docutils literal notranslate"><span c
 </td>
 <td class="meta" colspan="3"></td>
 </tr>
-<tr class="content row-odd"><td class="content" colspan="6"><p>Zero-copy shared-memory allocator. Allocates provider-compatible
-memory regions with optional type and provider hints. Provides
-<code class="docutils literal notranslate"><span class="pre">Allocate()</span></code> for default and provider-compatible shared memory,
-with per-application quota tracking via <code class="docutils literal notranslate"><span class="pre">GetQuota()</span></code> and
+<tr class="content row-odd"><td class="content" colspan="6"><p>Zero-copy shared-memory allocator. Provides two allocation overloads:
+<code class="docutils literal notranslate"><span class="pre">Allocate(size,</span> <span class="pre">provider_type</span> <span class="pre">=</span> <span class="pre">nullopt)</span></code> for default or provider-category
+hints, and <code class="docutils literal notranslate"><span class="pre">Allocate(size,</span> <span class="pre">provider)</span></code> for zero-copy allocation bound to a
+specific resolved provider instance (<code class="docutils literal notranslate"><span class="pre">CryptoResourceId</span></code> of type
+<code class="docutils literal notranslate"><span class="pre">kProvider</span></code>). Per-application quota is tracked via <code class="docutils literal notranslate"><span class="pre">GetQuota()</span></code> and
 <code class="docutils literal notranslate"><span class="pre">GetCurrentUsage()</span></code>.</p></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
@@ -779,7 +777,7 @@ with per-application quota tracking via <code class="docutils literal notranslat
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-75b43497">
+<div class="need_container docutils container" id="SNCB-d4e5d880">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__streaming_contexts">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -798,8 +796,7 @@ with per-application quota tracking via <code class="docutils literal notranslat
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -840,7 +837,7 @@ only streaming state is cleared.</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-80d32959">
+<div class="need_container docutils container" id="SNCB-9210f8b3">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__i_key_mgmnt_context">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -859,8 +856,7 @@ only streaming state is cleared.</p>
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -918,7 +914,7 @@ wrapping (e.g., AES-GCM key wrap).</p>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-e23985af">
+<div class="need_container docutils container" id="SNCB-4f99fdef">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__i_cert_mgmt_context">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -937,8 +933,7 @@ wrapping (e.g., AES-GCM key wrap).</p>
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -975,7 +970,7 @@ request construction (<code class="docutils literal notranslate"><span class="pr
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-3860c8a9">
+<div class="need_container docutils container" id="SNCB-fe749bde">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__i_cert_ver_context">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -994,8 +989,7 @@ request construction (<code class="docutils literal notranslate"><span class="pr
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -1021,7 +1015,7 @@ policy via fluent setters, then executes verification with <code class="docutils
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-4aab0402">
+<div class="need_container docutils container" id="SNCB-b96e7641">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__i_csr_gen_context">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1040,8 +1034,7 @@ policy via fluent setters, then executes verification with <code class="docutils
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -1068,7 +1061,7 @@ SAN extensions via fluent setters, then generates with
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-56e25694">
+<div class="need_container docutils container" id="SNCB-b972bd7c">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__typed_objects">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1087,8 +1080,7 @@ SAN extensions via fluent setters, then generates with
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -1126,7 +1118,7 @@ Obtained via <code class="docutils literal notranslate"><span class="pre">ICrypt
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-9201ada3">
+<div class="need_container docutils container" id="SNCB-6c9022a6">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__crypto_resource_id">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1145,8 +1137,7 @@ Obtained via <code class="docutils literal notranslate"><span class="pre">ICrypt
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -1177,7 +1168,7 @@ configuration path.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-e3c86eec">
+<div class="need_container docutils container" id="SNCB-9295cbeb">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__base_context_config">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1196,8 +1187,7 @@ configuration path.</p></td>
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -1234,7 +1224,7 @@ Key-bearing configs accept a <code class="docutils literal notranslate"><span cl
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-1b97644d">
+<div class="need_container docutils container" id="SNCB-16cbefec">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__kdf_parameters">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1253,8 +1243,7 @@ Key-bearing configs accept a <code class="docutils literal notranslate"><span cl
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -1287,7 +1276,7 @@ optionally by <code class="docutils literal notranslate"><span class="pre">Agree
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-2a1b8062">
+<div class="need_container docutils container" id="SNCB-4abb96d6">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__key_operation_params">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1306,8 +1295,7 @@ optionally by <code class="docutils literal notranslate"><span class="pre">Agree
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -1352,7 +1340,7 @@ struct — it is expressed via the method overload signature
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-1c316a4f">
+<div class="need_container docutils container" id="SNCB-13af9fc9">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__i_hash_context">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1371,8 +1359,7 @@ struct — it is expressed via the method overload signature
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -1400,7 +1387,7 @@ exposed — use <code class="docutils literal notranslate"><span class="pre">Get
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-f6cbeb26">
+<div class="need_container docutils container" id="SNCB-c116a490">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__i_mac_context">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1419,8 +1406,7 @@ exposed — use <code class="docutils literal notranslate"><span class="pre">Get
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -1449,7 +1435,7 @@ instead.</p></td>
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-a4d49fdd">
+<div class="need_container docutils container" id="SNCB-8e227f79">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__i_cipher_context">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1468,8 +1454,7 @@ instead.</p></td>
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -1501,7 +1486,7 @@ Direction (encrypt/decrypt) selected via
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-a2535974">
+<div class="need_container docutils container" id="SNCB-382eeee2">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__i_aead_context">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1520,8 +1505,7 @@ Direction (encrypt/decrypt) selected via
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -1552,7 +1536,7 @@ dual finalization paths (<code class="docutils literal notranslate"><span class=
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-2fc0dc35">
+<div class="need_container docutils container" id="SNCB-29eac404">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__i_sign_context">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1571,8 +1555,7 @@ dual finalization paths (<code class="docutils literal notranslate"><span class=
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -1600,7 +1583,7 @@ Adds <code class="docutils literal notranslate"><span class="pre">SignFinalize()
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-023d2ca6">
+<div class="need_container docutils container" id="SNCB-7e5fe511">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__i_verify_sign_context">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1619,8 +1602,7 @@ Adds <code class="docutils literal notranslate"><span class="pre">SignFinalize()
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
@@ -1646,7 +1628,7 @@ Adds <code class="docutils literal notranslate"><span class="pre">VerifyFinalize
 </table>
 </div>
 </div>
-<div class="need_container docutils container" id="SNCB-ad8a8f53">
+<div class="need_container docutils container" id="SNCB-f1ec1e55">
 <div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_real_arc_int table" id="real_arc_int__crypto__i_random_context">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
@@ -1665,8 +1647,7 @@ Adds <code class="docutils literal notranslate"><span class="pre">VerifyFinalize
 </td>
 </tr>
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
-<div class="line"><span><span><div class="line"><span class="needs_tags"><span class="needs_label">tags: </span><span class="needs_data_container"><span class="needs_data">crypto</span></span></span></div>
-<div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
+<div class="line"><span><span><div class="line"><span class="needs_language"><span class="needs_label">language: </span><span class="needs_data">cpp</span></span></div>
 <div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
 <div class="line"><span></span></div>
