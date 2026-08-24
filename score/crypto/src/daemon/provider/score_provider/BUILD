@@ -58,6 +58,33 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "provider_iav_primula_library",
+    srcs = [
+        "iav_primula/iav_primula_provider.cpp",
+        "iav_primula/operations/factory/iav_primula_handler_factory.cpp",
+    ],
+    hdrs = [
+        "iav_primula/iav_primula_provider.hpp",
+        "iav_primula/operations/factory/iav_primula_handler_factory.hpp",
+    ],
+    target_compatible_with = select({
+        "//score/crypto/src/backend:primula_backend_active": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+    visibility = ["//score/crypto/src/backend/score_provider/iav_primula:__pkg__"],
+    deps = [
+        "//score/crypto/src/daemon/common:algorithm_info",
+        "//score/crypto/src/daemon/key_management:key_management_headers",
+        "//score/crypto/src/daemon/provider/handler:crypto_handler_factory_headers",
+        "//score/crypto/src/daemon/provider/score_provider",
+        "//score/crypto/src/daemon/provider/score_provider/operations/factory:score_handler_factory",
+        "//score/crypto/src/daemon/provider/score_provider/operations/kem:score_kem_handler",
+        "//score/crypto/src/daemon/provider/score_provider/operations/sign:score_sign_handler",
+        "//score/crypto/src/daemon/provider/score_provider/operations/verify:score_verify_handler",
+    ],
+)
+
 # Top-level factory for the score interface family.
 cc_library(
     name = "score_provider_factory",
