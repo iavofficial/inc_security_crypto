@@ -42,6 +42,18 @@ ScoreHandlerFactory::ScoreHandlerFactory(std::shared_ptr<key_management::IKeyFac
     {
         return CreateKeyManagementHandler();
     }
+    if (handlerId == SIGN)
+    {
+        return CreateSignHandler(algorithm);
+    }
+    if (handlerId == VERIFY)
+    {
+        return CreateVerifyHandler(algorithm);
+    }
+    if (handlerId == KEM)
+    {
+        return CreateKemHandler(algorithm);
+    }
 
     ::score::result::Error error(
         static_cast<::score::result::ErrorCode>(::score::crypto::CryptoErrorCode::kUnsupportedOperation),
@@ -78,6 +90,36 @@ ScoreHandlerFactory::ScoreHandlerFactory(std::shared_ptr<key_management::IKeyFac
         static_cast<::score::result::ErrorCode>(::score::crypto::CryptoErrorCode::kUnsupportedOperation),
         ::score::crypto::kCryptoErrorDomain,
         "Key management handler not supported by this score provider");
+    return ::score::Result<handler::Handler::Sptr>(::score::unexpect, error);
+}
+
+::score::Result<handler::Handler::Sptr> ScoreHandlerFactory::CreateSignHandler(
+    const common::AlgorithmId& /*algorithm*/)
+{
+    ::score::result::Error error(
+        static_cast<::score::result::ErrorCode>(::score::crypto::CryptoErrorCode::kUnsupportedOperation),
+        ::score::crypto::kCryptoErrorDomain,
+        "Signature handler not supported by this score provider");
+    return ::score::Result<handler::Handler::Sptr>(::score::unexpect, error);
+}
+
+::score::Result<handler::Handler::Sptr> ScoreHandlerFactory::CreateVerifyHandler(
+    const common::AlgorithmId& /*algorithm*/)
+{
+    ::score::result::Error error(
+        static_cast<::score::result::ErrorCode>(::score::crypto::CryptoErrorCode::kUnsupportedOperation),
+        ::score::crypto::kCryptoErrorDomain,
+        "Signature verification handler not supported by this score provider");
+    return ::score::Result<handler::Handler::Sptr>(::score::unexpect, error);
+}
+
+::score::Result<handler::Handler::Sptr> ScoreHandlerFactory::CreateKemHandler(
+    const common::AlgorithmId& /*algorithm*/)
+{
+    ::score::result::Error error(
+        static_cast<::score::result::ErrorCode>(::score::crypto::CryptoErrorCode::kUnsupportedOperation),
+        ::score::crypto::kCryptoErrorDomain,
+        "Key encapsulation handler not supported by this score provider");
     return ::score::Result<handler::Handler::Sptr>(::score::unexpect, error);
 }
 

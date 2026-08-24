@@ -60,6 +60,18 @@ class ScoreHandlerFactory : public handler::ICryptoHandlerFactory
     /// Override in concrete provider to create a key management handler. Default returns unsupported.
     [[nodiscard]] virtual ::score::Result<handler::Handler::Sptr> CreateKeyManagementHandler();
 
+    /// Override in concrete provider to create a signature handler. Default returns unsupported.
+    [[nodiscard]] virtual ::score::Result<handler::Handler::Sptr> CreateSignHandler(
+        const common::AlgorithmId& algorithm);
+
+    /// Override in concrete provider to create a signature verification handler. Default returns unsupported.
+    [[nodiscard]] virtual ::score::Result<handler::Handler::Sptr> CreateVerifyHandler(
+        const common::AlgorithmId& algorithm);
+
+    /// Override in concrete provider to create a key encapsulation handler. Default returns unsupported.
+    [[nodiscard]] virtual ::score::Result<handler::Handler::Sptr> CreateKemHandler(
+        const common::AlgorithmId& algorithm);
+
     std::shared_ptr<key_management::IKeyFactory> m_key_factory;
     std::shared_ptr<key_management::IKeySlotHandler> m_slot_handler;
     key_management::KeyManagementService::Sptr m_km_service;
@@ -68,6 +80,9 @@ class ScoreHandlerFactory : public handler::ICryptoHandlerFactory
     static constexpr const char* HASH = "HASH";
     static constexpr const char* MAC = "MAC";
     static constexpr const char* KEY_MANAGEMENT = "KEY_MANAGEMENT";
+    static constexpr const char* SIGN = "SIGN";
+    static constexpr const char* VERIFY = "VERIFY";
+    static constexpr const char* KEM = "KEM";
 };
 
 }  // namespace score::crypto::daemon::provider::score_provider::operations::factory
