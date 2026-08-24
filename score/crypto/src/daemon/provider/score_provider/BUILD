@@ -63,10 +63,14 @@ cc_library(
     srcs = [
         "iav_primula/iav_primula_provider.cpp",
         "iav_primula/operations/factory/iav_primula_handler_factory.cpp",
+        "iav_primula/key_management/iav_primula_key_factory.cpp",
+        "iav_primula/key_management/iav_primula_key_handler.cpp",
     ],
     hdrs = [
         "iav_primula/iav_primula_provider.hpp",
         "iav_primula/operations/factory/iav_primula_handler_factory.hpp",
+        "iav_primula/key_management/iav_primula_key_factory.hpp",
+        "iav_primula/key_management/iav_primula_key_handler.hpp",
     ],
     target_compatible_with = select({
         "//score/crypto/src/backend:primula_backend_active": [],
@@ -82,6 +86,8 @@ cc_library(
         "//score/crypto/src/daemon/provider/score_provider/operations/kem:score_kem_handler",
         "//score/crypto/src/daemon/provider/score_provider/operations/sign:score_sign_handler",
         "//score/crypto/src/daemon/provider/score_provider/operations/verify:score_verify_handler",
+        "//score/iav_primula:iav_primula_ffi_headers",
+        "//score/iav_primula:iav_primula_staticlib",
     ],
 )
 
