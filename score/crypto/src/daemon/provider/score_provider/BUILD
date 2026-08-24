@@ -67,6 +67,7 @@ cc_library(
         "iav_primula/key_management/iav_primula_key_handler.cpp",
         "iav_primula/operations/sign/iav_primula_sign_handler.cpp",
         "iav_primula/operations/verify/iav_primula_verify_handler.cpp",
+        "iav_primula/operations/kem/iav_primula_kem_handler.cpp",
     ],
     hdrs = [
         "iav_primula/iav_primula_provider.hpp",
@@ -75,6 +76,7 @@ cc_library(
         "iav_primula/key_management/iav_primula_key_handler.hpp",
         "iav_primula/operations/sign/iav_primula_sign_handler.hpp",
         "iav_primula/operations/verify/iav_primula_verify_handler.hpp",
+        "iav_primula/operations/kem/iav_primula_kem_handler.hpp",
     ],
     target_compatible_with = select({
         "//score/crypto/src/backend:primula_backend_active": [],
