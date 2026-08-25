@@ -22,9 +22,6 @@ build --tool_java_language_version=17
 build --java_runtime_version=remotejdk_17
 build --tool_java_runtime_version=remotejdk_17
 
-# Enable the iav_primula score provider for CI and repository-wide score tests.
-build --//score/crypto/src/backend:score_crypto_score_primula_enabled=true
-
 # Only contact license server every 59 secs per tool and not for every tool invocation to avoid flooding the license server
 common --action_env=QNX_LICENSE_EXTSERVER_DELAY=59
 
