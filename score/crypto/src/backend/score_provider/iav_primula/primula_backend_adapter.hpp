@@ -46,7 +46,7 @@ class PrimulaBackendAdapter final : public daemon::provider::score_provider::IBa
     /// Returns:
     ///   - backend_id:    "primula"
     ///   - backend_name:  "PRIMULA"
-    ///   - provider_type: "SOFTWARE"
+    ///   - provider_type: "SPECIALIZED"
     ///   - create_provider: constructs and returns a unique_ptr<OpenSSL>
     [[nodiscard]] daemon::provider::score_provider::ProviderCreator GetProviderCreator() const override;
 };

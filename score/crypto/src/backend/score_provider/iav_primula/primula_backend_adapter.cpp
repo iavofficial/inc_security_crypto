@@ -24,7 +24,10 @@ daemon::provider::score_provider::ProviderCreator PrimulaBackendAdapter::GetProv
 
     return ProviderCreator{.backend_id = "primula",
                            .backend_name = "PRIMULA",
-                           .provider_type = "SOFTWARE",
+                           // PRIMULA is a specialised post-quantum provider. It
+                           // must not satisfy generic SOFTWARE requests (e.g.
+                           // SHA-256 or HMAC), which are handled by OPENSSL.
+                           .provider_type = "SPECIALIZED",
                            .create_provider = []() -> std::unique_ptr<daemon::provider::IProvider> {
                                return std::make_unique<daemon::provider::score_provider::iav_primula::IavPrimulaProvider>();
                            }};
