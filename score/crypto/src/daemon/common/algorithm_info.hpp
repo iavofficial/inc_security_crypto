@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef CRYPTO_DAEMON_COMMON_ALGORITHM_INFO_HPP
-#define CRYPTO_DAEMON_COMMON_ALGORITHM_INFO_HPP
+#ifndef SCORE_CRYPTO_SRC_DAEMON_COMMON_ALGORITHM_INFO_HPP
+#define SCORE_CRYPTO_SRC_DAEMON_COMMON_ALGORITHM_INFO_HPP
 
 #include <cstddef>
 #include <cstdint>
@@ -112,12 +112,12 @@ enum class PqcAlgorithmKind : std::uint8_t
 /// The provider remains responsible for validating the actual encoding.
 struct PqcAlgorithmInfo
 {
-    std::string_view name;
-    PqcAlgorithmKind kind;
-    std::size_t public_key_size;
-    std::size_t private_key_size;
-    std::size_t signature_or_ciphertext_size;
-    std::size_t shared_secret_size;
+    std::string_view name;                    ///< Standardized algorithm identifier.
+    PqcAlgorithmKind kind;                    ///< Signature or KEM algorithm.
+    std::size_t public_key_size;              ///< Public key size in bytes.
+    std::size_t private_key_size;             ///< Private key size in bytes.
+    std::size_t signature_or_ciphertext_size; ///< Signature or ciphertext size in bytes; zero when not applicable.
+    std::size_t shared_secret_size;           ///< Shared-secret size in bytes; zero for signature algorithms.
 };
 
 inline constexpr PqcAlgorithmInfo kPqcAlgorithms[] = {
@@ -191,4 +191,4 @@ inline constexpr KeyAlgorithmInfo kKeyAlgorithms[] = {
 
 }  // namespace score::crypto::daemon::common
 
-#endif  // CRYPTO_DAEMON_COMMON_ALGORITHM_INFO_HPP
+#endif  // SCORE_CRYPTO_SRC_DAEMON_COMMON_ALGORITHM_INFO_HPP

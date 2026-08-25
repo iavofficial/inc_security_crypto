@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SCORE_CRYPTO_DAEMON_COMMON_OPERATION_NAMES_HPP
-#define SCORE_CRYPTO_DAEMON_COMMON_OPERATION_NAMES_HPP
+#ifndef SCORE_CRYPTO_SRC_DAEMON_COMMON_OPERATION_NAMES_HPP
+#define SCORE_CRYPTO_SRC_DAEMON_COMMON_OPERATION_NAMES_HPP
 
 /// @file operation_names.hpp
 /// @brief Human-readable names for OperationActor and OperationAction values.
@@ -31,8 +31,8 @@
 /// @endcode
 ///
 /// ### Design notes
-/// - Header-only: all functions are constexpr, no runtime tables.
-/// - Covers all first-party actors and their operations.
+/// - Header-only: lookup functions are constexpr and do not use runtime tables.
+/// - Covers the operation namespaces currently registered by this component.
 /// - Falls back to "<unknown_actor>" / "<unknown_op>" for future or custom values,
 ///   while still printing the numeric ids so nothing is lost.
 
@@ -55,6 +55,7 @@ namespace score::crypto::daemon::common
 {
 
 /// @brief Returns the symbolic name for a registered OperationActor value.
+/// @return Symbolic actor name, or "<unknown_actor>" for unknown actors.
 constexpr std::string_view ActorName(OperationActor actor) noexcept
 {
     switch (actor)
@@ -86,6 +87,8 @@ constexpr std::string_view ActorName(OperationActor actor) noexcept
 ///
 /// The actor context is required because the same action integer has different meanings
 /// across actors (e.g., action=1 is CTX_CREATE for MEDIATOR but HASH_INIT for HASH_HANDLER).
+/// @return Symbolic operation name, or an actor-specific unknown-operation marker
+///         if the action is not registered.
 constexpr std::string_view ActionName(OperationActor actor, OperationAction action) noexcept
 {
     // Mediator action constants (mediator_operations.hpp cannot be included here without
@@ -266,4 +269,4 @@ inline score::mw::log::LogStream& operator<<(score::mw::log::LogStream& os, cons
 
 }  // namespace score::crypto::daemon::common
 
-#endif  // SCORE_CRYPTO_DAEMON_COMMON_OPERATION_NAMES_HPP
+#endif  // SCORE_CRYPTO_SRC_DAEMON_COMMON_OPERATION_NAMES_HPP

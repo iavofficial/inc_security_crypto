@@ -32,8 +32,13 @@ inline constexpr common::OperationAction VERIFY_FINALIZE = 3;
 inline constexpr common::OperationAction VERIFY_SS = 4;
 /// @brief Reset the verification operation state.
 inline constexpr common::OperationAction VERIFY_RESET = 5;
+
+/// @brief First operation identifier reserved for custom verification operations.
+///
+/// The highest bit separates custom operation identifiers from the
+/// built-in verification handler operations.
 inline constexpr common::OperationAction VERIFY_CUSTOM_OP_START =
     1 << (std::numeric_limits<common::OperationAction>::digits - 1);
 }  // namespace score::crypto::daemon::provider::handler::verify_handler_operations
 
-#endif
+#endif  // SCORE_CRYPTO_DAEMON_PROVIDER_HANDLER_VERIFY_HANDLER_OPERATIONS_HPP

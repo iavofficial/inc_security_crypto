@@ -41,6 +41,7 @@ using MediatorId = std::string;
 // ProviderName: Human-readable identifier used at configuration and setup time
 using ProviderName = std::string;
 
+/// @brief Configuration name identifying the IAV-Primula provider.
 inline const ProviderName kProviderNameIavPrimula{"IAV_PRIMULA"};
 
 // ProviderId: Numeric identifier assigned at runtime by ProviderManager

@@ -34,8 +34,13 @@ inline constexpr common::OperationAction SIGN_SS = 4;
 inline constexpr common::OperationAction SIGN_GET_SIGNATURE_SIZE = 5;
 /// @brief Reset the signature operation state.
 inline constexpr common::OperationAction SIGN_RESET = 6;
+
+/// @brief First operation identifier reserved for custom signature operations.
+///
+/// The highest bit separates custom operation identifiers from the
+/// built-in signature handler operations.
 inline constexpr common::OperationAction SIGN_CUSTOM_OP_START =
     1 << (std::numeric_limits<common::OperationAction>::digits - 1);
 }  // namespace score::crypto::daemon::provider::handler::sign_handler_operations
 
-#endif
+#endif  // SCORE_CRYPTO_DAEMON_PROVIDER_HANDLER_SIGN_HANDLER_OPERATIONS_HPP

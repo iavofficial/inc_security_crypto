@@ -19,17 +19,20 @@
 namespace score::crypto::backend::score_provider::primula
 {
 
-/// @brief OpenSSL backend adapter for score provider family
+/// @brief IAV-Primula backend adapter for the score provider family.
 ///
-/// Provides factory creation metadata for the OpenSSL crypto backend.
-/// This adapter is discovered at compile-time via
-/// backend/score_provider/active_backends_list.hpp.
+/// Provides factory creation metadata for the IAV-Primula post-quantum
+/// crypto backend. This adapter is included at compile time via
+/// backend/score_provider/active_backends_list.hpp when the Primula backend
+/// is enabled in the Bazel configuration.
 ///
-/// The OpenSSL backend implementation lives in:
-///   - daemon/provider/score_provider/iav_primula/provider_primula.*
+/// The IAV-Primula backend implementation lives in:
+///   - daemon/provider/score_provider/iav_primula/iav_primula_provider.*
 ///   - daemon/provider/score_provider/iav_primula/operations/*
 ///
-/// This adapter serves as the registration/enablement layer only.
+/// This adapter provides backend metadata and creates the corresponding
+/// provider instance. Cryptographic operations are implemented by the
+/// IAV-Primula provider and its handlers.
 class PrimulaBackendAdapter final : public daemon::provider::score_provider::IBackendProviderAdapter
 {
   public:
@@ -41,13 +44,13 @@ class PrimulaBackendAdapter final : public daemon::provider::score_provider::IBa
     PrimulaBackendAdapter(PrimulaBackendAdapter&&) = delete;
     PrimulaBackendAdapter& operator=(PrimulaBackendAdapter&&) = delete;
 
-    /// @brief Get provider creator for the OpenSSL backend.
+    /// @brief Get the provider creator for the IAV-Primula backend.
     ///
     /// Returns:
     ///   - backend_id:    "primula"
     ///   - backend_name:  "PRIMULA"
     ///   - provider_type: "SPECIALIZED"
-    ///   - create_provider: constructs and returns a unique_ptr<OpenSSL>
+    ///   - create_provider: constructs and returns an IavPrimulaProvider
     [[nodiscard]] daemon::provider::score_provider::ProviderCreator GetProviderCreator() const override;
 };
 
