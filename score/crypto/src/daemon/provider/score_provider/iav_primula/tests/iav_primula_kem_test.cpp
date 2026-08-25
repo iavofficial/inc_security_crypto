@@ -47,7 +47,7 @@ TEST(IavPrimulaKemTest, RejectsInvalidEncapsulationInput)
 {
     IavPrimulaKemHandler handler{std::make_unique<Executor>(), "ML-KEM-768"};
     const std::uint8_t public_key[] = {1U, 2U};
-    auto result = handler.Encapsulate(common::VirtualMemoryBufferConst{public_key, sizeof(public_key)});
+    auto result = handler.Encapsulate(score::cpp::span<const std::uint8_t>{public_key, sizeof(public_key)});
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), common::DaemonErrorCode::kInvalidArgument);
 }
@@ -56,7 +56,7 @@ TEST(IavPrimulaKemTest, RequiresBoundKeyForDecapsulation)
 {
     IavPrimulaKemHandler handler{std::make_unique<Executor>(), "ML-KEM-768"};
     const std::uint8_t ciphertext[] = {1U, 2U};
-    auto result = handler.Decapsulate(common::VirtualMemoryBufferConst{ciphertext, sizeof(ciphertext)});
+    auto result = handler.Decapsulate(score::cpp::span<const std::uint8_t>{ciphertext, sizeof(ciphertext)});
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), common::DaemonErrorCode::kInvalidArgument);
 }
@@ -65,7 +65,7 @@ TEST(IavPrimulaKemTest, PropagatesBackendStatusForValidEncapsulation)
 {
     IavPrimulaKemHandler handler{std::make_unique<Executor>(), "ML-KEM-768"};
     const std::vector<std::uint8_t> public_key(1184U, 0U);
-    auto result = handler.Encapsulate(common::VirtualMemoryBufferConst{public_key.data(), public_key.size()});
+    auto result = handler.Encapsulate(score::cpp::span<const std::uint8_t>{public_key.data(), public_key.size()});
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), common::DaemonErrorCode::kOperationFailed);
 }
@@ -78,7 +78,7 @@ TEST(IavPrimulaKemTest, PropagatesBackendStatusForValidDecapsulation)
     params.bound_key_handler = &key;
     ASSERT_TRUE(handler.InitializeContext(params).has_value());
     const std::vector<std::uint8_t> ciphertext(1088U, 0U);
-    auto result = handler.Decapsulate(common::VirtualMemoryBufferConst{ciphertext.data(), ciphertext.size()});
+    auto result = handler.Decapsulate(score::cpp::span<const std::uint8_t>{ciphertext.data(), ciphertext.size()});
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), common::DaemonErrorCode::kOperationFailed);
 }
@@ -88,11 +88,12 @@ TEST(IavPrimulaKemTest, DispatchesOperationsAndReset)
     using namespace score::crypto::daemon::provider::handler::kem_handler_operations;
     IavPrimulaKemHandler handler{std::make_unique<Executor>(), "ML-KEM-768"};
     common::OperationIdentifier keygen{0U, KEM_KEYGEN};
-    auto keygen_result = handler.Execute(keygen, {});
+    common::RequestParameters no_parameters{};
+    auto keygen_result = handler.Execute(keygen, no_parameters);
     ASSERT_FALSE(keygen_result.has_value());
     EXPECT_EQ(keygen_result.error(), common::DaemonErrorCode::kOperationFailed);
     common::OperationIdentifier reset{0U, KEM_RESET};
-    auto reset_result = handler.Execute(reset, {});
+    auto reset_result = handler.Execute(reset, no_parameters);
     ASSERT_TRUE(reset_result.has_value());
     EXPECT_TRUE(reset_result->empty());
 }

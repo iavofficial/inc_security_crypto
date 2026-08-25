@@ -82,7 +82,10 @@ cc_library(
         "//score/crypto/src/backend:primula_backend_active": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    visibility = ["//score/crypto/src/backend/score_provider/iav_primula:__pkg__"],
+    visibility = [
+        "//score/crypto/src/backend/score_provider/iav_primula:__pkg__",
+        "//score/crypto/src/daemon/provider/score_provider:__subpackages__",
+    ],
     deps = [
         "//score/crypto/src/daemon/common:algorithm_info",
         "//score/crypto/src/daemon/key_management:key_management_headers",

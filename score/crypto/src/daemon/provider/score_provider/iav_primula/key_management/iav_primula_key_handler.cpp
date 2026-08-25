@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/key_management/iav_primula_key_handler.hpp"
-#include "score/mw/crypto/api/common/types.hpp"
+#include "score/crypto/src/api/common/types.hpp"
 #include <algorithm>
 
 namespace score::crypto::daemon::provider::score_provider::iav_primula
@@ -50,7 +50,7 @@ Expected<std::monostate, common::DaemonErrorCode> IavPrimulaKeyHandler::Release(
 
 Expected<key_management::SecureKeyBytes, common::DaemonErrorCode> IavPrimulaKeyHandler::Export() const
 {
-    if (!score::mw::crypto::HasPermission(m_handle.permissions, score::mw::crypto::KeyOperationPermission::kExport) ||
+    if (!score::crypto::HasPermission(m_handle.permissions, score::crypto::KeyOperationPermission::kExport) ||
         m_released)
     {
         return make_unexpected(common::DaemonErrorCode::kKeyOperationNotPermitted);

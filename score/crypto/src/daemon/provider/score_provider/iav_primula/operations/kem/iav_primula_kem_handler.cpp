@@ -79,11 +79,11 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandl
 Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandler::Encapsulate(
     const common::RequestParameter& request)
 {
-    const auto* public_key = std::get_if<common::VirtualMemoryBufferConst>(&request);
+    const auto* public_key = std::get_if<score::cpp::span<const std::uint8_t>>(&request);
     const auto info = common::LookupPqcAlgorithm(m_algorithm);
     auto algorithm = GetAlgorithm();
     if (public_key == nullptr || !info.has_value() || !algorithm.has_value() ||
-        public_key->size != info->public_key_size)
+        public_key->size() != info->public_key_size)
     {
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
@@ -92,7 +92,7 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandl
     std::vector<std::uint8_t> secret(info->shared_secret_size);
     std::size_t ciphertext_length = ciphertext.size();
     std::size_t secret_length = secret.size();
-    const auto status = iav_kem_encapsulate(algorithm.value(), public_key->data, public_key->size,
+    const auto status = iav_kem_encapsulate(algorithm.value(), public_key->data(), public_key->size(),
                                             ciphertext.data(), &ciphertext_length, secret.data(), &secret_length);
     if (status != IAV_STATUS_OK || ciphertext_length != ciphertext.size() || secret_length != secret.size())
     {
@@ -105,17 +105,17 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandl
 Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandler::Decapsulate(
     const common::RequestParameter& request)
 {
-    const auto* ciphertext = std::get_if<common::VirtualMemoryBufferConst>(&request);
+    const auto* ciphertext = std::get_if<score::cpp::span<const std::uint8_t>>(&request);
     const auto info = common::LookupPqcAlgorithm(m_algorithm);
     if (m_key == nullptr || ciphertext == nullptr || !info.has_value() ||
-        ciphertext->size != info->signature_or_ciphertext_size)
+        ciphertext->size() != info->signature_or_ciphertext_size)
     {
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
 
     std::vector<std::uint8_t> secret(info->shared_secret_size);
     std::size_t length = secret.size();
-    const auto status = iav_kem_decapsulate(m_key, ciphertext->data, ciphertext->size, secret.data(), &length);
+    const auto status = iav_kem_decapsulate(m_key, ciphertext->data(), ciphertext->size(), secret.data(), &length);
     if (status != IAV_STATUS_OK || length != secret.size())
     {
         return make_unexpected(common::DaemonErrorCode::kOperationFailed);

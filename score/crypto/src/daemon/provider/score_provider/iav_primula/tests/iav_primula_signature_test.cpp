@@ -52,9 +52,9 @@ TEST(IavPrimulaSignatureTest, ValidatesOutputBuffer)
 
     const std::uint8_t message[] = {1U, 2U};
     std::vector<std::uint8_t> output(10U);
-    common::RequestParameter input = common::VirtualMemoryBufferConst{message, 2U};
+    common::RequestParameter input = score::cpp::span<const std::uint8_t>{message, 2U};
     auto result = handler.SingleShotSign(input,
-                                         common::VirtualMemoryBuffer{output.data(), output.size()});
+                                         score::cpp::span<std::uint8_t>{output.data(), output.size()});
     EXPECT_EQ(result.error(), common::DaemonErrorCode::kInsufficientBufferSize);
 }
 }  // namespace

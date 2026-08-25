@@ -124,7 +124,7 @@ Expected<ResponseParameters, DaemonErrorCode> IavPrimulaSignHandler::SingleShotS
         return make_unexpected(algorithm_result.error());
     }
 
-    const auto* input = std::get_if<common::VirtualMemoryBufferConst>(&data);
+    const auto* input = std::get_if<score::cpp::span<const std::uint8_t>>(&data);
     if (input == nullptr)
     {
         return make_unexpected(DaemonErrorCode::kInvalidDataType);
@@ -141,16 +141,16 @@ Expected<ResponseParameters, DaemonErrorCode> IavPrimulaSignHandler::SingleShotS
 
     if (!allocate_output_buffer)
     {
-        auto* output_buffer = std::get_if<common::VirtualMemoryBuffer>(&output.value());
+        auto* output_buffer = std::get_if<score::cpp::span<std::uint8_t>>(&output.value());
         if (output_buffer == nullptr)
         {
             return make_unexpected(DaemonErrorCode::kInvalidDataType);
         }
-        if (output_buffer->data == nullptr || output_buffer->size < expected_signature_length)
+        if (output_buffer->data() == nullptr || output_buffer->size() < expected_signature_length)
         {
             return make_unexpected(DaemonErrorCode::kInsufficientBufferSize);
         }
-        signature_data = output_buffer->data;
+        signature_data = output_buffer->data();
     }
     else
     {
@@ -160,7 +160,7 @@ Expected<ResponseParameters, DaemonErrorCode> IavPrimulaSignHandler::SingleShotS
     }
 
     std::size_t signature_length = expected_signature_length;
-    const auto status = iav_sign(m_key, input->data, input->size, signature_data, &signature_length);
+    const auto status = iav_sign(m_key, input->data(), input->size(), signature_data, &signature_length);
     if (status != IAV_STATUS_OK || signature_length != expected_signature_length)
     {
         return make_unexpected(DaemonErrorCode::kAlgorithmExecutionFailed);
@@ -173,7 +173,7 @@ Expected<ResponseParameters, DaemonErrorCode> IavPrimulaSignHandler::SingleShotS
     }
     else
     {
-        response.emplace_back(common::VirtualMemoryBufferConst{signature_data, signature_length});
+        response.emplace_back(score::cpp::span<const std::uint8_t>{signature_data, signature_length});
     }
     return response;
 }

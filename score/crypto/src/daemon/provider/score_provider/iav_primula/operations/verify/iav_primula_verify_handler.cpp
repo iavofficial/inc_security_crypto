@@ -77,8 +77,8 @@ Expected<bool, common::DaemonErrorCode> IavPrimulaVerifyHandler::SingleShotVerif
     {
         return make_unexpected(algorithm.error());
     }
-    const auto* message = std::get_if<common::VirtualMemoryBufferConst>(&data);
-    const auto* sig = std::get_if<common::VirtualMemoryBufferConst>(&signature);
+    const auto* message = std::get_if<score::cpp::span<const std::uint8_t>>(&data);
+    const auto* sig = std::get_if<score::cpp::span<const std::uint8_t>>(&signature);
     if (message == nullptr || sig == nullptr)
     {
         return make_unexpected(common::DaemonErrorCode::kInvalidDataType);
@@ -87,11 +87,11 @@ Expected<bool, common::DaemonErrorCode> IavPrimulaVerifyHandler::SingleShotVerif
     {
         return make_unexpected(common::DaemonErrorCode::kKeySlotEmpty);
     }
-    if (sig->data == nullptr || sig->size != SignatureSize(m_algorithm))
+    if (sig->data() == nullptr || sig->size() != SignatureSize(m_algorithm))
     {
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
-    const auto status = iav_verify(m_key, message->data, message->size, sig->data, sig->size);
+    const auto status = iav_verify(m_key, message->data(), message->size(), sig->data(), sig->size());
     if (status == IAV_STATUS_VERIFICATION_FAILED)
     {
         return false;

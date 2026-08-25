@@ -42,7 +42,7 @@ TEST(IavPrimulaKeyManagementTest, RejectsInvalidAlgorithmsAndKeys)
 TEST(IavPrimulaKeyManagementTest, CopiesExportsAndReleasesPublicKey)
 {
     key_management::ProviderKeyHandle handle{};
-    handle.permissions = score::mw::crypto::KeyOperationPermission::kExport;
+    handle.permissions = score::crypto::KeyOperationPermission::kExport;
     std::vector<std::uint8_t> public_key(8U, 0xA5U);
     IavPrimulaKeyHandler key{nullptr, public_key, handle};
     public_key[0] = 0U;

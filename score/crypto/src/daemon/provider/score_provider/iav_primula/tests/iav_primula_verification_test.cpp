@@ -52,9 +52,9 @@ TEST(IavPrimulaVerificationTest, ValidatesKeyTypeAndSignatureSize)
     ASSERT_TRUE(handler.InitializeContext(params).has_value());
     const std::uint8_t message[] = {1U, 2U};
     std::vector<std::uint8_t> signature(10U);
-    common::RequestParameter input = common::VirtualMemoryBufferConst{message, 2U};
+    common::RequestParameter input = score::cpp::span<const std::uint8_t>{message, 2U};
     auto verify = handler.SingleShotVerify(
-        input, common::VirtualMemoryBufferConst{signature.data(), signature.size()});
+        input, score::cpp::span<const std::uint8_t>{signature.data(), signature.size()});
     EXPECT_EQ(verify.error(), common::DaemonErrorCode::kInvalidArgument);
 }
 }  // namespace
