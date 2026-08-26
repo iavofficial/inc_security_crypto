@@ -14,30 +14,39 @@
 #include "score/crypto/src/daemon/provider/score_provider/operations/kem/kem_executor.hpp"
 #include "score/crypto/src/daemon/provider/handler/operations/kem_handler_operations.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/operations/kem/score_kem_handler.hpp"
+
 namespace score::crypto::daemon::provider::score_provider::operations::kem
 {
+
 namespace ops = ::score::crypto::daemon::provider::handler::kem_handler_operations;
+
 Expected<common::ResponseParameters, common::DaemonErrorCode> KemExecutor::Execute(
-    ScoreKemHandler& h, const common::OperationIdentifier& id, common::RequestParameters& r)
+    ScoreKemHandler& handler,
+    const common::OperationIdentifier& operation,
+    common::RequestParameters& request)
 {
-    switch (id.operationAction)
+    // Dispatch the KEM operation and enforce the parameter requirements for
+    // each operation type.
+    switch (operation.operationAction)
     {
         case ops::KEM_KEYGEN:
-            if (!r.empty()) return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
-            return h.GenerateKeyPair();
+            if (!request.empty()) return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
+            return handler.GenerateKeyPair();
         case ops::KEM_ENCAPSULATE:
-            if (r.empty()) return make_unexpected(common::DaemonErrorCode::kInsufficientParameters);
-            return h.Encapsulate(r[0]);
+            if (request.empty()) return make_unexpected(common::DaemonErrorCode::kInsufficientParameters);
+            return handler.Encapsulate(request[0]);
         case ops::KEM_DECAPSULATE:
-            if (r.empty()) return make_unexpected(common::DaemonErrorCode::kInsufficientParameters);
-            return h.Decapsulate(r[0]);
+            if (request.empty()) return make_unexpected(common::DaemonErrorCode::kInsufficientParameters);
+            return handler.Decapsulate(request[0]);
         case ops::KEM_RESET:
         {
-            auto x = h.Reset();
-            if (!x.has_value()) return make_unexpected(x.error());
+            auto reset_result = handler.Reset();
+            // Reset does not produce response data; propagate any handler error.
+            if (!reset_result.has_value()) return make_unexpected(reset_result.error());
             return {};
         }
         default:
+            // Reject operation actions that are not part of the KEM operation namespace.
             return make_unexpected(common::DaemonErrorCode::kInvalidOperation);
     }
 }

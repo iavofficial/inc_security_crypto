@@ -16,23 +16,39 @@
 
 #ifndef SCORE_CRYPTO_DAEMON_SCORE_PROVIDER_KEM_EXECUTOR_HPP
 #define SCORE_CRYPTO_DAEMON_SCORE_PROVIDER_KEM_EXECUTOR_HPP
+
 #include "score/crypto/src/common/types.hpp"
 #include "score/crypto/src/daemon/common/daemon_error.hpp"
 #include "score/crypto/src/daemon/common/types.hpp"
+
 namespace score::crypto::daemon::provider::score_provider::operations::kem
 {
+
 class ScoreKemHandler;
 
 /// @brief Stateless dispatcher for one-shot KEM operations.
 ///
-/// The executor validates operation parameters and delegates key generation,
-/// encapsulation, and decapsulation to ScoreKemHandler.
+/// The executor validates operation parameter counts and dispatches key
+/// generation, encapsulation, decapsulation, and reset operations to
+/// ScoreKemHandler.
 class KemExecutor final
 {
   public:
     /// @brief Execute one KEM operation.
+    ///
+    /// Dispatches the operation identified by the operation action to the
+    /// corresponding ScoreKemHandler method.
+    ///
+    /// @param handler KEM handler receiving the operation.
+    /// @param operation Operation identifier containing the KEM action.
+    /// @param request Operation parameters.
+    /// @return Operation response, or a daemon error if the parameters or
+    ///         operation are invalid.
     Expected<common::ResponseParameters, common::DaemonErrorCode> Execute(
-        ScoreKemHandler&, const common::OperationIdentifier&, common::RequestParameters&);
+        ScoreKemHandler& handler,
+        const common::OperationIdentifier& operation,
+        common::RequestParameters& request);
 };
 }  // namespace score::crypto::daemon::provider::score_provider::operations::kem
-#endif
+
+#endif  // SCORE_CRYPTO_DAEMON_SCORE_PROVIDER_KEM_EXECUTOR_HPP

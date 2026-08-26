@@ -13,27 +13,41 @@
 
 #include "score/crypto/src/daemon/provider/score_provider/operations/kem/score_kem_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/operations/kem/kem_executor.hpp"
+
 namespace score::crypto::daemon::provider::score_provider::operations::kem
 {
-ScoreKemHandler::ScoreKemHandler(std::unique_ptr<KemExecutor> e, common::AlgorithmId a)
-    : m_algorithm{std::move(a)}, m_executor{std::move(e)}
+
+ScoreKemHandler::ScoreKemHandler(std::unique_ptr<KemExecutor> executor, common::AlgorithmId algorithm)
+    : m_algorithm{std::move(algorithm)}, m_executor{std::move(executor)}
 {
 }
+
 ScoreKemHandler::~ScoreKemHandler() = default;
+
 Expected<common::ResponseParameters, common::DaemonErrorCode> ScoreKemHandler::Execute(
-    const common::OperationIdentifier& id, common::RequestParameters& r)
+    const common::OperationIdentifier& operation, common::RequestParameters& request)
 {
-    return m_executor->Execute(*this, id, r);
+    // Delegate operation dispatch to the injected KEM executor.
+    return m_executor->Execute(*this, operation, request);
 }
+
 Expected<std::monostate, common::DaemonErrorCode> ScoreKemHandler::InitializeContext(
     const handler::InitializationParams&)
 {
+    // The provider-neutral base handler has no context-specific state to initialize.
     return {};
 }
+
 Expected<std::monostate, common::DaemonErrorCode> ScoreKemHandler::Reset()
 {
+    // The provider-neutral base handler has no state to reset.
     return {};
 }
+
+// ---------------------------------------------------------------------------
+// Default typed operations — return unsupported unless overridden
+// ---------------------------------------------------------------------------
+
 Expected<common::ResponseParameters, common::DaemonErrorCode> ScoreKemHandler::GenerateKeyPair()
 {
     return make_unexpected(common::DaemonErrorCode::kUnsupportedOperation);
