@@ -20,10 +20,17 @@
 namespace score::crypto::daemon::provider::score_provider::iav_primula
 {
 
-/// @brief iavPrimula implementation of the provider-neutral KEM handler.
+/// @brief IAV-Primula implementation of the provider-neutral KEM handler.
 class IavPrimulaKemHandler final : public operations::kem::ScoreKemHandler
 {
   public:
+    /// @brief Create an IAV-Primula KEM handler.
+    ///
+    /// Takes ownership of the operation executor and stores the selected
+    /// ML-KEM algorithm.
+    ///
+    /// @param executor Provider-neutral executor for KEM operations.
+    /// @param algorithm ML-KEM algorithm identifier.
     IavPrimulaKemHandler(std::unique_ptr<operations::kem::KemExecutor> executor,
                          common::AlgorithmId algorithm);
     ~IavPrimulaKemHandler() override = default;
@@ -31,19 +38,40 @@ class IavPrimulaKemHandler final : public operations::kem::ScoreKemHandler
     IavPrimulaKemHandler(const IavPrimulaKemHandler&) = delete;
     IavPrimulaKemHandler& operator=(const IavPrimulaKemHandler&) = delete;
 
+    /// @brief Bind an optional IAV-Primula key to the operation context.
+    ///
+    /// A native key is required for decapsulation but not for key generation
+    /// or encapsulation.
+    ///
+    /// @param init_params Context initialization parameters, including an
+    ///                    optional bound key handler.
     [[nodiscard]] Expected<std::monostate, common::DaemonErrorCode> InitializeContext(
         const handler::InitializationParams& init_params) override;
+    /// @brief Generate a KEM key pair and return its public key.
+    ///
+    /// The native private key is released before the operation returns.
     [[nodiscard]] Expected<common::ResponseParameters, common::DaemonErrorCode> GenerateKeyPair() override;
+    /// @brief Encapsulate a shared secret using a public key.
+    ///
+    /// The response contains the ciphertext followed by the shared secret.
+    ///
+    /// @param request Request containing the peer public key.
     [[nodiscard]] Expected<common::ResponseParameters, common::DaemonErrorCode> Encapsulate(
         const common::RequestParameter& request) override;
+    /// @brief Decapsulate a ciphertext using the bound private key.
+    ///
+    /// @param request Request containing the ciphertext.
     [[nodiscard]] Expected<common::ResponseParameters, common::DaemonErrorCode> Decapsulate(
         const common::RequestParameter& request) override;
 
   private:
+    /// @brief Map the configured algorithm to the corresponding IAV-Primula enum.
+    ///
+    /// @return The mapped algorithm, or kUnsupportedAlgorithm if unsupported.
     [[nodiscard]] Expected<iav_algorithm, common::DaemonErrorCode> GetAlgorithm() const noexcept;
-    iav_primula_key_handle* m_key{nullptr};
+    iav_primula_key_handle* m_key{nullptr};  ///< Non-owning handle borrowed from the bound key handler.
 };
 
 }  // namespace score::crypto::daemon::provider::score_provider::iav_primula
 
-#endif
+#endif  // SCORE_CRYPTO_DAEMON_PROVIDER_SCORE_PROVIDER_IAV_PRIMULA_OPERATIONS_KEM_IAV_PRIMULA_KEM_HANDLER_HPP

@@ -30,6 +30,10 @@ namespace
 using common::DaemonErrorCode;
 using common::ResponseParameters;
 
+/// @brief Return the expected signature size for a PQC signature algorithm.
+///
+/// @return Signature size in bytes, or zero if the algorithm is not a
+///         supported signature algorithm.
 std::size_t SignatureSizeForAlgorithm(const common::AlgorithmId& algorithm)
 {
     const auto info = common::LookupPqcAlgorithm(algorithm);
@@ -67,6 +71,8 @@ Expected<std::monostate, DaemonErrorCode> IavPrimulaSignHandler::InitializeConte
 {
     score::mw::log::LogDebug() << "DEBUG: IavPrimulaSignHandler::InitializeContext called with algorithm:" << m_algorithm;
 
+    // Validate the algorithm and bind the non-owning native key handle required
+    // for signing.
     const auto algorithm_result = ValidateAlgorithm();
     if (!algorithm_result.has_value())
     {
@@ -76,7 +82,8 @@ Expected<std::monostate, DaemonErrorCode> IavPrimulaSignHandler::InitializeConte
     const auto base_result = ScoreSignHandler::InitializeContext(init_params);
     if (!base_result.has_value())
     {
-        score::mw::log::LogError() << "ERROR: Algorithm validation failed in IavPrimulaSignHandler::InitializeContext";
+        score::mw::log::LogError() << "ERROR: Base signature handler initialization failed in "
+                                      "IavPrimulaSignHandler::InitializeContext";
         return make_unexpected(base_result.error());
     }
 
@@ -97,12 +104,15 @@ Expected<std::monostate, DaemonErrorCode> IavPrimulaSignHandler::InitializeConte
 
 Expected<std::monostate, DaemonErrorCode> IavPrimulaSignHandler::Reset()
 {
+    // Clear the internally owned signature buffer before resetting the base
+    // handler state.
     m_outputBuffer.clear();
     return ScoreSignHandler::Reset();
 }
 
 Expected<ResponseParameters, DaemonErrorCode> IavPrimulaSignHandler::GetSignatureSize() const
 {
+    // Return the fixed signature size for the configured ML-DSA algorithm.
     const auto size = SignatureSizeForAlgorithm(m_algorithm);
     if (size == 0U)
     {
@@ -135,6 +145,8 @@ Expected<ResponseParameters, DaemonErrorCode> IavPrimulaSignHandler::SingleShotS
         return make_unexpected(DaemonErrorCode::kKeySlotEmpty);
     }
 
+    // Sign the input in a single operation. Use an internally owned buffer
+    // when no output buffer is provided; otherwise write into the caller's buffer.
     const auto expected_signature_length = GetExpectedSignatureSize();
     std::uint8_t* signature_data = nullptr;
     const bool allocate_output_buffer = !output.has_value();
@@ -166,6 +178,8 @@ Expected<ResponseParameters, DaemonErrorCode> IavPrimulaSignHandler::SingleShotS
         return make_unexpected(DaemonErrorCode::kAlgorithmExecutionFailed);
     }
 
+    // Return owned output for internally allocated storage and a non-owning
+    // view for caller-provided storage.
     ResponseParameters response;
     if (allocate_output_buffer)
     {

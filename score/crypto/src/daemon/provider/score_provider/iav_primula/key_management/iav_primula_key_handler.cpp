@@ -36,6 +36,7 @@ Expected<std::monostate, common::DaemonErrorCode> IavPrimulaKeyHandler::Release(
 {
     if (!m_released)
     {
+        // Release the native key handle and wipe cached key material exactly once.
         if (m_native_key != nullptr)
         {
             iav_key_destroy(m_native_key);
@@ -50,6 +51,7 @@ Expected<std::monostate, common::DaemonErrorCode> IavPrimulaKeyHandler::Release(
 
 Expected<key_management::SecureKeyBytes, common::DaemonErrorCode> IavPrimulaKeyHandler::Export() const
 {
+    // Export only the cached public key after checking permissions and release state.
     if (!score::crypto::HasPermission(m_handle.permissions, score::crypto::KeyOperationPermission::kExport) ||
         m_released)
     {

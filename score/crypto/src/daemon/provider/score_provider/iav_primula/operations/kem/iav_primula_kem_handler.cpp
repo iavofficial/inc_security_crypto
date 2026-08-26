@@ -40,6 +40,8 @@ Expected<iav_algorithm, common::DaemonErrorCode> IavPrimulaKemHandler::GetAlgori
 Expected<std::monostate, common::DaemonErrorCode> IavPrimulaKemHandler::InitializeContext(
     const handler::InitializationParams& init_params)
 {
+    // Bind an optional IAV-Primula key. A key is required later for
+    // decapsulation, but not for key generation or encapsulation.
     m_key = nullptr;
     if (init_params.bound_key_handler != nullptr)
     {
@@ -58,6 +60,8 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandl
     auto algorithm = GetAlgorithm();
     if (!algorithm.has_value()) return make_unexpected(algorithm.error());
 
+    // Generate a temporary KEM key pair, export its public key, and release the
+    // native key handle before returning the public key.
     iav_primula_key_handle* key = nullptr;
     if (iav_kem_keypair_generate(algorithm.value(), &key) != IAV_STATUS_OK || key == nullptr)
     {
@@ -88,6 +92,8 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandl
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
 
+    // Encapsulate a shared secret using the supplied public key. The response
+    // contains the ciphertext followed by the shared secret.
     std::vector<std::uint8_t> ciphertext(info->signature_or_ciphertext_size);
     std::vector<std::uint8_t> secret(info->shared_secret_size);
     std::size_t ciphertext_length = ciphertext.size();
@@ -113,6 +119,8 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandl
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
 
+    // Decapsulate the ciphertext with the native key bound during context
+    // initialization and return the resulting shared secret.
     std::vector<std::uint8_t> secret(info->shared_secret_size);
     std::size_t length = secret.size();
     const auto status = iav_kem_decapsulate(m_key, ciphertext->data(), ciphertext->size(), secret.data(), &length);

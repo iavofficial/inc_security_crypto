@@ -20,6 +20,10 @@ namespace score::crypto::daemon::provider::score_provider::iav_primula
 {
 namespace
 {
+/// @brief Map a PQC algorithm identifier to the IAV-Primula enum value.
+///
+/// @return The corresponding IAV-Primula algorithm, or
+///         kUnsupportedAlgorithm if the identifier is unknown.
 Expected<iav_algorithm, common::DaemonErrorCode> Algorithm(common::AlgorithmId a)
 {
     auto s = std::string_view{a.data(), a.size()};

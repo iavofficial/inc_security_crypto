@@ -29,15 +29,19 @@ namespace score::crypto::daemon::provider::score_provider::iav_primula
 
 namespace
 {
-    ::score::Result<handler::Handler::Sptr> MakeUnsupportedAlgorithmError(const std::string& message)
-    {
-        const ::score::result::Error error(
+/// @brief Create a score error result for an unsupported algorithm.
+///
+/// The returned result contains no handler and uses the
+/// kUnsupportedAlgorithm error code.
+::score::Result<handler::Handler::Sptr> MakeUnsupportedAlgorithmError(const std::string& message)
+{
+    const ::score::result::Error error(
         static_cast<::score::result::ErrorCode>(::score::crypto::CryptoErrorCode::kUnsupportedAlgorithm),
         ::score::crypto::kCryptoErrorDomain,
         message);
     return ::score::Result<handler::Handler::Sptr>(::score::unexpect, error);
-    }
-} // namespace
+}
+}  // namespace
 
 IavPrimulaHandlerFactory::IavPrimulaHandlerFactory(
     std::shared_ptr<key_management::IKeyFactory> key_factory,
@@ -46,8 +50,6 @@ IavPrimulaHandlerFactory::IavPrimulaHandlerFactory(
     : ScoreHandlerFactory(std::move(key_factory), std::move(slot_handler), std::move(km_service))
 {
 }
-
-
 
 ::score::Result<handler::Handler::Sptr> IavPrimulaHandlerFactory::CreateSignHandler(
     const common::AlgorithmId& algorithm)
@@ -58,9 +60,7 @@ IavPrimulaHandlerFactory::IavPrimulaHandlerFactory(
             "Algorithm is not a supported iavPrimula signature algorithm: " + algorithm);
     }
 
-    return std::make_shared<IavPrimulaSignHandler>(
-                std::make_unique<operations::sign::SignExecutor>(),
-                algorithm);
+    return std::make_shared<IavPrimulaSignHandler>(std::make_unique<operations::sign::SignExecutor>(), algorithm);
 }
 
 ::score::Result<handler::Handler::Sptr> IavPrimulaHandlerFactory::CreateVerifyHandler(
@@ -72,9 +72,7 @@ IavPrimulaHandlerFactory::IavPrimulaHandlerFactory(
             "Algorithm is not a supported iavPrimula verification algorithm: " + algorithm);
     }
 
-    return std::make_shared<IavPrimulaVerifyHandler>(
-                std::make_unique<operations::verify::VerifyExecutor>(),
-                algorithm);
+    return std::make_shared<IavPrimulaVerifyHandler>(std::make_unique<operations::verify::VerifyExecutor>(), algorithm);
 }
 
 ::score::Result<handler::Handler::Sptr> IavPrimulaHandlerFactory::CreateKemHandler(

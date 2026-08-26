@@ -21,11 +21,12 @@
 namespace score::crypto::daemon::provider::score_provider::iav_primula
 {
 
-/// @brief Software provider boundary for iavPrimula post-quantum algorithms.
+/// @brief IAV-Primula is a provider for post-quantum cryptographic algorithms.
 ///
-/// The provider owns the handler-factory boundary. Concrete backed handlers
-/// are added below this boundary without exposing implementation details to
-/// the daemon core.
+/// Inherits ScoreProvider for provider lifecycle management and lazy handler
+/// factory creation. Provides IAV-Primula-specific key management and
+/// cryptographic operation handlers without exposing implementation details
+/// to the daemon core.
 class IavPrimulaProvider final : public ::score::crypto::daemon::provider::score_provider::ScoreProvider
 {
   public:
@@ -37,18 +38,18 @@ class IavPrimulaProvider final : public ::score::crypto::daemon::provider::score
     IavPrimulaProvider(IavPrimulaProvider&&) = delete;
     IavPrimulaProvider& operator=(IavPrimulaProvider&&) = delete;
 
-    // IProvider lifecycle lifecycle (IAV_Primula specific)
+    // --- IProvider lifecycle (IAV-Primula-specific) ---
     void Shutdown() override;
     [[nodiscard]] bool InitialiseBackend(const ProviderInitContext& ctx) override;
 
-    // Key management capability
+    // --- Key management capability ---
     std::shared_ptr<key_management::IKeyFactory> GetKeyFactory() override;
     std::shared_ptr<key_management::IKeySlotHandler> GetKeySlotHandler(
         const key_management::KeySlotConfig& config) override;
     void SetKeyManagementService(std::shared_ptr<key_management::KeyManagementService> service) override;
 
   protected:
-  /// Creates the IAV_Primula specific handler factory.
+    /// @brief Creates the IAV-Primula-specific handler factory.
     [[nodiscard]] std::shared_ptr<handler::ICryptoHandlerFactory> CreateHandlerFactory() override;
 
   private:

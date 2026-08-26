@@ -62,7 +62,7 @@ void IavPrimulaProvider::SetKeyManagementService(
     m_keyManagementService = std::move(service);
 }
 
-/// @brief Create the iavPrimula-specific handler factory.
+/// @brief Create the IAV-Primula-specific handler factory.
 ///
 /// The provider exposes only the generic handler-factory interface to the
 /// daemon. PQC implementation details remain below that boundary.

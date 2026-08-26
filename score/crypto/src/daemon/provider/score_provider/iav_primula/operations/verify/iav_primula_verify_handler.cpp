@@ -21,6 +21,10 @@ namespace score::crypto::daemon::provider::score_provider::iav_primula
 {
 namespace
 {
+/// @brief Return the expected signature size for a PQC signature algorithm.
+///
+/// @return Signature size in bytes, or zero if the algorithm is not a
+///         supported signature algorithm.
 std::size_t SignatureSize(const common::AlgorithmId& algorithm)
 {
     const auto info = common::LookupPqcAlgorithm(algorithm);
@@ -46,6 +50,8 @@ Expected<std::monostate, common::DaemonErrorCode> IavPrimulaVerifyHandler::Valid
 Expected<std::monostate, common::DaemonErrorCode> IavPrimulaVerifyHandler::InitializeContext(
     const handler::InitializationParams& init_params)
 {
+    // Validate the algorithm and bind the non-owning native key handle required
+    // for signature verification.
     auto algorithm = ValidateAlgorithm();
     if (!algorithm.has_value())
     {
@@ -72,6 +78,7 @@ Expected<std::monostate, common::DaemonErrorCode> IavPrimulaVerifyHandler::Initi
 Expected<bool, common::DaemonErrorCode> IavPrimulaVerifyHandler::SingleShotVerify(
     const common::RequestParameter& data, const common::RequestParameter& signature)
 {
+    // Verify a complete message and signature in a single operation.
     auto algorithm = ValidateAlgorithm();
     if (!algorithm.has_value())
     {
@@ -92,6 +99,8 @@ Expected<bool, common::DaemonErrorCode> IavPrimulaVerifyHandler::SingleShotVerif
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
     const auto status = iav_verify(m_key, message->data(), message->size(), sig->data(), sig->size());
+    // Map backend verification status to the handler contract: an invalid
+    // signature returns false, while backend errors are returned as failures.
     if (status == IAV_STATUS_VERIFICATION_FAILED)
     {
         return false;
