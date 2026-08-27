@@ -24,13 +24,15 @@ using common::RequestParameters;
 using common::ResponseParameters;
 using common::StreamOperationState;
 
-Expected<ResponseParameters, DaemonErrorCode> SignExecutor::Execute(ScoreSignHandler& handler,
-                                                                                    const common::OperationIdentifier& operationId,
-                                                                                    RequestParameters& request)
+Expected<ResponseParameters, DaemonErrorCode> SignExecutor::Execute(
+    ScoreSignHandler& handler,
+    const common::OperationIdentifier& operationId,
+    RequestParameters& request)
 {
+    // Handle operations that do not participate in the streaming state machine.
     if (operationId.operationAction == handler::sign_handler_operations::SIGN_GET_SIGNATURE_SIZE)
     {
-        return  GetSignatureSize(handler, request);
+        return GetSignatureSize(handler, request);
     }
 
     if (operationId.operationAction == handler::sign_handler_operations::SIGN_RESET)
@@ -43,6 +45,7 @@ Expected<ResponseParameters, DaemonErrorCode> SignExecutor::Execute(ScoreSignHan
         return ResponseParameters{};
     }
 
+    // A single-shot signature is only valid while no streaming operation is active.
     if (operationId.operationAction == handler::sign_handler_operations::SIGN_SS)
     {
         StreamOperationState state = handler.GetOperationState();
@@ -58,7 +61,8 @@ Expected<ResponseParameters, DaemonErrorCode> SignExecutor::Execute(ScoreSignHan
         return ExecuteSingleShot(handler, request);
     }
 
-    // Streaming operations: validate state machine transition
+    // Streaming operations must follow the valid state-machine transition before
+    // the corresponding handler method is called.
     StreamOperationState currentState = handler.GetOperationState();
     StreamOperationState nextState = StreamOperationState::IDLE;
     const auto sequenceValidation = ValidateStreamTransition(operationId.operationAction, currentState, nextState);
@@ -67,6 +71,7 @@ Expected<ResponseParameters, DaemonErrorCode> SignExecutor::Execute(ScoreSignHan
         return make_unexpected(sequenceValidation.error());
     }
 
+    // Finalization returns a response and updates the state only after success.
     if (operationId.operationAction == handler::sign_handler_operations::SIGN_FINALIZE)
     {
         auto result = ExecuteFinalize(handler, request);
@@ -77,6 +82,8 @@ Expected<ResponseParameters, DaemonErrorCode> SignExecutor::Execute(ScoreSignHan
         return result;
     }
 
+    // Initialization and update return no response parameters. The stream state
+    // is advanced only when the handler accepts the operation.
     const auto result = [&]() -> Expected<std::monostate, DaemonErrorCode> {
         if (operationId.operationAction == handler::sign_handler_operations::SIGN_INIT)
         {
@@ -104,6 +111,8 @@ Expected<ResponseParameters, DaemonErrorCode> SignExecutor::Execute(ScoreSignHan
 Expected<std::monostate, DaemonErrorCode> SignExecutor::ExecuteInit(ScoreSignHandler& handler,
                                                                     RequestParameters& request)
 {
+    // Initialization data is optional; a missing or incompatible first
+    // parameter is treated as no initial data and handled by the provider.
     std::optional<score::cpp::span<const std::uint8_t>> initialData;
     if (!request.empty())
     {
@@ -118,6 +127,7 @@ Expected<std::monostate, DaemonErrorCode> SignExecutor::ExecuteInit(ScoreSignHan
 Expected<std::monostate, DaemonErrorCode> SignExecutor::ExecuteUpdate(ScoreSignHandler& handler,
                                                                       RequestParameters& request)
 {
+    // UPDATE requires one input buffer containing data for the active stream.
     if (request.empty())
     {
         return make_unexpected(DaemonErrorCode::kInsufficientParameters);
@@ -135,6 +145,7 @@ Expected<std::monostate, DaemonErrorCode> SignExecutor::ExecuteUpdate(ScoreSignH
 Expected<ResponseParameters, DaemonErrorCode> SignExecutor::ExecuteFinalize(ScoreSignHandler& handler,
                                                                             RequestParameters& request)
 {
+    // FINALIZE accepts an optional output buffer followed by optional final data.
     std::optional<score::cpp::span<std::uint8_t>> output;
     if (!request.empty())
     {
@@ -159,6 +170,7 @@ Expected<ResponseParameters, DaemonErrorCode> SignExecutor::ExecuteFinalize(Scor
 Expected<ResponseParameters, DaemonErrorCode> SignExecutor::ExecuteSingleShot(ScoreSignHandler& handler,
                                                                               RequestParameters& request)
 {
+    // SINGLE-SHOT requires input data and may optionally receive an output buffer.
     if (request.empty())
     {
         return make_unexpected(DaemonErrorCode::kInsufficientParameters);
@@ -182,24 +194,29 @@ Expected<ResponseParameters, DaemonErrorCode> SignExecutor::ExecuteSingleShot(Sc
     return handler.SingleShotSign(*data, output);
 }
 
-Expected<std::monostate, DaemonErrorCode> SignExecutor::ExecuteReset(ScoreSignHandler& handler,
-                                                                     RequestParameters& /*request*/)
+Expected<std::monostate, DaemonErrorCode> SignExecutor::ExecuteReset(
+    ScoreSignHandler& handler,
+    RequestParameters& /*request*/)
 {
+    // RESET does not consume request parameters; the handler owns the reset logic.
     return handler.Reset();
 }
 
-Expected<ResponseParameters, DaemonErrorCode> SignExecutor::GetSignatureSize(const ScoreSignHandler& handler,
-                                                                             RequestParameters& /*request*/)
+Expected<ResponseParameters, DaemonErrorCode> SignExecutor::GetSignatureSize(
+    const ScoreSignHandler& handler,
+    RequestParameters& /*request*/)
 {
+    // The signature size depends only on the configured algorithm.
     return handler.GetSignatureSize();
 }
 
-// static
 Expected<std::monostate, DaemonErrorCode> SignExecutor::ValidateStreamTransition(
     const common::OperationAction action,
     const StreamOperationState currentState,
     StreamOperationState& nextState)
 {
+    // Map the SIGN action to the generic stream operation used by the
+    // centralized state-transition validator.
     handler::handler_utils::StreamOperation op{};
     if (action == handler::sign_handler_operations::SIGN_INIT)
     {

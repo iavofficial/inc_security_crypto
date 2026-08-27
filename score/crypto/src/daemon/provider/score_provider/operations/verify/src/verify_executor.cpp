@@ -24,10 +24,12 @@ using common::RequestParameters;
 using common::ResponseParameters;
 using common::StreamOperationState;
 
-Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::Execute(ScoreVerifyHandler& handler,
-                                                                      const common::OperationIdentifier& operationId,
-                                                                      RequestParameters& request)
+Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::Execute(
+    ScoreVerifyHandler& handler,
+    const common::OperationIdentifier& operationId,
+    RequestParameters& request)
 {
+    // RESET does not participate in the streaming state machine.
     if (operationId.operationAction == handler::verify_handler_operations::VERIFY_RESET)
     {
         auto result = ExecuteReset(handler, request);
@@ -38,6 +40,7 @@ Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::Execute(ScoreVerif
         return ResponseParameters{};
     }
 
+    // A single-shot verification is only valid while no streaming operation is active.
     if (operationId.operationAction == handler::verify_handler_operations::VERIFY_SS)
     {
         StreamOperationState state = handler.GetOperationState();
@@ -53,7 +56,8 @@ Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::Execute(ScoreVerif
         return ExecuteSingleShot(handler, request);
     }
 
-    // Streaming operations: validate state machine transition
+    // Streaming operations must follow the valid state-machine transition before
+    // the corresponding handler method is called.
     StreamOperationState currentState = handler.GetOperationState();
     StreamOperationState nextState = StreamOperationState::IDLE;
     const auto sequenceValidation = ValidateStreamTransition(operationId.operationAction, currentState, nextState);
@@ -62,6 +66,8 @@ Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::Execute(ScoreVerif
         return make_unexpected(sequenceValidation.error());
     }
 
+    // Finalization returns the verification result and updates the state only
+    // after successful handler execution.
     if (operationId.operationAction == handler::verify_handler_operations::VERIFY_FINALIZE)
     {
         auto result = ExecuteFinalize(handler, request);
@@ -72,6 +78,8 @@ Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::Execute(ScoreVerif
         return result;
     }
 
+    // Initialization and update return no response parameters. The stream state
+    // is advanced only when the handler accepts the operation.
     const auto result = [&]() -> Expected<std::monostate, DaemonErrorCode> {
         if (operationId.operationAction == handler::verify_handler_operations::VERIFY_INIT)
         {
@@ -96,9 +104,12 @@ Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::Execute(ScoreVerif
     return ResponseParameters{};
 }
 
-Expected<std::monostate, DaemonErrorCode> VerifyExecutor::ExecuteInit(ScoreVerifyHandler& handler,
-                                                                      RequestParameters& request)
+Expected<std::monostate, DaemonErrorCode> VerifyExecutor::ExecuteInit(
+    ScoreVerifyHandler& handler,
+    RequestParameters& request)
 {
+    // Initialization data is optional and is forwarded when it has the
+    // expected byte-span type.
     std::optional<score::cpp::span<const std::uint8_t>> initialData;
     if (!request.empty())
     {
@@ -110,9 +121,11 @@ Expected<std::monostate, DaemonErrorCode> VerifyExecutor::ExecuteInit(ScoreVerif
     return handler.InitVerify(initialData);
 }
 
-Expected<std::monostate, DaemonErrorCode> VerifyExecutor::ExecuteUpdate(ScoreVerifyHandler& handler,
-                                                                        RequestParameters& request)
+Expected<std::monostate, DaemonErrorCode> VerifyExecutor::ExecuteUpdate(
+    ScoreVerifyHandler& handler,
+    RequestParameters& request)
 {
+    // UPDATE requires one input buffer containing data for the active stream.
     if (request.empty())
     {
         return make_unexpected(DaemonErrorCode::kInsufficientParameters);
@@ -127,9 +140,11 @@ Expected<std::monostate, DaemonErrorCode> VerifyExecutor::ExecuteUpdate(ScoreVer
     return handler.UpdateVerify(*buf);
 }
 
-Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::ExecuteFinalize(ScoreVerifyHandler& handler,
-                                                                              RequestParameters& request)
+Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::ExecuteFinalize(
+    ScoreVerifyHandler& handler,
+    RequestParameters& request)
 {
+    // FINALIZE accepts the signature data and optional final streaming data.
     std::optional<score::cpp::span<std::uint8_t>> output;
     if (!request.empty())
     {
@@ -151,9 +166,11 @@ Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::ExecuteFinalize(Sc
     return handler.FinalizeVerify(output, finalData);
 }
 
-Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::ExecuteSingleShot(ScoreVerifyHandler& handler,
-                                                                                RequestParameters& request)
+Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::ExecuteSingleShot(
+    ScoreVerifyHandler& handler,
+    RequestParameters& request)
 {
+    // SINGLE-SHOT forwards the verification data and signature to the handler.
     if (request.empty())
     {
         return make_unexpected(DaemonErrorCode::kInsufficientParameters);
@@ -168,18 +185,21 @@ Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::ExecuteSingleShot(
     return handler.SingleShotVerify(*data, request[1]);
 }
 
-Expected<std::monostate, DaemonErrorCode> VerifyExecutor::ExecuteReset(ScoreVerifyHandler& handler,
-                                                                       RequestParameters& /*request*/)
+Expected<std::monostate, DaemonErrorCode> VerifyExecutor::ExecuteReset(
+    ScoreVerifyHandler& handler,
+    RequestParameters& /*request*/)
 {
+    // RESET does not consume request parameters; the handler owns the reset logic.
     return handler.Reset();
 }
 
-// static
 Expected<std::monostate, DaemonErrorCode> VerifyExecutor::ValidateStreamTransition(
     const common::OperationAction action,
     const StreamOperationState currentState,
     StreamOperationState& nextState)
 {
+    // Map the VERIFY action to the generic stream operation used by the
+    // centralized state-transition validator.
     handler::handler_utils::StreamOperation op{};
     if (action == handler::verify_handler_operations::VERIFY_INIT)
     {
