@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SCORE_CRYPTO_SRC_BACKEND_SCORE_PROVIDER_PRIMULA_PRIMULA_BACKEND_ADAPTER_HPP
-#define SCORE_CRYPTO_SRC_BACKEND_SCORE_PROVIDER_PRIMULA_PRIMULA_BACKEND_ADAPTER_HPP
+#ifndef SCORE_CRYPTO_SRC_BACKEND_PROVIDER_IAV_PRIMULA_ADAPTER_HPP
+#define SCORE_CRYPTO_SRC_BACKEND_PROVIDER_IAV_PRIMULA_ADAPTER_HPP
 
 #include "score/crypto/src/daemon/provider/score_provider/score_backend_adapter.hpp"
 
@@ -56,4 +56,4 @@ class PrimulaBackendAdapter final : public daemon::provider::score_provider::IBa
 
 }  // namespace score::crypto::backend::score_provider::primula
 
-#endif  // SCORE_CRYPTO_SRC_BACKEND_SCORE_PROVIDER_PRIMULA_PRIMULA_BACKEND_ADAPTER_HPP
+#endif  // SCORE_CRYPTO_SRC_BACKEND_PROVIDER_IAV_PRIMULA_ADAPTER_HPP

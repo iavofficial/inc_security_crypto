@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SCORE_CRYPTO_DAEMON_PROVIDER_SCORE_PROVIDER_IAV_PRIMULA_HANDLER_FACTORY_HPP
-#define SCORE_CRYPTO_DAEMON_PROVIDER_SCORE_PROVIDER_IAV_PRIMULA_HANDLER_FACTORY_HPP
+#ifndef SCORE_CRYPTO_DAEMON_PROVIDER_IAV_PRIMULA_HANDLER_FACTORY_HPP
+#define SCORE_CRYPTO_DAEMON_PROVIDER_IAV_PRIMULA_HANDLER_FACTORY_HPP
 
 #include "score/crypto/src/daemon/provider/score_provider/operations/factory/score_handler_factory.hpp"
 #include "score/result/result.h"
@@ -70,4 +70,4 @@ class IavPrimulaHandlerFactory final
 
 }  // namespace score::crypto::daemon::provider::score_provider::iav_primula
 
-#endif  // SCORE_CRYPTO_DAEMON_PROVIDER_SCORE_PROVIDER_IAV_PRIMULA_HANDLER_FACTORY_HPP
+#endif  // SCORE_CRYPTO_DAEMON_PROVIDER_IAV_PRIMULA_HANDLER_FACTORY_HPP

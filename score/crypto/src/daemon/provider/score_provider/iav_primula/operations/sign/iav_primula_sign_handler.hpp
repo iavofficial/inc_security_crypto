@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SCORE_CRYPTO_DAEMON_PROVIDER_SCORE_PROVIDER_IAV_PRIMULA_OPERATIONS_SIGN_IAV_PRIMULA_SIGN_HANDLER_HPP
-#define SCORE_CRYPTO_DAEMON_PROVIDER_SCORE_PROVIDER_IAV_PRIMULA_OPERATIONS_SIGN_IAV_PRIMULA_SIGN_HANDLER_HPP
+#ifndef SCORE_CRYPTO_DAEMON_PROVIDER_IAV_PRIMULA_SIGN_HANDLER_HPP
+#define SCORE_CRYPTO_DAEMON_PROVIDER_IAV_PRIMULA_SIGN_HANDLER_HPP
 
 #include "score/crypto/src/daemon/provider/score_provider/operations/sign/score_sign_handler.hpp"
 #include "score/iav_primula/include/iav_primula_ffi.h"
@@ -73,4 +73,4 @@ class IavPrimulaSignHandler final : public operations::sign::ScoreSignHandler
 
 }  // namespace score::crypto::daemon::provider::score_provider::iav_primula
 
-#endif  // SCORE_CRYPTO_DAEMON_PROVIDER_SCORE_PROVIDER_IAV_PRIMULA_OPERATIONS_SIGN_IAV_PRIMULA_SIGN_HANDLER_HPP
+#endif  // SCORE_CRYPTO_DAEMON_PROVIDER_IAV_PRIMULA_SIGN_HANDLER_HPP

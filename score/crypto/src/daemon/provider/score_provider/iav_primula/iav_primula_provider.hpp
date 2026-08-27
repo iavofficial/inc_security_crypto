@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SCORE_CRYPTO_DAEMON_PROVIDER_SCORE_PROVIDER_IAV_PRIMULA_PROVIDER_HPP
-#define SCORE_CRYPTO_DAEMON_PROVIDER_SCORE_PROVIDER_IAV_PRIMULA_PROVIDER_HPP
+#ifndef SCORE_CRYPTO_DAEMON_PROVIDER_IAV_PRIMULA_PROVIDER_HPP
+#define SCORE_CRYPTO_DAEMON_PROVIDER_IAV_PRIMULA_PROVIDER_HPP
 
 #include <memory>
 
@@ -59,4 +59,4 @@ class IavPrimulaProvider final : public ::score::crypto::daemon::provider::score
 
 }  // namespace score::crypto::daemon::provider::score_provider::iav_primula
 
-#endif  // SCORE_CRYPTO_DAEMON_PROVIDER_SCORE_PROVIDER_IAV_PRIMULA_PROVIDER_HPP
+#endif  // SCORE_CRYPTO_DAEMON_PROVIDER_IAV_PRIMULA_PROVIDER_HPP
