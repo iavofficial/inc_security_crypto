@@ -11,6 +11,9 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+/// @file iav_primula_kem_handler.hpp
+/// @brief IAV-Primula implementation of the KEM handler.
+
 #ifndef SCORE_CRYPTO_DAEMON_PROVIDER_IAV_PRIMULA_KEM_HANDLER_HPP
 #define SCORE_CRYPTO_DAEMON_PROVIDER_IAV_PRIMULA_KEM_HANDLER_HPP
 

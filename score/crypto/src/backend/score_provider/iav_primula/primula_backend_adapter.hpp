@@ -11,6 +11,9 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+/// @file primula_backend_adapter.hpp
+/// @brief Backend adapter for the IAV-Primula score provider.
+
 #ifndef SCORE_CRYPTO_SRC_BACKEND_PROVIDER_IAV_PRIMULA_ADAPTER_HPP
 #define SCORE_CRYPTO_SRC_BACKEND_PROVIDER_IAV_PRIMULA_ADAPTER_HPP
 

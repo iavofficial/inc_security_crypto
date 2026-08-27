@@ -11,6 +11,9 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+/// @file iav_primula_sign_handler.hpp
+/// @brief IAV-Primula implementation of the signature handler.
+
 #ifndef SCORE_CRYPTO_DAEMON_PROVIDER_IAV_PRIMULA_SIGN_HANDLER_HPP
 #define SCORE_CRYPTO_DAEMON_PROVIDER_IAV_PRIMULA_SIGN_HANDLER_HPP
 

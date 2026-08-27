@@ -11,6 +11,9 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+/// @file iav_primula_provider.hpp
+/// @brief IAV-Primula provider implementation for the score interface.
+
 #ifndef SCORE_CRYPTO_DAEMON_PROVIDER_IAV_PRIMULA_PROVIDER_HPP
 #define SCORE_CRYPTO_DAEMON_PROVIDER_IAV_PRIMULA_PROVIDER_HPP
 

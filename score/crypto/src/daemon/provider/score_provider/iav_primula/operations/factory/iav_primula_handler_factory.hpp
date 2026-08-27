@@ -11,6 +11,9 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+/// @file iav_primula_handler_factory.hpp
+/// @brief Handler factory for IAV-Primula operations.
+
 #ifndef SCORE_CRYPTO_DAEMON_PROVIDER_IAV_PRIMULA_HANDLER_FACTORY_HPP
 #define SCORE_CRYPTO_DAEMON_PROVIDER_IAV_PRIMULA_HANDLER_FACTORY_HPP
 
