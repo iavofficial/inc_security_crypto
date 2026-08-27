@@ -24,42 +24,129 @@
 extern "C" {
 #endif
 
+/// @brief Status codes returned by the IAV-Primula C ABI.
+///
+/// The numeric values are part of the stable ABI and must not be changed.
 typedef enum iav_status
 {
-    IAV_STATUS_OK = 0,
-    IAV_STATUS_INVALID_ARGUMENT = 1,
-    IAV_STATUS_BUFFER_TOO_SMALL = 2,
-    IAV_STATUS_UNSUPPORTED_ALGORITHM = 3,
-    IAV_STATUS_VERIFICATION_FAILED = 4,
-    IAV_STATUS_CRYPTO_FAILURE = 5
+    IAV_STATUS_OK = 0,                    ///< The operation completed successfully.
+    IAV_STATUS_INVALID_ARGUMENT = 1,      ///< One or more arguments are invalid.
+    IAV_STATUS_BUFFER_TOO_SMALL = 2,      ///< An output buffer cannot hold the result.
+    IAV_STATUS_UNSUPPORTED_ALGORITHM = 3, ///< The requested algorithm is not supported.
+    IAV_STATUS_VERIFICATION_FAILED = 4,  ///< Verification completed and the signature is invalid.
+    IAV_STATUS_CRYPTO_FAILURE = 5        ///< The backend failed to perform the cryptographic operation.
 } iav_status;
 
+/// @brief Algorithms understood by the IAV-Primula C ABI.
+///
+/// The numeric values are part of the stable ABI and must not be changed.
 typedef enum iav_algorithm
 {
-    IAV_ALGORITHM_ML_DSA_44 = 1,
-    IAV_ALGORITHM_ML_DSA_65 = 2,
-    IAV_ALGORITHM_ML_DSA_87 = 3,
-    IAV_ALGORITHM_ML_KEM_512 = 10,
-    IAV_ALGORITHM_ML_KEM_768 = 11,
-    IAV_ALGORITHM_ML_KEM_1024 = 12
+    IAV_ALGORITHM_ML_DSA_44 = 1,   ///< ML-DSA-44 signature algorithm.
+    IAV_ALGORITHM_ML_DSA_65 = 2,   ///< ML-DSA-65 signature algorithm.
+    IAV_ALGORITHM_ML_DSA_87 = 3,   ///< ML-DSA-87 signature algorithm.
+    IAV_ALGORITHM_ML_KEM_512 = 10, ///< ML-KEM-512 key-encapsulation algorithm.
+    IAV_ALGORITHM_ML_KEM_768 = 11, ///< ML-KEM-768 key-encapsulation algorithm.
+    IAV_ALGORITHM_ML_KEM_1024 = 12 ///< ML-KEM-1024 key-encapsulation algorithm.
 } iav_algorithm;
 
+/// @brief Opaque backend-owned key handle.
+///
+/// The handle contents are private to the backend and must not be inspected
+/// or modified by callers. Handles returned by generation functions must be
+/// released with iav_key_destroy().
 typedef struct iav_primula_key_handle iav_primula_key_handle;
 
+// ---------------------------------------------------------------------------
+// Signature key management
+// ---------------------------------------------------------------------------
+
+/// @brief Generate a signature key pair.
+///
+/// @param algorithm Signature algorithm to use.
+/// @param key Output pointer receiving the generated key handle.
+/// @return IAV_STATUS_OK on success, or an error status if generation fails.
 iav_status iav_keypair_generate(iav_algorithm algorithm, iav_primula_key_handle** key);
+
+/// @brief Export the public key associated with a signature key handle.
+///
+/// @param key Signature key handle owned by the caller.
+/// @param output Caller-provided output buffer for the public key.
+/// @param output_len Input buffer capacity and output length written.
+/// @return IAV_STATUS_OK on success, IAV_STATUS_BUFFER_TOO_SMALL when the
+///         output buffer is insufficient, or another error status.
 iav_status iav_public_key_export(const iav_primula_key_handle* key, uint8_t* output, size_t* output_len);
-iav_status iav_kem_keypair_generate(iav_algorithm algorithm, iav_primula_key_handle** key);
-iav_status iav_kem_public_key_export(const iav_primula_key_handle* key, uint8_t* output, size_t* output_len);
+
+// ---------------------------------------------------------------------------
+// Signature operations
+// ---------------------------------------------------------------------------
+
+/// @brief Sign a message with a generated signature key.
+///
+/// @param key Signature key handle owned by the caller.
+/// @param message Message data to sign.
+/// @param message_len Number of bytes in message.
+/// @param signature Caller-provided output buffer for the signature.
+/// @param signature_len Input buffer capacity and output signature length.
+/// @return IAV_STATUS_OK on success, IAV_STATUS_BUFFER_TOO_SMALL when the
+///         signature buffer is insufficient, or another error status.
 iav_status iav_sign(const iav_primula_key_handle* key,
                     const uint8_t* message,
                     size_t message_len,
                     uint8_t* signature,
                     size_t* signature_len);
+
+/// @brief Verify a message signature.
+///
+/// @param key Signature key handle owned by the caller.
+/// @param message Message data to verify.
+/// @param message_len Number of bytes in message.
+/// @param signature Signature to verify.
+/// @param signature_len Number of bytes in signature.
+/// @return IAV_STATUS_OK when the signature is valid,
+///         IAV_STATUS_VERIFICATION_FAILED when it is invalid, or another
+///         error status when verification cannot be performed.
 iav_status iav_verify(const iav_primula_key_handle* key,
                       const uint8_t* message,
                       size_t message_len,
                       const uint8_t* signature,
                       size_t signature_len);
+
+// ---------------------------------------------------------------------------
+// KEM key management
+// ---------------------------------------------------------------------------
+
+/// @brief Generate a KEM key pair.
+///
+/// @param algorithm KEM algorithm to use.
+/// @param key Output pointer receiving the generated key handle.
+/// @return IAV_STATUS_OK on success, or an error status if generation fails.
+iav_status iav_kem_keypair_generate(iav_algorithm algorithm, iav_primula_key_handle** key);
+
+/// @brief Export the public key associated with a KEM key handle.
+///
+/// @param key KEM key handle owned by the caller.
+/// @param output Caller-provided output buffer for the public key.
+/// @param output_len Input buffer capacity and output length written.
+/// @return IAV_STATUS_OK on success, IAV_STATUS_BUFFER_TOO_SMALL when the
+///         output buffer is insufficient, or another error status.
+iav_status iav_kem_public_key_export(const iav_primula_key_handle* key, uint8_t* output, size_t* output_len);
+
+// ---------------------------------------------------------------------------
+// KEM operations
+// ---------------------------------------------------------------------------
+
+/// @brief Encapsulate a shared secret using a public KEM key.
+///
+/// @param algorithm KEM algorithm to use.
+/// @param public_key Public key used for encapsulation.
+/// @param public_key_len Number of bytes in public_key.
+/// @param ciphertext Caller-provided output buffer for the ciphertext.
+/// @param ciphertext_len Input capacity and output ciphertext length.
+/// @param shared_secret Caller-provided output buffer for the shared secret.
+/// @param shared_secret_len Input capacity and output shared-secret length.
+/// @return IAV_STATUS_OK on success, IAV_STATUS_BUFFER_TOO_SMALL when an
+///         output buffer is insufficient, or another error status.
 iav_status iav_kem_encapsulate(iav_algorithm algorithm,
                                 const uint8_t* public_key,
                                 size_t public_key_len,
@@ -67,11 +154,31 @@ iav_status iav_kem_encapsulate(iav_algorithm algorithm,
                                 size_t* ciphertext_len,
                                 uint8_t* shared_secret,
                                 size_t* shared_secret_len);
+
+/// @brief Decapsulate a shared secret using a private KEM key.
+///
+/// @param key KEM key handle owned by the caller.
+/// @param ciphertext Ciphertext to decapsulate.
+/// @param ciphertext_len Number of bytes in ciphertext.
+/// @param shared_secret Caller-provided output buffer for the shared secret.
+/// @param shared_secret_len Input capacity and output shared-secret length.
+/// @return IAV_STATUS_OK on success, IAV_STATUS_BUFFER_TOO_SMALL when the
+///         output buffer is insufficient, or another error status.
 iav_status iav_kem_decapsulate(const iav_primula_key_handle* key,
                                 const uint8_t* ciphertext,
                                 size_t ciphertext_len,
                                 uint8_t* shared_secret,
                                 size_t* shared_secret_len);
+
+// ---------------------------------------------------------------------------
+// Resource cleanup
+// ---------------------------------------------------------------------------
+
+/// @brief Destroy a key handle and release its backend resources.
+///
+/// The handle must not be used after this function returns.
+///
+/// @param key Key handle previously returned by a key-generation function.
 void iav_key_destroy(iav_primula_key_handle* key);
 
 #ifdef __cplusplus

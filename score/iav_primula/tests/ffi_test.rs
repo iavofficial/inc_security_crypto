@@ -20,20 +20,26 @@ use iav_primula::{
 
 #[test]
 fn exported_operations_report_unsupported_until_backend_is_connected() {
+    // These are minimal placeholder values for the current stub operations:
+    // key remains null, length is a dummy size parameter, and byte provides a
+    // minimal message or data reference.
     let mut key: *mut iav_primula_key_handle = core::ptr::null_mut();
     let mut length = 0usize;
     let byte = 0u8;
 
-    // Each exported operation must return the stable unsupported status while
-    // the concrete Primula cryptographic implementation is not integrated.
+    // Signature key management must return the stable unsupported status while
+    // the concrete implementation is not integrated.
     assert_eq!(
         iav_keypair_generate(iav_algorithm::IAV_ALGORITHM_ML_DSA_44, &mut key),
         iav_status::IAV_STATUS_UNSUPPORTED_ALGORITHM
     );
+
     assert_eq!(
         iav_public_key_export(key, core::ptr::null_mut(), &mut length),
         iav_status::IAV_STATUS_UNSUPPORTED_ALGORITHM
     );
+
+    // KEM key management follows the same stub contract.
     assert_eq!(
         iav_kem_keypair_generate(iav_algorithm::IAV_ALGORITHM_ML_KEM_512, &mut key),
         iav_status::IAV_STATUS_UNSUPPORTED_ALGORITHM
@@ -42,6 +48,8 @@ fn exported_operations_report_unsupported_until_backend_is_connected() {
         iav_kem_public_key_export(key, core::ptr::null_mut(), &mut length),
         iav_status::IAV_STATUS_UNSUPPORTED_ALGORITHM
     );
+
+    // Signature operations use the same unsupported status until implemented.
     assert_eq!(
         iav_sign(key, &byte, 0, core::ptr::null_mut(), &mut length),
         iav_status::IAV_STATUS_UNSUPPORTED_ALGORITHM
@@ -50,6 +58,8 @@ fn exported_operations_report_unsupported_until_backend_is_connected() {
         iav_verify(key, &byte, 0, &byte, 0),
         iav_status::IAV_STATUS_UNSUPPORTED_ALGORITHM
     );
+
+    // KEM operations also remain unsupported in the current backend stub.
     assert_eq!(
         iav_kem_encapsulate(
             iav_algorithm::IAV_ALGORITHM_ML_KEM_512,
@@ -67,12 +77,13 @@ fn exported_operations_report_unsupported_until_backend_is_connected() {
         iav_status::IAV_STATUS_UNSUPPORTED_ALGORITHM
     );
 
-    // Destruction is intentionally a no-op for the current null/stub handle.
+    // Resource cleanup is intentionally a no-op for the current null/stub handle.
     iav_key_destroy(key);
 }
 
 #[test]
 fn ffi_status_and_algorithm_values_are_stable() {
+    // Status values are part of the stable C ABI.
     assert_eq!(iav_status::IAV_STATUS_OK as u32, 0);
     assert_eq!(iav_status::IAV_STATUS_INVALID_ARGUMENT as u32, 1);
     assert_eq!(iav_status::IAV_STATUS_BUFFER_TOO_SMALL as u32, 2);
@@ -80,6 +91,7 @@ fn ffi_status_and_algorithm_values_are_stable() {
     assert_eq!(iav_status::IAV_STATUS_VERIFICATION_FAILED as u32, 4);
     assert_eq!(iav_status::IAV_STATUS_CRYPTO_FAILURE as u32, 5);
 
+    // Algorithm values must match the #[repr(C)] declarations in the C header.
     assert_eq!(iav_algorithm::IAV_ALGORITHM_ML_DSA_44 as u32, 1);
     assert_eq!(iav_algorithm::IAV_ALGORITHM_ML_DSA_65 as u32, 2);
     assert_eq!(iav_algorithm::IAV_ALGORITHM_ML_DSA_87 as u32, 3);
