@@ -105,7 +105,6 @@ class VerifyExecutor final
         common::OperationAction action,
         common::StreamOperationState currentState,
         common::StreamOperationState& nextState);
-
 };
 }  // namespace score::crypto::daemon::provider::score_provider::operations::verify
 

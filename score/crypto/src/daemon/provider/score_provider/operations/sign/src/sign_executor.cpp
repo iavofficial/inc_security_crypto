@@ -24,10 +24,9 @@ using common::RequestParameters;
 using common::ResponseParameters;
 using common::StreamOperationState;
 
-Expected<ResponseParameters, DaemonErrorCode> SignExecutor::Execute(
-    ScoreSignHandler& handler,
-    const common::OperationIdentifier& operationId,
-    RequestParameters& request)
+Expected<ResponseParameters, DaemonErrorCode> SignExecutor::Execute(ScoreSignHandler& handler,
+                                                                    const common::OperationIdentifier& operationId,
+                                                                    RequestParameters& request)
 {
     // Handle operations that do not participate in the streaming state machine.
     if (operationId.operationAction == handler::sign_handler_operations::SIGN_GET_SIGNATURE_SIZE)
@@ -194,17 +193,15 @@ Expected<ResponseParameters, DaemonErrorCode> SignExecutor::ExecuteSingleShot(Sc
     return handler.SingleShotSign(*data, output);
 }
 
-Expected<std::monostate, DaemonErrorCode> SignExecutor::ExecuteReset(
-    ScoreSignHandler& handler,
-    RequestParameters& /*request*/)
+Expected<std::monostate, DaemonErrorCode> SignExecutor::ExecuteReset(ScoreSignHandler& handler,
+                                                                     RequestParameters& /*request*/)
 {
     // RESET does not consume request parameters; the handler owns the reset logic.
     return handler.Reset();
 }
 
-Expected<ResponseParameters, DaemonErrorCode> SignExecutor::GetSignatureSize(
-    const ScoreSignHandler& handler,
-    RequestParameters& /*request*/)
+Expected<ResponseParameters, DaemonErrorCode> SignExecutor::GetSignatureSize(const ScoreSignHandler& handler,
+                                                                             RequestParameters& /*request*/)
 {
     // The signature size depends only on the configured algorithm.
     return handler.GetSignatureSize();

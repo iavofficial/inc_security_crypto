@@ -16,7 +16,7 @@
 //! Cryptographic implementation types are intentionally not exposed to C++.
 //! This module owns the opaque Rust key handle and translates failures to
 //! stable `iav_status` values. The cryptographic entry points currently use
-//! placeholder implementations and return `IAV_STATUS_UNSUPPORTED_ALGORITHM`.
+//! placeholder implementations and return `IavStatusUnsupportedAlgorithm`.
 
 use core::ffi::c_void;
 
@@ -35,12 +35,12 @@ pub struct iav_primula_key_handle {
 ///
 /// The numeric values must remain synchronized with `iav_primula_ffi.h`.
 pub enum iav_status {
-    IAV_STATUS_OK = 0,                    // Operation completed successfully.
-    IAV_STATUS_INVALID_ARGUMENT = 1,      // One or more arguments are invalid.
-    IAV_STATUS_BUFFER_TOO_SMALL = 2,      // An output buffer cannot hold the result.
-    IAV_STATUS_UNSUPPORTED_ALGORITHM = 3, // The requested algorithm is not supported.
-    IAV_STATUS_VERIFICATION_FAILED = 4,  // Verification completed and the signature is invalid.
-    IAV_STATUS_CRYPTO_FAILURE = 5,       // The backend failed during a cryptographic operation.
+    IavStatusOk = 0,                   // Operation completed successfully.
+    IavStatusInvalidArgument = 1,      // One or more arguments are invalid.
+    IavStatusBufferTooSmall = 2,       // An output buffer cannot hold the result.
+    IavStatusUnsupportedAlgorithm = 3, // The requested algorithm is not supported.
+    IavStatusVerificationFailed = 4,   // Verification completed and the signature is invalid.
+    IavStatusCryptoFailure = 5,        // The backend failed during a cryptographic operation.
 }
 
 #[repr(C)]
@@ -49,17 +49,17 @@ pub enum iav_status {
 ///
 /// The numeric values must remain synchronized with `iav_primula_ffi.h`.
 pub enum iav_algorithm {
-    IAV_ALGORITHM_ML_DSA_44 = 1,   // ML-DSA-44 signature algorithm.
-    IAV_ALGORITHM_ML_DSA_65 = 2,   // ML-DSA-65 signature algorithm.
-    IAV_ALGORITHM_ML_DSA_87 = 3,   // ML-DSA-87 signature algorithm.
-    IAV_ALGORITHM_ML_KEM_512 = 10, // ML-KEM-512 key-encapsulation algorithm.
-    IAV_ALGORITHM_ML_KEM_768 = 11, // ML-KEM-768 key-encapsulation algorithm.
-    IAV_ALGORITHM_ML_KEM_1024 = 12, // ML-KEM-1024 key-encapsulation algorithm.
+    IavAlgorithmMlDsa44 = 1,    // ML-DSA-44 signature algorithm.
+    IavAlgorithmMlDsa65 = 2,    // ML-DSA-65 signature algorithm.
+    IavAlgorithmMlDsa87 = 3,    // ML-DSA-87 signature algorithm.
+    IavAlgorithmMlKem512 = 10,  // ML-KEM-512 key-encapsulation algorithm.
+    IavAlgorithmMlKem768 = 11,  // ML-KEM-768 key-encapsulation algorithm.
+    IavAlgorithmMlKem1024 = 12, // ML-KEM-1024 key-encapsulation algorithm.
 }
 
 /// Return the status used by the currently unimplemented backend operations.
 fn unsupported() -> iav_status {
-    iav_status::IAV_STATUS_UNSUPPORTED_ALGORITHM
+    iav_status::IavStatusUnsupportedAlgorithm
 }
 
 // The `extern "C"` ABI and `no_mangle` attribute preserve the C-compatible
@@ -72,7 +72,7 @@ fn unsupported() -> iav_status {
 /// Generate a signature key pair.
 ///
 /// This entry point is currently a placeholder and returns
-/// `IAV_STATUS_UNSUPPORTED_ALGORITHM`.
+/// `IavStatusUnsupportedAlgorithm`.
 #[no_mangle]
 pub extern "C" fn iav_keypair_generate(
     _algorithm: iav_algorithm,
@@ -84,7 +84,7 @@ pub extern "C" fn iav_keypair_generate(
 /// Export a signature public key.
 ///
 /// This entry point is currently a placeholder and returns
-/// `IAV_STATUS_UNSUPPORTED_ALGORITHM`.
+/// `IavStatusUnsupportedAlgorithm`.
 #[no_mangle]
 pub extern "C" fn iav_public_key_export(
     _key: *const iav_primula_key_handle,
@@ -101,7 +101,7 @@ pub extern "C" fn iav_public_key_export(
 /// Generate a KEM key pair.
 ///
 /// This entry point is currently a placeholder and returns
-/// `IAV_STATUS_UNSUPPORTED_ALGORITHM`.
+/// `IavStatusUnsupportedAlgorithm`.
 #[no_mangle]
 pub extern "C" fn iav_kem_keypair_generate(
     _algorithm: iav_algorithm,
@@ -113,7 +113,7 @@ pub extern "C" fn iav_kem_keypair_generate(
 /// Export a KEM public key.
 ///
 /// This entry point is currently a placeholder and returns
-/// `IAV_STATUS_UNSUPPORTED_ALGORITHM`.
+/// `IavStatusUnsupportedAlgorithm`.
 #[no_mangle]
 pub extern "C" fn iav_kem_public_key_export(
     _key: *const iav_primula_key_handle,
@@ -130,7 +130,7 @@ pub extern "C" fn iav_kem_public_key_export(
 /// Sign a message with a signature key.
 ///
 /// This entry point is currently a placeholder and returns
-/// `IAV_STATUS_UNSUPPORTED_ALGORITHM`.
+/// `IavStatusUnsupportedAlgorithm`.
 #[no_mangle]
 pub extern "C" fn iav_sign(
     _key: *const iav_primula_key_handle,
@@ -145,7 +145,7 @@ pub extern "C" fn iav_sign(
 /// Verify a message signature.
 ///
 /// This entry point is currently a placeholder and returns
-/// `IAV_STATUS_UNSUPPORTED_ALGORITHM`.
+/// `IavStatusUnsupportedAlgorithm`.
 #[no_mangle]
 pub extern "C" fn iav_verify(
     _key: *const iav_primula_key_handle,
@@ -164,7 +164,7 @@ pub extern "C" fn iav_verify(
 /// Encapsulate a shared secret using a public KEM key.
 ///
 /// This entry point is currently a placeholder and returns
-/// `IAV_STATUS_UNSUPPORTED_ALGORITHM`.
+/// `IavStatusUnsupportedAlgorithm`.
 #[no_mangle]
 pub extern "C" fn iav_kem_encapsulate(
     _algorithm: iav_algorithm,
@@ -181,7 +181,7 @@ pub extern "C" fn iav_kem_encapsulate(
 /// Decapsulate a shared secret using a private KEM key.
 ///
 /// This entry point is currently a placeholder and returns
-/// `IAV_STATUS_UNSUPPORTED_ALGORITHM`.
+/// `IavStatusUnsupportedAlgorithm`.
 #[no_mangle]
 pub extern "C" fn iav_kem_decapsulate(
     _key: *const iav_primula_key_handle,

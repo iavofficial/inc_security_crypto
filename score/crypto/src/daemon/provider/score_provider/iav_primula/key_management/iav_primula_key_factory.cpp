@@ -24,21 +24,33 @@ namespace
 ///
 /// @return The corresponding IAV-Primula algorithm, or
 ///         kUnsupportedAlgorithm if the identifier is unknown.
-Expected<iav_algorithm, common::DaemonErrorCode> Algorithm(common::AlgorithmId a)
+Expected<iav_algorithm, common::DaemonErrorCode> Algorithm(common::AlgorithmId algorithmId)
 {
-    auto s = std::string_view{a.data(), a.size()};
-    if (s == "ML-DSA-44")
-        return IAV_ALGORITHM_ML_DSA_44;
-    if (s == "ML-DSA-65")
-        return IAV_ALGORITHM_ML_DSA_65;
-    if (s == "ML-DSA-87")
-        return IAV_ALGORITHM_ML_DSA_87;
-    if (s == "ML-KEM-512")
-        return IAV_ALGORITHM_ML_KEM_512;
-    if (s == "ML-KEM-768")
-        return IAV_ALGORITHM_ML_KEM_768;
-    if (s == "ML-KEM-1024")
-        return IAV_ALGORITHM_ML_KEM_1024;
+    auto algorithmDescription = std::string_view{algorithmId.data(), algorithmId.size()};
+    if (algorithmDescription == "ML-DSA-44")
+    {
+        return IavAlgorithmMlDsa44;
+    }
+    if (algorithmDescription == "ML-DSA-65")
+    {
+        return IavAlgorithmMlDsa65;
+    }
+    if (algorithmDescription == "ML-DSA-87")
+    {
+        return IavAlgorithmMlDsa87;
+    }
+    if (algorithmDescription == "ML-KEM-512")
+    {
+        return IavAlgorithmMlKem512;
+    }
+    if (algorithmDescription == "ML-KEM-768")
+    {
+        return IavAlgorithmMlKem768;
+    }
+    if (algorithmDescription == "ML-KEM-1024")
+    {
+        return IavAlgorithmMlKem1024;
+    }
     return make_unexpected(common::DaemonErrorCode::kUnsupportedAlgorithm);
 }
 }  // namespace
@@ -55,12 +67,12 @@ Expected<key_management::IKeyHandler::Sptr, common::DaemonErrorCode> IavPrimulaK
         return make_unexpected(algorithm.error());
 
     iav_primula_key_handle* key = nullptr;
-    if (iav_keypair_generate(algorithm.value(), &key) != IAV_STATUS_OK || key == nullptr)
+    if (iav_keypair_generate(algorithm.value(), &key) != IavStatusOk || key == nullptr)
         return make_unexpected(common::DaemonErrorCode::kOperationFailed);
 
     std::vector<std::uint8_t> pub(info->public_key_size);
     std::size_t n = pub.size();
-    if (iav_public_key_export(key, pub.data(), &n) != IAV_STATUS_OK || n != pub.size())
+    if (iav_public_key_export(key, pub.data(), &n) != IavStatusOk || n != pub.size())
     {
         iav_key_destroy(key);
         return make_unexpected(common::DaemonErrorCode::kOperationFailed);

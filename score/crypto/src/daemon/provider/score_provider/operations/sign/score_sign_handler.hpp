@@ -129,10 +129,10 @@ class ScoreSignHandler : public handler::Handler
         std::optional<common::RequestParameter> output);
 
     /// @brief Get the signature size for the current algorithm.
-    [[nodiscard]]  virtual Expected<common::ResponseParameters, common::DaemonErrorCode> GetSignatureSize() const;
+    [[nodiscard]] virtual Expected<common::ResponseParameters, common::DaemonErrorCode> GetSignatureSize() const;
 
   protected:
-    common::AlgorithmId m_algorithm;  ///< Algorithm handled by this instance.
+    common::AlgorithmId m_algorithm;                                           ///< Algorithm handled by this instance.
     common::StreamOperationState m_state{common::StreamOperationState::IDLE};  ///< Current streaming state.
 
   private:

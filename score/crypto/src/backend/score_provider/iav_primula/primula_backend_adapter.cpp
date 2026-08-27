@@ -22,15 +22,16 @@ daemon::provider::score_provider::ProviderCreator PrimulaBackendAdapter::GetProv
 {
     using namespace daemon::provider::score_provider;
 
-    return ProviderCreator{.backend_id = "primula",
-                           .backend_name = "PRIMULA",
-                            // IAV-Primula provides post-quantum algorithms only. Mark it as SPECIALIZED
-                            // so that it is not selected for generic SOFTWARE algorithms such as SHA-256
-                            // or HMAC, which are provided by OpenSSL.
-                           .provider_type = "SPECIALIZED",
-                           .create_provider = []() -> std::unique_ptr<daemon::provider::IProvider> {
-                               return std::make_unique<daemon::provider::score_provider::iav_primula::IavPrimulaProvider>();
-                           }};
+    return ProviderCreator{
+        .backend_id = "primula",
+        .backend_name = "PRIMULA",
+        // IAV-Primula provides post-quantum algorithms only. Mark it as SPECIALIZED
+        // so that it is not selected for generic SOFTWARE algorithms such as SHA-256
+        // or HMAC, which are provided by OpenSSL.
+        .provider_type = "SPECIALIZED",
+        .create_provider = []() -> std::unique_ptr<daemon::provider::IProvider> {
+            return std::make_unique<daemon::provider::score_provider::iav_primula::IavPrimulaProvider>();
+        }};
 }
 
 }  // namespace score::crypto::backend::score_provider::primula

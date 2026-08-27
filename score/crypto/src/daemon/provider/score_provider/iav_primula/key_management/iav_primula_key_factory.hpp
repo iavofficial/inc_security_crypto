@@ -32,7 +32,7 @@ class IavPrimulaKeyFactory final : public key_management::IKeyFactory
     /// @brief Create a key factory for the specified provider instance.
     ///
     /// @param id Numeric identifier assigned to the provider.
-    explicit IavPrimulaKeyFactory(common::ProviderId id) : m_provider_id{id} {}
+    explicit IavPrimulaKeyFactory(common::ProviderId providerId) : m_provider_id(providerId) {}
 
     /// @brief Generate an IAV-Primula key pair.
     ///
@@ -50,7 +50,7 @@ class IavPrimulaKeyFactory final : public key_management::IKeyFactory
         const key_management::KeyImportRequest&) override;
 
   private:
-    common::ProviderId m_provider_id;  ///< Numeric identifier of the owning provider instance.
+    common::ProviderId m_provider_id{};  ///< Numeric identifier of the owning provider instance.
 };
 }  // namespace score::crypto::daemon::provider::score_provider::iav_primula
 

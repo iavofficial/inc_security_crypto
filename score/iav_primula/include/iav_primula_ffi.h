@@ -29,12 +29,12 @@ extern "C" {
 /// The numeric values are part of the stable ABI and must not be changed.
 typedef enum iav_status
 {
-    IAV_STATUS_OK = 0,                    ///< The operation completed successfully.
-    IAV_STATUS_INVALID_ARGUMENT = 1,      ///< One or more arguments are invalid.
-    IAV_STATUS_BUFFER_TOO_SMALL = 2,      ///< An output buffer cannot hold the result.
-    IAV_STATUS_UNSUPPORTED_ALGORITHM = 3, ///< The requested algorithm is not supported.
-    IAV_STATUS_VERIFICATION_FAILED = 4,  ///< Verification completed and the signature is invalid.
-    IAV_STATUS_CRYPTO_FAILURE = 5        ///< The backend failed to perform the cryptographic operation.
+    IavStatusOk = 0,                    ///< The operation completed successfully.
+    IavStatusInvalidArgument = 1,       ///< One or more arguments are invalid.
+    IavStatusBufferTooSmall = 2,        ///< An output buffer cannot hold the result.
+    IavStatusUnsupportedAlgorithm = 3,  ///< The requested algorithm is not supported.
+    IavStatusVerificationFailed = 4,    ///< Verification completed and the signature is invalid.
+    IavStatusCryptoFailure = 5          ///< The backend failed to perform the cryptographic operation.
 } iav_status;
 
 /// @brief Algorithms understood by the IAV-Primula C ABI.
@@ -42,12 +42,12 @@ typedef enum iav_status
 /// The numeric values are part of the stable ABI and must not be changed.
 typedef enum iav_algorithm
 {
-    IAV_ALGORITHM_ML_DSA_44 = 1,   ///< ML-DSA-44 signature algorithm.
-    IAV_ALGORITHM_ML_DSA_65 = 2,   ///< ML-DSA-65 signature algorithm.
-    IAV_ALGORITHM_ML_DSA_87 = 3,   ///< ML-DSA-87 signature algorithm.
-    IAV_ALGORITHM_ML_KEM_512 = 10, ///< ML-KEM-512 key-encapsulation algorithm.
-    IAV_ALGORITHM_ML_KEM_768 = 11, ///< ML-KEM-768 key-encapsulation algorithm.
-    IAV_ALGORITHM_ML_KEM_1024 = 12 ///< ML-KEM-1024 key-encapsulation algorithm.
+    IavAlgorithmMlDsa44 = 1,    ///< ML-DSA-44 signature algorithm.
+    IavAlgorithmMlDsa65 = 2,    ///< ML-DSA-65 signature algorithm.
+    IavAlgorithmMlDsa87 = 3,    ///< ML-DSA-87 signature algorithm.
+    IavAlgorithmMlKem512 = 10,  ///< ML-KEM-512 key-encapsulation algorithm.
+    IavAlgorithmMlKem768 = 11,  ///< ML-KEM-768 key-encapsulation algorithm.
+    IavAlgorithmMlKem1024 = 12  ///< ML-KEM-1024 key-encapsulation algorithm.
 } iav_algorithm;
 
 /// @brief Opaque backend-owned key handle.
@@ -65,7 +65,7 @@ typedef struct iav_primula_key_handle iav_primula_key_handle;
 ///
 /// @param algorithm Signature algorithm to use.
 /// @param key Output pointer receiving the generated key handle.
-/// @return IAV_STATUS_OK on success, or an error status if generation fails.
+/// @return IavStatusOk on success, or an error status if generation fails.
 iav_status iav_keypair_generate(iav_algorithm algorithm, iav_primula_key_handle** key);
 
 /// @brief Export the public key associated with a signature key handle.
@@ -73,7 +73,7 @@ iav_status iav_keypair_generate(iav_algorithm algorithm, iav_primula_key_handle*
 /// @param key Signature key handle owned by the caller.
 /// @param output Caller-provided output buffer for the public key.
 /// @param output_len Input buffer capacity and output length written.
-/// @return IAV_STATUS_OK on success, IAV_STATUS_BUFFER_TOO_SMALL when the
+/// @return IavStatusOk on success, IavStatusBufferTooSmall when the
 ///         output buffer is insufficient, or another error status.
 iav_status iav_public_key_export(const iav_primula_key_handle* key, uint8_t* output, size_t* output_len);
 
@@ -88,7 +88,7 @@ iav_status iav_public_key_export(const iav_primula_key_handle* key, uint8_t* out
 /// @param message_len Number of bytes in message.
 /// @param signature Caller-provided output buffer for the signature.
 /// @param signature_len Input buffer capacity and output signature length.
-/// @return IAV_STATUS_OK on success, IAV_STATUS_BUFFER_TOO_SMALL when the
+/// @return IavStatusOk on success, IavStatusBufferTooSmall when the
 ///         signature buffer is insufficient, or another error status.
 iav_status iav_sign(const iav_primula_key_handle* key,
                     const uint8_t* message,
@@ -103,8 +103,8 @@ iav_status iav_sign(const iav_primula_key_handle* key,
 /// @param message_len Number of bytes in message.
 /// @param signature Signature to verify.
 /// @param signature_len Number of bytes in signature.
-/// @return IAV_STATUS_OK when the signature is valid,
-///         IAV_STATUS_VERIFICATION_FAILED when it is invalid, or another
+/// @return IavStatusOk when the signature is valid,
+///         IavStatusVerificationFailed when it is invalid, or another
 ///         error status when verification cannot be performed.
 iav_status iav_verify(const iav_primula_key_handle* key,
                       const uint8_t* message,
@@ -120,7 +120,7 @@ iav_status iav_verify(const iav_primula_key_handle* key,
 ///
 /// @param algorithm KEM algorithm to use.
 /// @param key Output pointer receiving the generated key handle.
-/// @return IAV_STATUS_OK on success, or an error status if generation fails.
+/// @return IavStatusOk on success, or an error status if generation fails.
 iav_status iav_kem_keypair_generate(iav_algorithm algorithm, iav_primula_key_handle** key);
 
 /// @brief Export the public key associated with a KEM key handle.
@@ -128,7 +128,7 @@ iav_status iav_kem_keypair_generate(iav_algorithm algorithm, iav_primula_key_han
 /// @param key KEM key handle owned by the caller.
 /// @param output Caller-provided output buffer for the public key.
 /// @param output_len Input buffer capacity and output length written.
-/// @return IAV_STATUS_OK on success, IAV_STATUS_BUFFER_TOO_SMALL when the
+/// @return IavStatusOk on success, IavStatusBufferTooSmall when the
 ///         output buffer is insufficient, or another error status.
 iav_status iav_kem_public_key_export(const iav_primula_key_handle* key, uint8_t* output, size_t* output_len);
 
@@ -145,15 +145,15 @@ iav_status iav_kem_public_key_export(const iav_primula_key_handle* key, uint8_t*
 /// @param ciphertext_len Input capacity and output ciphertext length.
 /// @param shared_secret Caller-provided output buffer for the shared secret.
 /// @param shared_secret_len Input capacity and output shared-secret length.
-/// @return IAV_STATUS_OK on success, IAV_STATUS_BUFFER_TOO_SMALL when an
+/// @return IavStatusOk on success, IavStatusBufferTooSmall when an
 ///         output buffer is insufficient, or another error status.
 iav_status iav_kem_encapsulate(iav_algorithm algorithm,
-                                const uint8_t* public_key,
-                                size_t public_key_len,
-                                uint8_t* ciphertext,
-                                size_t* ciphertext_len,
-                                uint8_t* shared_secret,
-                                size_t* shared_secret_len);
+                               const uint8_t* public_key,
+                               size_t public_key_len,
+                               uint8_t* ciphertext,
+                               size_t* ciphertext_len,
+                               uint8_t* shared_secret,
+                               size_t* shared_secret_len);
 
 /// @brief Decapsulate a shared secret using a private KEM key.
 ///
@@ -162,13 +162,13 @@ iav_status iav_kem_encapsulate(iav_algorithm algorithm,
 /// @param ciphertext_len Number of bytes in ciphertext.
 /// @param shared_secret Caller-provided output buffer for the shared secret.
 /// @param shared_secret_len Input capacity and output shared-secret length.
-/// @return IAV_STATUS_OK on success, IAV_STATUS_BUFFER_TOO_SMALL when the
+/// @return IavStatusOk on success, IavStatusBufferTooSmall when the
 ///         output buffer is insufficient, or another error status.
 iav_status iav_kem_decapsulate(const iav_primula_key_handle* key,
-                                const uint8_t* ciphertext,
-                                size_t ciphertext_len,
-                                uint8_t* shared_secret,
-                                size_t* shared_secret_len);
+                               const uint8_t* ciphertext,
+                               size_t ciphertext_len,
+                               uint8_t* shared_secret,
+                               size_t* shared_secret_len);
 
 // ---------------------------------------------------------------------------
 // Resource cleanup

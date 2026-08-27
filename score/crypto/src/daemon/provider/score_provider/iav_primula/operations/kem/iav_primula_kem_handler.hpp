@@ -39,6 +39,8 @@ class IavPrimulaKemHandler final : public operations::kem::ScoreKemHandler
 
     IavPrimulaKemHandler(const IavPrimulaKemHandler&) = delete;
     IavPrimulaKemHandler& operator=(const IavPrimulaKemHandler&) = delete;
+    IavPrimulaKemHandler(const IavPrimulaKemHandler&&) = delete;
+    IavPrimulaKemHandler& operator=(const IavPrimulaKemHandler&&) = delete;
 
     /// @brief Bind an optional IAV-Primula key to the operation context.
     ///

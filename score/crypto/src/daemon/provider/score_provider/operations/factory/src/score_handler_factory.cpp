@@ -93,8 +93,7 @@ ScoreHandlerFactory::ScoreHandlerFactory(std::shared_ptr<key_management::IKeyFac
     return ::score::Result<handler::Handler::Sptr>(::score::unexpect, error);
 }
 
-::score::Result<handler::Handler::Sptr> ScoreHandlerFactory::CreateSignHandler(
-    const common::AlgorithmId& /*algorithm*/)
+::score::Result<handler::Handler::Sptr> ScoreHandlerFactory::CreateSignHandler(const common::AlgorithmId& /*algorithm*/)
 {
     ::score::result::Error error(
         static_cast<::score::result::ErrorCode>(::score::crypto::CryptoErrorCode::kUnsupportedOperation),
@@ -113,8 +112,7 @@ ScoreHandlerFactory::ScoreHandlerFactory(std::shared_ptr<key_management::IKeyFac
     return ::score::Result<handler::Handler::Sptr>(::score::unexpect, error);
 }
 
-::score::Result<handler::Handler::Sptr> ScoreHandlerFactory::CreateKemHandler(
-    const common::AlgorithmId& /*algorithm*/)
+::score::Result<handler::Handler::Sptr> ScoreHandlerFactory::CreateKemHandler(const common::AlgorithmId& /*algorithm*/)
 {
     ::score::result::Error error(
         static_cast<::score::result::ErrorCode>(::score::crypto::CryptoErrorCode::kUnsupportedOperation),

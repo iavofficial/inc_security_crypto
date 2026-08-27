@@ -44,6 +44,8 @@ class IavPrimulaVerifyHandler final : public operations::verify::ScoreVerifyHand
 
     IavPrimulaVerifyHandler(const IavPrimulaVerifyHandler&) = delete;
     IavPrimulaVerifyHandler& operator=(const IavPrimulaVerifyHandler&) = delete;
+    IavPrimulaVerifyHandler(const IavPrimulaVerifyHandler&&) = delete;
+    IavPrimulaVerifyHandler& operator=(const IavPrimulaVerifyHandler&&) = delete;
 
     /// @brief Validate the algorithm and bind the verification key.
     ///

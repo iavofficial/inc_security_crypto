@@ -25,7 +25,8 @@ ScoreKemHandler::ScoreKemHandler(std::unique_ptr<KemExecutor> executor, common::
 ScoreKemHandler::~ScoreKemHandler() = default;
 
 Expected<common::ResponseParameters, common::DaemonErrorCode> ScoreKemHandler::Execute(
-    const common::OperationIdentifier& operation, common::RequestParameters& request)
+    const common::OperationIdentifier& operation,
+    common::RequestParameters& request)
 {
     // Delegate operation dispatch to the injected KEM executor.
     return m_executor->Execute(*this, operation, request);

@@ -14,6 +14,7 @@
 #ifndef SCORE_CRYPTO_SRC_DAEMON_COMMON_ALGORITHM_INFO_HPP
 #define SCORE_CRYPTO_SRC_DAEMON_COMMON_ALGORITHM_INFO_HPP
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -32,14 +33,14 @@ struct HashAlgorithmInfo
     std::size_t digest_size;  ///< Output size in bytes
 };
 
-inline constexpr HashAlgorithmInfo kHashAlgorithms[] = {
+inline constexpr std::array<HashAlgorithmInfo, 6UL> kHashAlgorithms{{
     {"SHA256", 32U},
     {"SHA384", 48U},
     {"SHA512", 64U},
     {"SHA224", 28U},
     {"SHA1", 20U},
     {"MD5", 16U},
-};
+}};
 
 /// @brief Look up digest size by algorithm name.
 /// @return digest size in bytes, or std::nullopt if unknown.
@@ -65,11 +66,11 @@ struct MacAlgorithmInfo
     std::size_t mac_size;  ///< Output tag size in bytes
 };
 
-inline constexpr MacAlgorithmInfo kMacAlgorithms[] = {
+inline constexpr std::array<MacAlgorithmInfo, 3UL> kMacAlgorithms = {{
     {"HMAC-SHA256", 32U},
     {"HMAC-SHA384", 48U},
     {"HMAC-SHA512", 64U},
-};
+}};
 
 /// @brief Look up MAC output size by algorithm name.
 /// @return MAC size in bytes, or std::nullopt if unknown.
@@ -112,15 +113,15 @@ enum class PqcAlgorithmKind : std::uint8_t
 /// The provider remains responsible for validating the actual encoding.
 struct PqcAlgorithmInfo
 {
-    std::string_view name;                    ///< Standardized algorithm identifier.
-    PqcAlgorithmKind kind;                    ///< Signature or KEM algorithm.
-    std::size_t public_key_size;              ///< Public key size in bytes.
-    std::size_t private_key_size;             ///< Private key size in bytes.
-    std::size_t signature_or_ciphertext_size; ///< Signature or ciphertext size in bytes; zero when not applicable.
-    std::size_t shared_secret_size;           ///< Shared-secret size in bytes; zero for signature algorithms.
+    std::string_view name;                     ///< Standardized algorithm identifier.
+    PqcAlgorithmKind kind;                     ///< Signature or KEM algorithm.
+    std::size_t public_key_size;               ///< Public key size in bytes.
+    std::size_t private_key_size;              ///< Private key size in bytes.
+    std::size_t signature_or_ciphertext_size;  ///< Signature or ciphertext size in bytes; zero when not applicable.
+    std::size_t shared_secret_size;            ///< Shared-secret size in bytes; zero for signature algorithms.
 };
 
-inline constexpr PqcAlgorithmInfo kPqcAlgorithms[] = {
+inline constexpr std::array<PqcAlgorithmInfo, 6UL> kPqcAlgorithms = {{
     // ML-DSA: public key, private key, and signature sizes from FIPS 204.
     {"ML-DSA-44", PqcAlgorithmKind::kSignature, 1312U, 2560U, 2420U, 0U},
     {"ML-DSA-65", PqcAlgorithmKind::kSignature, 1952U, 4032U, 3309U, 0U},
@@ -131,11 +132,10 @@ inline constexpr PqcAlgorithmInfo kPqcAlgorithms[] = {
     {"ML-KEM-512", PqcAlgorithmKind::kKem, 800U, 1632U, 768U, 32U},
     {"ML-KEM-768", PqcAlgorithmKind::kKem, 1184U, 2400U, 1088U, 32U},
     {"ML-KEM-1024", PqcAlgorithmKind::kKem, 1568U, 3168U, 1568U, 32U},
-};
+}};
 
 /// @brief Look up a standardized PQC algorithm by its textual identifier.
-[[nodiscard]] inline constexpr std::optional<PqcAlgorithmInfo> LookupPqcAlgorithm(
-    std::string_view algorithm) noexcept
+[[nodiscard]] inline constexpr std::optional<PqcAlgorithmInfo> LookupPqcAlgorithm(std::string_view algorithm) noexcept
 {
     for (const auto& entry : kPqcAlgorithms)
     {
@@ -161,7 +161,7 @@ inline constexpr PqcAlgorithmInfo kPqcAlgorithms[] = {
     return info.has_value() && info->kind == PqcAlgorithmKind::kKem;
 }
 
-inline constexpr KeyAlgorithmInfo kKeyAlgorithms[] = {
+inline constexpr std::array<KeyAlgorithmInfo, 11UL> kKeyAlgorithms = {{
     {"HMAC-SHA256", 32U},
     {"HMAC-SHA384", 48U},
     {"HMAC-SHA512", 64U},
@@ -173,7 +173,7 @@ inline constexpr KeyAlgorithmInfo kKeyAlgorithms[] = {
     {"AES-256-GCM", 32U},
     {"AES-128-CMAC", 16U},
     {"AES-256-CMAC", 32U},
-};
+}};
 
 /// @brief Look up default key size by algorithm name.
 /// @return key size in bytes, or std::nullopt if unknown.

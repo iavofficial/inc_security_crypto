@@ -173,7 +173,7 @@ Expected<ResponseParameters, DaemonErrorCode> IavPrimulaSignHandler::SingleShotS
 
     std::size_t signature_length = expected_signature_length;
     const auto status = iav_sign(m_key, input->data(), input->size(), signature_data, &signature_length);
-    if (status != IAV_STATUS_OK || signature_length != expected_signature_length)
+    if (status != IavStatusOk || signature_length != expected_signature_length)
     {
         return make_unexpected(DaemonErrorCode::kAlgorithmExecutionFailed);
     }

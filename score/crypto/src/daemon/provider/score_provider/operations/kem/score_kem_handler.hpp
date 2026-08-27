@@ -43,13 +43,17 @@ class ScoreKemHandler : public handler::Handler
     ScoreKemHandler(std::unique_ptr<KemExecutor>, common::AlgorithmId);
     ~ScoreKemHandler() override;
 
+    ScoreKemHandler(const ScoreKemHandler&) = delete;
+    ScoreKemHandler& operator=(const ScoreKemHandler&) = delete;
+    ScoreKemHandler(ScoreKemHandler&&) = delete;
+    ScoreKemHandler& operator=(ScoreKemHandler&&) = delete;
+
     /// @brief Delegate one KEM operation to the injected executor.
-    Expected<common::ResponseParameters, common::DaemonErrorCode> Execute(
-        const common::OperationIdentifier&, common::RequestParameters&) override;
+    Expected<common::ResponseParameters, common::DaemonErrorCode> Execute(const common::OperationIdentifier&,
+                                                                          common::RequestParameters&) override;
 
     /// @brief Initialize the KEM operation context.
-    Expected<std::monostate, common::DaemonErrorCode> InitializeContext(
-        const handler::InitializationParams&) override;
+    Expected<std::monostate, common::DaemonErrorCode> InitializeContext(const handler::InitializationParams&) override;
 
     /// @brief Reset the KEM handler state.
     Expected<std::monostate, common::DaemonErrorCode> Reset() override;
@@ -64,14 +68,12 @@ class ScoreKemHandler : public handler::Handler
     ///
     /// Concrete providers override this method to return the ciphertext and
     /// shared secret.
-    virtual Expected<common::ResponseParameters, common::DaemonErrorCode> Encapsulate(
-        const common::RequestParameter&);
+    virtual Expected<common::ResponseParameters, common::DaemonErrorCode> Encapsulate(const common::RequestParameter&);
 
     /// @brief Decapsulate a ciphertext using the bound private key.
     ///
     /// Concrete providers override this method to return the shared secret.
-    virtual Expected<common::ResponseParameters, common::DaemonErrorCode> Decapsulate(
-        const common::RequestParameter&);
+    virtual Expected<common::ResponseParameters, common::DaemonErrorCode> Decapsulate(const common::RequestParameter&);
 
   protected:
     common::AlgorithmId m_algorithm;  ///< Algorithm handled by this instance.

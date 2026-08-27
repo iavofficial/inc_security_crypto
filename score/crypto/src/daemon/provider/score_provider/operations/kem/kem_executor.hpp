@@ -44,10 +44,9 @@ class KemExecutor final
     /// @param request Operation parameters.
     /// @return Operation response, or a daemon error if the parameters or
     ///         operation are invalid.
-    Expected<common::ResponseParameters, common::DaemonErrorCode> Execute(
-        ScoreKemHandler& handler,
-        const common::OperationIdentifier& operation,
-        common::RequestParameters& request);
+    Expected<common::ResponseParameters, common::DaemonErrorCode> Execute(ScoreKemHandler& handler,
+                                                                          const common::OperationIdentifier& operation,
+                                                                          common::RequestParameters& request);
 };
 }  // namespace score::crypto::daemon::provider::score_provider::operations::kem
 

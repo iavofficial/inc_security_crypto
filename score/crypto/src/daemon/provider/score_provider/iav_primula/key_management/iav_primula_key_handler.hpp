@@ -44,6 +44,8 @@ class IavPrimulaKeyHandler final : public key_management::IKeyHandler
     ~IavPrimulaKeyHandler() override;
     IavPrimulaKeyHandler(const IavPrimulaKeyHandler&) = delete;
     IavPrimulaKeyHandler& operator=(const IavPrimulaKeyHandler&) = delete;
+    IavPrimulaKeyHandler(const IavPrimulaKeyHandler&&) = delete;
+    IavPrimulaKeyHandler& operator=(const IavPrimulaKeyHandler&&) = delete;
     /// @brief Return the provider metadata associated with the key.
     ///
     /// The returned metadata contains the provider ID, algorithm, permissions,

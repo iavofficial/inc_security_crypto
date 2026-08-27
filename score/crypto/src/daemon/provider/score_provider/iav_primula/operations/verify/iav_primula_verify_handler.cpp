@@ -102,11 +102,11 @@ Expected<bool, common::DaemonErrorCode> IavPrimulaVerifyHandler::SingleShotVerif
     const auto status = iav_verify(m_key, message->data(), message->size(), sig->data(), sig->size());
     // Map backend verification status to the handler contract: an invalid
     // signature returns false, while backend errors are returned as failures.
-    if (status == IAV_STATUS_VERIFICATION_FAILED)
+    if (status == IavStatusVerificationFailed)
     {
         return false;
     }
-    if (status != IAV_STATUS_OK)
+    if (status != IavStatusOk)
     {
         return make_unexpected(common::DaemonErrorCode::kAlgorithmExecutionFailed);
     }

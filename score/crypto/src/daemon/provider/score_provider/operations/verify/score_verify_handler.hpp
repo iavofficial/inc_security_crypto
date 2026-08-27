@@ -133,7 +133,7 @@ class ScoreVerifyHandler : public handler::Handler
         const common::RequestParameter& signature);
 
   protected:
-    common::AlgorithmId m_algorithm;  ///< Algorithm handled by this instance.
+    common::AlgorithmId m_algorithm;                                           ///< Algorithm handled by this instance.
     common::StreamOperationState m_state{common::StreamOperationState::IDLE};  ///< Current streaming state.
 
   private:

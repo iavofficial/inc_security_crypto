@@ -32,11 +32,11 @@ IavPrimulaKemHandler::IavPrimulaKemHandler(std::unique_ptr<operations::kem::KemE
 Expected<iav_algorithm, common::DaemonErrorCode> IavPrimulaKemHandler::GetAlgorithm() const noexcept
 {
     if (m_algorithm == "ML-KEM-512")
-        return IAV_ALGORITHM_ML_KEM_512;
+        return IavAlgorithmMlKem512;
     if (m_algorithm == "ML-KEM-768")
-        return IAV_ALGORITHM_ML_KEM_768;
+        return IavAlgorithmMlKem768;
     if (m_algorithm == "ML-KEM-1024")
-        return IAV_ALGORITHM_ML_KEM_1024;
+        return IavAlgorithmMlKem1024;
     return make_unexpected(common::DaemonErrorCode::kUnsupportedAlgorithm);
 }
 
@@ -67,7 +67,7 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandl
     // Generate a temporary KEM key pair, export its public key, and release the
     // native key handle before returning the public key.
     iav_primula_key_handle* key = nullptr;
-    if (iav_kem_keypair_generate(algorithm.value(), &key) != IAV_STATUS_OK || key == nullptr)
+    if (iav_kem_keypair_generate(algorithm.value(), &key) != IavStatusOk || key == nullptr)
     {
         return make_unexpected(common::DaemonErrorCode::kOperationFailed);
     }
@@ -77,7 +77,7 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandl
     std::size_t length = public_key.size();
     const auto status = iav_kem_public_key_export(key, public_key.data(), &length);
     iav_key_destroy(key);
-    if (status != IAV_STATUS_OK || length != public_key.size())
+    if (status != IavStatusOk || length != public_key.size())
     {
         return make_unexpected(common::DaemonErrorCode::kOperationFailed);
     }
@@ -109,7 +109,7 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandl
                                             &ciphertext_length,
                                             secret.data(),
                                             &secret_length);
-    if (status != IAV_STATUS_OK || ciphertext_length != ciphertext.size() || secret_length != secret.size())
+    if (status != IavStatusOk || ciphertext_length != ciphertext.size() || secret_length != secret.size())
     {
         return make_unexpected(common::DaemonErrorCode::kOperationFailed);
     }
@@ -133,7 +133,7 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandl
     std::vector<std::uint8_t> secret(info->shared_secret_size);
     std::size_t length = secret.size();
     const auto status = iav_kem_decapsulate(m_key, ciphertext->data(), ciphertext->size(), secret.data(), &length);
-    if (status != IAV_STATUS_OK || length != secret.size())
+    if (status != IavStatusOk || length != secret.size())
     {
         return make_unexpected(common::DaemonErrorCode::kOperationFailed);
     }

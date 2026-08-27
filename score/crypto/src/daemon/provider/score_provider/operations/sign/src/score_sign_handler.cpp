@@ -59,8 +59,7 @@ Expected<std::monostate, common::DaemonErrorCode> ScoreSignHandler::InitSign(
     return make_unexpected(common::DaemonErrorCode::kUnsupportedOperation);
 }
 
-Expected<std::monostate, common::DaemonErrorCode> ScoreSignHandler::UpdateSign(
-    const common::RequestParameter& /*data*/)
+Expected<std::monostate, common::DaemonErrorCode> ScoreSignHandler::UpdateSign(const common::RequestParameter& /*data*/)
 {
     return make_unexpected(common::DaemonErrorCode::kUnsupportedOperation);
 }
