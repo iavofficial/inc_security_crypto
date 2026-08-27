@@ -24,9 +24,15 @@ using namespace score::crypto::daemon;
 using namespace score::crypto::daemon::provider::score_provider::iav_primula;
 using Executor = score::crypto::daemon::provider::score_provider::operations::sign::SignExecutor;
 
+// ---------------------------------------------------------------------------
+// Signature algorithm sizes
+// ---------------------------------------------------------------------------
+
 TEST(IavPrimulaSignatureTest, ReportsSupportedSizesAndRejectsKem)
 {
+    // Expected signature sizes for the supported ML-DSA variants.
     const std::pair<const char*, std::size_t> cases[] = {
+        // ML-DSA-44: 2420 bytes, ML-DSA-65: 3309 bytes, ML-DSA-87: 4627 bytes.
         {"ML-DSA-44", 2420U}, {"ML-DSA-65", 3309U}, {"ML-DSA-87", 4627U}};
     for (const auto& test_case : cases)
     {
@@ -36,21 +42,29 @@ TEST(IavPrimulaSignatureTest, ReportsSupportedSizesAndRejectsKem)
         EXPECT_EQ(std::get<std::uint64_t>(result->front()), test_case.second);
     }
 
-    IavPrimulaSignHandler kem{std::make_unique<Executor>(), "ML-KEM-768"};
-    auto result = kem.GetSignatureSize();
+    // A KEM algorithm is not a supported signature algorithm.
+    IavPrimulaSignHandler unsupported_handler{std::make_unique<Executor>(), "ML-KEM-768"};
+    auto result = unsupported_handler.GetSignatureSize();
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), common::DaemonErrorCode::kUnsupportedAlgorithm);
 }
 
+// ---------------------------------------------------------------------------
+// Output buffer validation
+// ---------------------------------------------------------------------------
+
 TEST(IavPrimulaSignatureTest, ValidatesOutputBuffer)
 {
     IavPrimulaSignHandler handler{std::make_unique<Executor>(), "ML-DSA-44"};
+    // Use a non-null sentinel to simulate a bound native key handle without
+    // creating a real backend key.
     IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, {}};
     ::score::crypto::daemon::provider::handler::InitializationParams params{};
     params.bound_key_handler = &key;
     ASSERT_TRUE(handler.InitializeContext(params).has_value());
 
     const std::uint8_t message[] = {1U, 2U};
+    // ML-DSA-44 signatures require 2420 bytes; ten bytes are intentionally too small.
     std::vector<std::uint8_t> output(10U);
     common::RequestParameter input = score::cpp::span<const std::uint8_t>{message, 2U};
     auto result = handler.SingleShotSign(input,

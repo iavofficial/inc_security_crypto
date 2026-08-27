@@ -24,22 +24,34 @@ using namespace score::crypto::daemon;
 using namespace score::crypto::daemon::provider::score_provider::iav_primula;
 using Executor = score::crypto::daemon::provider::score_provider::operations::verify::VerifyExecutor;
 
+// ---------------------------------------------------------------------------
+// Algorithm and key validation
+// ---------------------------------------------------------------------------
+
 TEST(IavPrimulaVerificationTest, RejectsUnsupportedAndMissingKeys)
 {
-    IavPrimulaVerifyHandler kem{std::make_unique<Executor>(), "ML-KEM-768"};
-    auto kem_result = kem.InitializeContext({});
-    ASSERT_FALSE(kem_result.has_value());
-    EXPECT_EQ(kem_result.error(), common::DaemonErrorCode::kUnsupportedAlgorithm);
+    // ML-KEM-768 is not a supported signature-verification algorithm.
+    IavPrimulaVerifyHandler unsupported_handler{std::make_unique<Executor>(), "ML-KEM-768"};
+    auto unsupported_result = unsupported_handler.InitializeContext({});
+    ASSERT_FALSE(unsupported_result.has_value());
+    EXPECT_EQ(unsupported_result.error(), common::DaemonErrorCode::kUnsupportedAlgorithm);
 
+    // ML-DSA-44 requires a bound verification key during initialization.
     IavPrimulaVerifyHandler handler{std::make_unique<Executor>(), "ML-DSA-44"};
     auto result = handler.InitializeContext({});
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), common::DaemonErrorCode::kKeySlotEmpty);
 }
 
+// ---------------------------------------------------------------------------
+// Signature input validation
+// ---------------------------------------------------------------------------
+
 TEST(IavPrimulaVerificationTest, ValidatesKeyTypeAndSignatureSize)
 {
     IavPrimulaVerifyHandler handler{std::make_unique<Executor>(), "ML-DSA-44"};
+    // A public-only key has no native handle and cannot be used for this
+    // verification operation.
     IavPrimulaKeyHandler public_key{nullptr, std::vector<std::uint8_t>(1312U), {}};
     ::score::crypto::daemon::provider::handler::InitializationParams params{};
     params.bound_key_handler = &public_key;
@@ -47,10 +59,12 @@ TEST(IavPrimulaVerificationTest, ValidatesKeyTypeAndSignatureSize)
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), common::DaemonErrorCode::kIncompatibleKeyType);
 
+    // Use a non-null sentinel to simulate a bound native key handle.
     IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, {}};
     params.bound_key_handler = &key;
     ASSERT_TRUE(handler.InitializeContext(params).has_value());
     const std::uint8_t message[] = {1U, 2U};
+    // ML-DSA-44 signatures are 2420 bytes; ten bytes are intentionally invalid.
     std::vector<std::uint8_t> signature(10U);
     common::RequestParameter input = score::cpp::span<const std::uint8_t>{message, 2U};
     auto verify = handler.SingleShotVerify(

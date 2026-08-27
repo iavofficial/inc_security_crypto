@@ -27,6 +27,10 @@ using namespace score::crypto::daemon;
 using namespace score::crypto::daemon::provider::score_provider::iav_primula;
 using Executor = score::crypto::daemon::provider::score_provider::operations::kem::KemExecutor;
 
+// ---------------------------------------------------------------------------
+// Algorithm and input validation
+// ---------------------------------------------------------------------------
+
 TEST(IavPrimulaKemTest, RejectsUnsupportedAlgorithm)
 {
     IavPrimulaKemHandler handler{std::make_unique<Executor>(), "ML-KEM-999"};
@@ -61,9 +65,14 @@ TEST(IavPrimulaKemTest, RequiresBoundKeyForDecapsulation)
     EXPECT_EQ(result.error(), common::DaemonErrorCode::kInvalidArgument);
 }
 
+// ---------------------------------------------------------------------------
+// Backend status propagation
+// ---------------------------------------------------------------------------
+
 TEST(IavPrimulaKemTest, PropagatesBackendStatusForValidEncapsulation)
 {
     IavPrimulaKemHandler handler{std::make_unique<Executor>(), "ML-KEM-768"};
+    // ML-KEM-768 public keys contain 1184 bytes.
     const std::vector<std::uint8_t> public_key(1184U, 0U);
     auto result = handler.Encapsulate(score::cpp::span<const std::uint8_t>{public_key.data(), public_key.size()});
     ASSERT_FALSE(result.has_value());
@@ -73,18 +82,26 @@ TEST(IavPrimulaKemTest, PropagatesBackendStatusForValidEncapsulation)
 TEST(IavPrimulaKemTest, PropagatesBackendStatusForValidDecapsulation)
 {
     IavPrimulaKemHandler handler{std::make_unique<Executor>(), "ML-KEM-768"};
+    // Use a non-null sentinel to simulate a bound native key handle. The
+    // backend operation is expected to fail before dereferencing this handle.
     IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, {}};
     ::score::crypto::daemon::provider::handler::InitializationParams params{};
     params.bound_key_handler = &key;
     ASSERT_TRUE(handler.InitializeContext(params).has_value());
+    // ML-KEM-768 ciphertexts contain 1088 bytes.
     const std::vector<std::uint8_t> ciphertext(1088U, 0U);
     auto result = handler.Decapsulate(score::cpp::span<const std::uint8_t>{ciphertext.data(), ciphertext.size()});
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), common::DaemonErrorCode::kOperationFailed);
 }
 
+// ---------------------------------------------------------------------------
+// Handler dispatch and context management
+// ---------------------------------------------------------------------------
+
 TEST(IavPrimulaKemTest, DispatchesOperationsAndReset)
 {
+    // Verify that the handler dispatches both a KEM operation and RESET.
     using namespace score::crypto::daemon::provider::handler::kem_handler_operations;
     IavPrimulaKemHandler handler{std::make_unique<Executor>(), "ML-KEM-768"};
     common::OperationIdentifier keygen{0U, KEM_KEYGEN};
@@ -102,6 +119,8 @@ TEST(IavPrimulaKemTest, AllowsContextWithoutBoundKey)
 {
     IavPrimulaKemHandler handler{std::make_unique<Executor>(), "ML-KEM-768"};
     ::score::crypto::daemon::provider::handler::InitializationParams params{};
+    // Context initialization is allowed without a bound key; decapsulation
+    // validates that a key is available when the operation is executed.
     EXPECT_TRUE(handler.InitializeContext(params).has_value());
 }
 }  // namespace
