@@ -27,12 +27,18 @@ namespace
 Expected<iav_algorithm, common::DaemonErrorCode> Algorithm(common::AlgorithmId a)
 {
     auto s = std::string_view{a.data(), a.size()};
-    if (s == "ML-DSA-44") return IAV_ALGORITHM_ML_DSA_44;
-    if (s == "ML-DSA-65") return IAV_ALGORITHM_ML_DSA_65;
-    if (s == "ML-DSA-87") return IAV_ALGORITHM_ML_DSA_87;
-    if (s == "ML-KEM-512") return IAV_ALGORITHM_ML_KEM_512;
-    if (s == "ML-KEM-768") return IAV_ALGORITHM_ML_KEM_768;
-    if (s == "ML-KEM-1024") return IAV_ALGORITHM_ML_KEM_1024;
+    if (s == "ML-DSA-44")
+        return IAV_ALGORITHM_ML_DSA_44;
+    if (s == "ML-DSA-65")
+        return IAV_ALGORITHM_ML_DSA_65;
+    if (s == "ML-DSA-87")
+        return IAV_ALGORITHM_ML_DSA_87;
+    if (s == "ML-KEM-512")
+        return IAV_ALGORITHM_ML_KEM_512;
+    if (s == "ML-KEM-768")
+        return IAV_ALGORITHM_ML_KEM_768;
+    if (s == "ML-KEM-1024")
+        return IAV_ALGORITHM_ML_KEM_1024;
     return make_unexpected(common::DaemonErrorCode::kUnsupportedAlgorithm);
 }
 }  // namespace
@@ -45,7 +51,8 @@ Expected<key_management::IKeyHandler::Sptr, common::DaemonErrorCode> IavPrimulaK
         return make_unexpected(common::DaemonErrorCode::kUnsupportedAlgorithm);
 
     auto algorithm = Algorithm(r.algorithm);
-    if (!algorithm.has_value()) return make_unexpected(algorithm.error());
+    if (!algorithm.has_value())
+        return make_unexpected(algorithm.error());
 
     iav_primula_key_handle* key = nullptr;
     if (iav_keypair_generate(algorithm.value(), &key) != IAV_STATUS_OK || key == nullptr)

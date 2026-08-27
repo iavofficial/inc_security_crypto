@@ -12,9 +12,9 @@
  ********************************************************************************/
 
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/operations/sign/iav_primula_sign_handler.hpp"
+#include "score/crypto/src/daemon/common/algorithm_info.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/key_management/iav_primula_key_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/operations/sign/sign_executor.hpp"
-#include "score/crypto/src/daemon/common/algorithm_info.hpp"
 
 #include "score/mw/log/logging.h"
 
@@ -45,9 +45,8 @@ std::size_t SignatureSizeForAlgorithm(const common::AlgorithmId& algorithm)
 }
 }  // namespace
 
-IavPrimulaSignHandler::IavPrimulaSignHandler(
-    std::unique_ptr<operations::sign::SignExecutor> executor,
-    common::AlgorithmId algorithm)
+IavPrimulaSignHandler::IavPrimulaSignHandler(std::unique_ptr<operations::sign::SignExecutor> executor,
+                                             common::AlgorithmId algorithm)
     : ScoreSignHandler{std::move(executor), std::move(algorithm)}
 {
 }
@@ -69,7 +68,8 @@ std::size_t IavPrimulaSignHandler::GetExpectedSignatureSize() const noexcept
 Expected<std::monostate, DaemonErrorCode> IavPrimulaSignHandler::InitializeContext(
     const ::score::crypto::daemon::provider::handler::InitializationParams& init_params)
 {
-    score::mw::log::LogDebug() << "DEBUG: IavPrimulaSignHandler::InitializeContext called with algorithm:" << m_algorithm;
+    score::mw::log::LogDebug() << "DEBUG: IavPrimulaSignHandler::InitializeContext called with algorithm:"
+                               << m_algorithm;
 
     // Validate the algorithm and bind the non-owning native key handle required
     // for signing.

@@ -32,8 +32,8 @@ std::size_t SignatureSize(const common::AlgorithmId& algorithm)
 }
 }  // namespace
 
-IavPrimulaVerifyHandler::IavPrimulaVerifyHandler(
-    std::unique_ptr<operations::verify::VerifyExecutor> executor, common::AlgorithmId algorithm)
+IavPrimulaVerifyHandler::IavPrimulaVerifyHandler(std::unique_ptr<operations::verify::VerifyExecutor> executor,
+                                                 common::AlgorithmId algorithm)
     : ScoreVerifyHandler{std::move(executor), std::move(algorithm)}
 {
 }
@@ -76,7 +76,8 @@ Expected<std::monostate, common::DaemonErrorCode> IavPrimulaVerifyHandler::Initi
 }
 
 Expected<bool, common::DaemonErrorCode> IavPrimulaVerifyHandler::SingleShotVerify(
-    const common::RequestParameter& data, const common::RequestParameter& signature)
+    const common::RequestParameter& data,
+    const common::RequestParameter& signature)
 {
     // Verify a complete message and signature in a single operation.
     auto algorithm = ValidateAlgorithm();

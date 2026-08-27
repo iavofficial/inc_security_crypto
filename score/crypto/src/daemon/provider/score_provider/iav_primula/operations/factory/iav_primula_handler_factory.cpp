@@ -12,6 +12,7 @@
  ********************************************************************************/
 
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/operations/factory/iav_primula_handler_factory.hpp"
+#include "score/crypto/src/api/common/error_domain.hpp"
 #include "score/crypto/src/daemon/common/algorithm_info.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/operations/kem/iav_primula_kem_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/operations/sign/iav_primula_sign_handler.hpp"
@@ -19,7 +20,6 @@
 #include "score/crypto/src/daemon/provider/score_provider/operations/kem/kem_executor.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/operations/sign/sign_executor.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/operations/verify/verify_executor.hpp"
-#include "score/crypto/src/api/common/error_domain.hpp"
 
 #include <memory>
 #include <utility>
@@ -43,10 +43,9 @@ namespace
 }
 }  // namespace
 
-IavPrimulaHandlerFactory::IavPrimulaHandlerFactory(
-    std::shared_ptr<key_management::IKeyFactory> key_factory,
-    std::shared_ptr<key_management::IKeySlotHandler> slot_handler,
-    key_management::KeyManagementService::Sptr km_service)
+IavPrimulaHandlerFactory::IavPrimulaHandlerFactory(std::shared_ptr<key_management::IKeyFactory> key_factory,
+                                                   std::shared_ptr<key_management::IKeySlotHandler> slot_handler,
+                                                   key_management::KeyManagementService::Sptr km_service)
     : ScoreHandlerFactory(std::move(key_factory), std::move(slot_handler), std::move(km_service))
 {
 }
@@ -56,8 +55,8 @@ IavPrimulaHandlerFactory::IavPrimulaHandlerFactory(
 {
     if (!common::IsPqcSignatureAlgorithm(algorithm))
     {
-        return MakeUnsupportedAlgorithmError(
-            "Algorithm is not a supported iavPrimula signature algorithm: " + algorithm);
+        return MakeUnsupportedAlgorithmError("Algorithm is not a supported iavPrimula signature algorithm: " +
+                                             algorithm);
     }
 
     return std::make_shared<IavPrimulaSignHandler>(std::make_unique<operations::sign::SignExecutor>(), algorithm);
@@ -68,25 +67,21 @@ IavPrimulaHandlerFactory::IavPrimulaHandlerFactory(
 {
     if (!common::IsPqcSignatureAlgorithm(algorithm))
     {
-        return MakeUnsupportedAlgorithmError(
-            "Algorithm is not a supported iavPrimula verification algorithm: " + algorithm);
+        return MakeUnsupportedAlgorithmError("Algorithm is not a supported iavPrimula verification algorithm: " +
+                                             algorithm);
     }
 
     return std::make_shared<IavPrimulaVerifyHandler>(std::make_unique<operations::verify::VerifyExecutor>(), algorithm);
 }
 
-::score::Result<handler::Handler::Sptr> IavPrimulaHandlerFactory::CreateKemHandler(
-    const common::AlgorithmId& algorithm)
+::score::Result<handler::Handler::Sptr> IavPrimulaHandlerFactory::CreateKemHandler(const common::AlgorithmId& algorithm)
 {
     if (!common::IsPqcKemAlgorithm(algorithm))
     {
-        return MakeUnsupportedAlgorithmError(
-            "Algorithm is not a supported iavPrimula KEM algorithm: " + algorithm);
+        return MakeUnsupportedAlgorithmError("Algorithm is not a supported iavPrimula KEM algorithm: " + algorithm);
     }
 
-    return std::make_shared<IavPrimulaKemHandler>(
-        std::make_unique<operations::kem::KemExecutor>(),
-        algorithm);
+    return std::make_shared<IavPrimulaKemHandler>(std::make_unique<operations::kem::KemExecutor>(), algorithm);
 }
 
 }  // namespace score::crypto::daemon::provider::score_provider::iav_primula

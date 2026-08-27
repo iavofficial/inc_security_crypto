@@ -11,10 +11,10 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include "score/crypto/src/daemon/provider/handler/handler_init_params.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/key_management/iav_primula_key_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/operations/verify/iav_primula_verify_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/operations/verify/verify_executor.hpp"
-#include "score/crypto/src/daemon/provider/handler/handler_init_params.hpp"
 
 #include <gtest/gtest.h>
 
@@ -67,8 +67,8 @@ TEST(IavPrimulaVerificationTest, ValidatesKeyTypeAndSignatureSize)
     // ML-DSA-44 signatures are 2420 bytes; ten bytes are intentionally invalid.
     std::vector<std::uint8_t> signature(10U);
     common::RequestParameter input = score::cpp::span<const std::uint8_t>{message, 2U};
-    auto verify = handler.SingleShotVerify(
-        input, score::cpp::span<const std::uint8_t>{signature.data(), signature.size()});
+    auto verify =
+        handler.SingleShotVerify(input, score::cpp::span<const std::uint8_t>{signature.data(), signature.size()});
     EXPECT_EQ(verify.error(), common::DaemonErrorCode::kInvalidArgument);
 }
 }  // namespace

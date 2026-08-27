@@ -28,9 +28,15 @@ IavPrimulaKeyHandler::~IavPrimulaKeyHandler()
     static_cast<void>(Release());
 }
 
-const key_management::ProviderKeyHandle& IavPrimulaKeyHandler::GetHandle() const noexcept { return m_handle; }
+const key_management::ProviderKeyHandle& IavPrimulaKeyHandler::GetHandle() const noexcept
+{
+    return m_handle;
+}
 
-common::ProviderId IavPrimulaKeyHandler::GetProviderId() const noexcept { return m_handle.provider_id; }
+common::ProviderId IavPrimulaKeyHandler::GetProviderId() const noexcept
+{
+    return m_handle.provider_id;
+}
 
 Expected<std::monostate, common::DaemonErrorCode> IavPrimulaKeyHandler::Release()
 {

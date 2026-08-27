@@ -12,8 +12,8 @@
  ********************************************************************************/
 
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/iav_primula_provider.hpp"
-#include "score/crypto/src/daemon/provider/score_provider/iav_primula/operations/factory/iav_primula_handler_factory.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/key_management/iav_primula_key_factory.hpp"
+#include "score/crypto/src/daemon/provider/score_provider/iav_primula/operations/factory/iav_primula_handler_factory.hpp"
 
 namespace score::crypto::daemon::provider::score_provider::iav_primula
 {
@@ -56,8 +56,7 @@ std::shared_ptr<key_management::IKeySlotHandler> IavPrimulaProvider::GetKeySlotH
     return ScoreProvider::GetKeySlotHandler(config);
 }
 
-void IavPrimulaProvider::SetKeyManagementService(
-    std::shared_ptr<key_management::KeyManagementService> service)
+void IavPrimulaProvider::SetKeyManagementService(std::shared_ptr<key_management::KeyManagementService> service)
 {
     m_keyManagementService = std::move(service);
 }
@@ -68,11 +67,9 @@ void IavPrimulaProvider::SetKeyManagementService(
 /// daemon. PQC implementation details remain below that boundary.
 std::shared_ptr<handler::ICryptoHandlerFactory> IavPrimulaProvider::CreateHandlerFactory()
 {
-    return std::make_shared<IavPrimulaHandlerFactory>(
-        m_factory,
-        nullptr, // TODO This needs to be a key slot handler for primula
-        m_keyManagementService
-    );
+    return std::make_shared<IavPrimulaHandlerFactory>(m_factory,
+                                                      nullptr,  // TODO This needs to be a key slot handler for primula
+                                                      m_keyManagementService);
 }
 
 }  // namespace score::crypto::daemon::provider::score_provider::iav_primula

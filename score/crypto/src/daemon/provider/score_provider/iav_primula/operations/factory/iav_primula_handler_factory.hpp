@@ -25,7 +25,8 @@ namespace score::crypto::daemon::provider::score_provider::iav_primula
 /// Validates the requested PQC algorithm and creates the corresponding
 /// IAV-Primula handler with its provider-neutral operation executor.
 /// Unsupported algorithm families result in kUnsupportedAlgorithm.
-class IavPrimulaHandlerFactory final : public ::score::crypto::daemon::provider::score_provider::operations::factory::ScoreHandlerFactory
+class IavPrimulaHandlerFactory final
+    : public ::score::crypto::daemon::provider::score_provider::operations::factory::ScoreHandlerFactory
 {
   public:
     /// @brief Create an IAV-Primula handler factory.

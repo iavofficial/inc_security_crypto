@@ -14,8 +14,8 @@
 #ifndef SCORE_CRYPTO_DAEMON_PROVIDER_SCORE_PROVIDER_IAV_PRIMULA_OPERATIONS_SIGN_IAV_PRIMULA_SIGN_HANDLER_HPP
 #define SCORE_CRYPTO_DAEMON_PROVIDER_SCORE_PROVIDER_IAV_PRIMULA_OPERATIONS_SIGN_IAV_PRIMULA_SIGN_HANDLER_HPP
 
-#include "score/iav_primula/include/iav_primula_ffi.h"
 #include "score/crypto/src/daemon/provider/score_provider/operations/sign/score_sign_handler.hpp"
+#include "score/iav_primula/include/iav_primula_ffi.h"
 
 namespace score::crypto::daemon::provider::score_provider::iav_primula
 {
@@ -35,9 +35,7 @@ class IavPrimulaSignHandler final : public operations::sign::ScoreSignHandler
     ///
     /// @param executor Provider-neutral executor for signature operations.
     /// @param algorithm ML-DSA algorithm identifier.
-    IavPrimulaSignHandler(
-        std::unique_ptr<operations::sign::SignExecutor> executor,
-        common::AlgorithmId algorithm);
+    IavPrimulaSignHandler(std::unique_ptr<operations::sign::SignExecutor> executor, common::AlgorithmId algorithm);
 
     ~IavPrimulaSignHandler() override = default;
 
@@ -69,8 +67,8 @@ class IavPrimulaSignHandler final : public operations::sign::ScoreSignHandler
     /// @brief Return the expected signature size for the configured algorithm.
     [[nodiscard]] std::size_t GetExpectedSignatureSize() const noexcept;
 
-    iav_primula_key_handle* m_key{nullptr};  ///< Non-owning handle borrowed from the bound key handler.
-    std::vector<std::uint8_t> m_outputBuffer; ///< Internally owned single-shot signature buffer.
+    iav_primula_key_handle* m_key{nullptr};    ///< Non-owning handle borrowed from the bound key handler.
+    std::vector<std::uint8_t> m_outputBuffer;  ///< Internally owned single-shot signature buffer.
 };
 
 }  // namespace score::crypto::daemon::provider::score_provider::iav_primula

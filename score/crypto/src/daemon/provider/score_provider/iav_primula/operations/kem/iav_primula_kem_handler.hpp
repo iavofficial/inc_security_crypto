@@ -31,8 +31,7 @@ class IavPrimulaKemHandler final : public operations::kem::ScoreKemHandler
     ///
     /// @param executor Provider-neutral executor for KEM operations.
     /// @param algorithm ML-KEM algorithm identifier.
-    IavPrimulaKemHandler(std::unique_ptr<operations::kem::KemExecutor> executor,
-                         common::AlgorithmId algorithm);
+    IavPrimulaKemHandler(std::unique_ptr<operations::kem::KemExecutor> executor, common::AlgorithmId algorithm);
     ~IavPrimulaKemHandler() override = default;
 
     IavPrimulaKemHandler(const IavPrimulaKemHandler&) = delete;

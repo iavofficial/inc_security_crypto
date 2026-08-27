@@ -64,7 +64,10 @@ class IavPrimulaKeyHandler final : public key_management::IKeyHandler
     ///
     /// Returns nullptr when the key was imported as public key material or has
     /// already been released. The returned handle remains owned by this handler.
-    [[nodiscard]] iav_primula_key_handle* GetNativeHandle() const noexcept { return m_native_key; }
+    [[nodiscard]] iav_primula_key_handle* GetNativeHandle() const noexcept
+    {
+        return m_native_key;
+    }
     /// @brief Return a non-owning pointer to the cached public key.
     ///
     /// The pointer remains valid until the key is released or the handler is
@@ -72,10 +75,10 @@ class IavPrimulaKeyHandler final : public key_management::IKeyHandler
     [[nodiscard]] const std::uint8_t* GetPublicKey(std::size_t& size) const noexcept;
 
   private:
-    iav_primula_key_handle* m_native_key;       ///< Owned native key handle, or nullptr for public-only keys.
-    std::vector<std::uint8_t> m_public_key;     ///< Cached public key material.
-    key_management::ProviderKeyHandle m_handle; ///< Provider metadata associated with the key.
-    bool m_released{false};                     ///< Whether the key material has already been released.
+    iav_primula_key_handle* m_native_key;        ///< Owned native key handle, or nullptr for public-only keys.
+    std::vector<std::uint8_t> m_public_key;      ///< Cached public key material.
+    key_management::ProviderKeyHandle m_handle;  ///< Provider metadata associated with the key.
+    bool m_released{false};                      ///< Whether the key material has already been released.
 };
 }  // namespace score::crypto::daemon::provider::score_provider::iav_primula
 
