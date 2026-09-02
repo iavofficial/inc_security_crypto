@@ -30,28 +30,43 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> KemExecutor::Execu
     switch (operation.operationAction)
     {
         case ops::KEM_KEYGEN:
+        {
             if (!request.empty())
+            {
                 return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
+            }
             return handler.GenerateKeyPair();
+        }
         case ops::KEM_ENCAPSULATE:
+        {
             if (request.empty())
+            {
                 return make_unexpected(common::DaemonErrorCode::kInsufficientParameters);
+            }
             return handler.Encapsulate(request[0]);
+        }
         case ops::KEM_DECAPSULATE:
+        {
             if (request.empty())
+            {
                 return make_unexpected(common::DaemonErrorCode::kInsufficientParameters);
+            }
             return handler.Decapsulate(request[0]);
+        }
         case ops::KEM_RESET:
         {
             auto reset_result = handler.Reset();
             // Reset does not produce response data; propagate any handler error.
             if (!reset_result.has_value())
+            {
                 return make_unexpected(reset_result.error());
+            }
             return {};
         }
         default:
-            // Reject operation actions that are not part of the KEM operation namespace.
+        {  // Reject operation actions that are not part of the KEM operation namespace.
             return make_unexpected(common::DaemonErrorCode::kInvalidOperation);
+        }
     }
 }
 }  // namespace score::crypto::daemon::provider::score_provider::operations::kem

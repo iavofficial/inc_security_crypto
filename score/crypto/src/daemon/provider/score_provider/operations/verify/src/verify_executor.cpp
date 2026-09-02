@@ -74,6 +74,33 @@ Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::Execute(ScoreVerif
 
     // Initialization and update return no response parameters. The stream state
     // is advanced only when the handler accepts the operation.
+
+    if (operationId.operationAction == handler::verify_handler_operations::VERIFY_FINALIZE)
+    {
+        auto result = ExecuteInit(handler, request);
+        if (result.has_value())
+        {
+            handler.SetOperationState(nextState);
+        }
+        else
+        {
+            return make_unexpected(result.error());
+        }
+    }
+
+    if (operationId.operationAction == handler::verify_handler_operations::VERIFY_UPDATE)
+    {
+        auto result = ExecuteUpdate(handler, request);
+        if (result.has_value())
+        {
+            handler.SetOperationState(nextState);
+        }
+        else
+        {
+            return make_unexpected(result.error());
+        }
+    }
+
     const auto result = [&]() -> Expected<std::monostate, DaemonErrorCode> {
         if (operationId.operationAction == handler::verify_handler_operations::VERIFY_INIT)
         {

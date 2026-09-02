@@ -32,11 +32,17 @@ IavPrimulaKemHandler::IavPrimulaKemHandler(std::unique_ptr<operations::kem::KemE
 Expected<iav_algorithm, common::DaemonErrorCode> IavPrimulaKemHandler::GetAlgorithm() const noexcept
 {
     if (m_algorithm == "ML-KEM-512")
+    {
         return IavAlgorithmMlKem512;
+    }
     if (m_algorithm == "ML-KEM-768")
+    {
         return IavAlgorithmMlKem768;
+    }
     if (m_algorithm == "ML-KEM-1024")
+    {
         return IavAlgorithmMlKem1024;
+    }
     return make_unexpected(common::DaemonErrorCode::kUnsupportedAlgorithm);
 }
 
@@ -62,7 +68,9 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandl
 {
     auto algorithm = GetAlgorithm();
     if (!algorithm.has_value())
+    {
         return make_unexpected(algorithm.error());
+    }
 
     // Generate a temporary KEM key pair, export its public key, and release the
     // native key handle before returning the public key.
@@ -90,8 +98,8 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandl
     const auto* public_key = std::get_if<score::cpp::span<const std::uint8_t>>(&request);
     const auto info = common::LookupPqcAlgorithm(m_algorithm);
     auto algorithm = GetAlgorithm();
-    if (public_key == nullptr || !info.has_value() || !algorithm.has_value() ||
-        public_key->size() != info->public_key_size)
+    if ((public_key == nullptr) || !info.has_value() || !algorithm.has_value() ||
+        (public_key->size() != info->public_key_size))
     {
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
@@ -109,7 +117,7 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandl
                                             &ciphertext_length,
                                             secret.data(),
                                             &secret_length);
-    if (status != IavStatusOk || ciphertext_length != ciphertext.size() || secret_length != secret.size())
+    if ((status != IavStatusOk) || (ciphertext_length != ciphertext.size()) || (secret_length != secret.size()))
     {
         return make_unexpected(common::DaemonErrorCode::kOperationFailed);
     }
@@ -122,8 +130,8 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandl
 {
     const auto* ciphertext = std::get_if<score::cpp::span<const std::uint8_t>>(&request);
     const auto info = common::LookupPqcAlgorithm(m_algorithm);
-    if (m_key == nullptr || ciphertext == nullptr || !info.has_value() ||
-        ciphertext->size() != info->signature_or_ciphertext_size)
+    if ((m_key == nullptr) || (ciphertext == nullptr) || !info.has_value() ||
+        (ciphertext->size() != info->signature_or_ciphertext_size))
     {
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
@@ -133,7 +141,7 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandl
     std::vector<std::uint8_t> secret(info->shared_secret_size);
     std::size_t length = secret.size();
     const auto status = iav_kem_decapsulate(m_key, ciphertext->data(), ciphertext->size(), secret.data(), &length);
-    if (status != IavStatusOk || length != secret.size())
+    if ((status != IavStatusOk) || (length != secret.size()))
     {
         return make_unexpected(common::DaemonErrorCode::kOperationFailed);
     }

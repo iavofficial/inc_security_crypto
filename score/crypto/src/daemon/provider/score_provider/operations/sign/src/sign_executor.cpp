@@ -83,25 +83,30 @@ Expected<ResponseParameters, DaemonErrorCode> SignExecutor::Execute(ScoreSignHan
 
     // Initialization and update return no response parameters. The stream state
     // is advanced only when the handler accepts the operation.
-    const auto result = [&]() -> Expected<std::monostate, DaemonErrorCode> {
-        if (operationId.operationAction == handler::sign_handler_operations::SIGN_INIT)
-        {
-            return ExecuteInit(handler, request);
-        }
-        if (operationId.operationAction == handler::sign_handler_operations::SIGN_UPDATE)
-        {
-            return ExecuteUpdate(handler, request);
-        }
-        return make_unexpected(DaemonErrorCode::kInvalidOperation);
-    }();
-
-    if (result.has_value())
+    if (operationId.operationAction == handler::sign_handler_operations::SIGN_INIT)
     {
-        handler.SetOperationState(nextState);
+        const auto result = ExecuteInit(handler, request);
+        if (result.has_value())
+        {
+            handler.SetOperationState(nextState);
+        }
+        else
+        {
+            return make_unexpected(result.error());
+        }
     }
-    else
+
+    if (operationId.operationAction == handler::sign_handler_operations::SIGN_UPDATE)
     {
-        return make_unexpected(result.error());
+        const auto result = ExecuteUpdate(handler, request);
+        if (result.has_value())
+        {
+            handler.SetOperationState(nextState);
+        }
+        else
+        {
+            return make_unexpected(result.error());
+        }
     }
 
     return ResponseParameters{};

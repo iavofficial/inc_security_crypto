@@ -25,8 +25,6 @@
 namespace score::crypto::daemon::provider::score_provider::iav_primula
 {
 
-namespace
-{
 using common::DaemonErrorCode;
 using common::ResponseParameters;
 
@@ -37,13 +35,13 @@ using common::ResponseParameters;
 std::size_t SignatureSizeForAlgorithm(const common::AlgorithmId& algorithm)
 {
     const auto info = common::LookupPqcAlgorithm(algorithm);
-    if (info.has_value() && info->kind == common::PqcAlgorithmKind::kSignature)
+    if (info.has_value() && (info->kind == common::PqcAlgorithmKind::kSignature))
     {
         return info->signature_or_ciphertext_size;
     }
     return 0U;
 }
-}  // namespace
+}  // namespace score::crypto::daemon::provider::score_provider::iav_primula
 
 IavPrimulaSignHandler::IavPrimulaSignHandler(std::unique_ptr<operations::sign::SignExecutor> executor,
                                              common::AlgorithmId algorithm)
@@ -93,7 +91,7 @@ Expected<std::monostate, DaemonErrorCode> IavPrimulaSignHandler::InitializeConte
     }
 
     const auto* primula_key = dynamic_cast<const IavPrimulaKeyHandler*>(init_params.bound_key_handler);
-    if (primula_key == nullptr || primula_key->GetNativeHandle() == nullptr)
+    if ((primula_key == nullptr) || (primula_key->GetNativeHandle() == nullptr))
     {
         return make_unexpected(DaemonErrorCode::kIncompatibleKeyType);
     }
@@ -190,6 +188,5 @@ Expected<ResponseParameters, DaemonErrorCode> IavPrimulaSignHandler::SingleShotS
         response.emplace_back(score::cpp::span<const std::uint8_t>{signature_data, signature_length});
     }
     return response;
-}
 
 }  // namespace score::crypto::daemon::provider::score_provider::iav_primula

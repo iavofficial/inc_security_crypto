@@ -59,23 +59,30 @@ Expected<key_management::IKeyHandler::Sptr, common::DaemonErrorCode> IavPrimulaK
     const key_management::KeyGenerationRequest& r)
 {
     auto info = common::LookupPqcAlgorithm(std::string_view{r.algorithm.data(), r.algorithm.size()});
-    if (!info || (info->kind != common::PqcAlgorithmKind::kSignature && info->kind != common::PqcAlgorithmKind::kKem))
+    if (!info ||
+        ((info->kind != common::PqcAlgorithmKind::kSignature) && (info->kind != common::PqcAlgorithmKind::kKem)))
+    {
         return make_unexpected(common::DaemonErrorCode::kUnsupportedAlgorithm);
+    }
 
     auto algorithm = Algorithm(r.algorithm);
     if (!algorithm.has_value())
+    {
         return make_unexpected(algorithm.error());
+    }
 
     iav_primula_key_handle* key = nullptr;
-    const auto generate_status = info->kind == common::PqcAlgorithmKind::kKem
+    const auto generate_status = (info->kind == common::PqcAlgorithmKind::kKem)
                                      ? iav_kem_keypair_generate(algorithm.value(), &key)
                                      : iav_keypair_generate(algorithm.value(), &key);
     if (generate_status != IavStatusOk || key == nullptr)
+    {
         return make_unexpected(common::DaemonErrorCode::kOperationFailed);
+    }
 
     std::vector<std::uint8_t> pub(info->public_key_size);
     std::size_t n = pub.size();
-    const auto export_status = info->kind == common::PqcAlgorithmKind::kKem
+    const auto export_status = (info->kind == common::PqcAlgorithmKind::kKem)
                                    ? iav_kem_public_key_export(key, pub.data(), &n)
                                    : iav_public_key_export(key, pub.data(), &n);
     if (export_status != IavStatusOk || n != pub.size())
@@ -98,8 +105,9 @@ Expected<key_management::IKeyHandler::Sptr, common::DaemonErrorCode> IavPrimulaK
     const key_management::KeyImportRequest& r)
 {
     auto info = common::LookupPqcAlgorithm(std::string_view{r.algorithm.data(), r.algorithm.size()});
-    if (!info || (info->kind != common::PqcAlgorithmKind::kSignature && info->kind != common::PqcAlgorithmKind::kKem) ||
-        !r.key_data || r.key_data_size != info->public_key_size)
+    if (!info ||
+        ((info->kind != common::PqcAlgorithmKind::kSignature) && (info->kind != common::PqcAlgorithmKind::kKem)) ||
+        !r.key_data || (r.key_data_size != info->public_key_size))
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
 
     std::vector<std::uint8_t> pub(r.key_data, r.key_data + r.key_data_size);
