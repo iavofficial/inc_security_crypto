@@ -41,7 +41,6 @@ std::size_t SignatureSizeForAlgorithm(const common::AlgorithmId& algorithm)
     }
     return 0U;
 }
-}  // namespace score::crypto::daemon::provider::score_provider::iav_primula
 
 IavPrimulaSignHandler::IavPrimulaSignHandler(std::unique_ptr<operations::sign::SignExecutor> executor,
                                              common::AlgorithmId algorithm)
@@ -188,5 +187,5 @@ Expected<ResponseParameters, DaemonErrorCode> IavPrimulaSignHandler::SingleShotS
         response.emplace_back(score::cpp::span<const std::uint8_t>{signature_data, signature_length});
     }
     return response;
-
+}
 }  // namespace score::crypto::daemon::provider::score_provider::iav_primula
