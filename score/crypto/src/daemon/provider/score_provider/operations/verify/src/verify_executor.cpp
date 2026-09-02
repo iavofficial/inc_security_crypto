@@ -47,11 +47,6 @@ Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::Execute(ScoreVerif
         {
             return make_unexpected(DaemonErrorCode::kOperationInProgress);
         }
-        if (request.empty())
-        {
-            return make_unexpected(DaemonErrorCode::kInsufficientParameters);
-        }
-
         return ExecuteSingleShot(handler, request);
     }
 
@@ -166,7 +161,7 @@ Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::ExecuteSingleShot(
                                                                                 RequestParameters& request)
 {
     // SINGLE-SHOT forwards the verification data and signature to the handler.
-    if (request.empty())
+    if (request.size() < 2U)
     {
         return make_unexpected(DaemonErrorCode::kInsufficientParameters);
     }

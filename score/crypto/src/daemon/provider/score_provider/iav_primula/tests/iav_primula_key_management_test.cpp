@@ -30,8 +30,11 @@ TEST(IavPrimulaKeyManagementTest, RejectsInvalidAlgorithmsAndKeys)
     IavPrimulaKeyFactory factory{common::ProviderId{7U}};
     key_management::KeyImportRequest request{};
 
-    // KEM algorithms are not supported by this public-key import path.
+    // KEM public-key import validates the same public-key size as ML-DSA.
     request.algorithm = "ML-KEM-768";
+    std::vector<std::uint8_t> kem_key(1184U);
+    request.key_data = kem_key.data();
+    request.key_data_size = kem_key.size() - 1U;
     auto unsupported_result = factory.ImportKey(request);
     ASSERT_FALSE(unsupported_result.has_value());
     EXPECT_EQ(unsupported_result.error(), common::DaemonErrorCode::kInvalidArgument);
@@ -70,5 +73,24 @@ TEST(IavPrimulaKeyManagementTest, CopiesExportsAndReleasesPublicKey)
     auto released_export = key.Export();
     ASSERT_FALSE(released_export.has_value());
     EXPECT_EQ(released_export.error(), common::DaemonErrorCode::kKeyOperationNotPermitted);
+}
+
+// ---------------------------------------------------------------------------
+// Key-generation dispatch
+// ---------------------------------------------------------------------------
+
+TEST(IavPrimulaKeyManagementTest, RoutesKemKeyGenerationToKemBackendPath)
+{
+    IavPrimulaKeyFactory factory{common::ProviderId{7U}};
+    key_management::KeyGenerationRequest request{};
+    request.algorithm = "ML-KEM-768";
+
+    // The current Rust FFI is a deliberate placeholder and therefore returns
+    // an operation failure. The call still exercises the KEM-specific branch
+    // in the factory; once the FFI is implemented this test should be changed
+    // to assert the generated key metadata and public-key size.
+    auto result = factory.GenerateKey(request);
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), common::DaemonErrorCode::kOperationFailed);
 }
 }  // namespace

@@ -12,6 +12,7 @@
  ********************************************************************************/
 
 #include "score/crypto/src/daemon/provider/handler/handler_init_params.hpp"
+#include "score/crypto/src/daemon/provider/handler/operations/verify_handler_operations.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/key_management/iav_primula_key_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/operations/verify/iav_primula_verify_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/operations/verify/verify_executor.hpp"
@@ -70,5 +71,26 @@ TEST(IavPrimulaVerificationTest, ValidatesKeyTypeAndSignatureSize)
     auto verify =
         handler.SingleShotVerify(input, score::cpp::span<const std::uint8_t>{signature.data(), signature.size()});
     EXPECT_EQ(verify.error(), common::DaemonErrorCode::kInvalidArgument);
+}
+
+TEST(IavPrimulaVerificationTest, RejectsSingleShotRequestWithoutSignature)
+{
+    IavPrimulaVerifyHandler handler{std::make_unique<Executor>(), "ML-DSA-44"};
+    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, {}};
+    ::score::crypto::daemon::provider::handler::InitializationParams params{};
+    params.bound_key_handler = &key;
+    ASSERT_TRUE(handler.InitializeContext(params).has_value());
+
+    const std::uint8_t message[] = {1U, 2U};
+    common::RequestParameters request{
+        score::cpp::span<const std::uint8_t>{message, 2U},
+    };
+    common::OperationIdentifier operation{};
+    operation.operationAction =
+        ::score::crypto::daemon::provider::handler::verify_handler_operations::VERIFY_SS;
+
+    auto result = handler.Execute(operation, request);
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), common::DaemonErrorCode::kInsufficientParameters);
 }
 }  // namespace
