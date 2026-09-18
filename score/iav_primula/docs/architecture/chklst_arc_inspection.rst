@@ -16,7 +16,7 @@
 .. document:: IAV Primula Architecture Inspection Checklist
   :id: doc__iav_primula_arc_inspection
   :version: 1
-  :status: draft
+  :status: invalid
   :safety: QM
   :security: YES
   :realizes: wp__sw_arch_verification
