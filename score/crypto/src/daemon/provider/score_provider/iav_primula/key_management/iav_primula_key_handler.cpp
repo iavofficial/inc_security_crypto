@@ -40,6 +40,7 @@ common::ProviderId IavPrimulaKeyHandler::GetProviderId() const noexcept
 
 Expected<std::monostate, common::DaemonErrorCode> IavPrimulaKeyHandler::Release()
 {
+    std::lock_guard<std::mutex> lock{m_mutex};
     if (!m_released)
     {
         // Release the native key handle and wipe cached key material exactly once.
@@ -57,6 +58,7 @@ Expected<std::monostate, common::DaemonErrorCode> IavPrimulaKeyHandler::Release(
 
 Expected<key_management::SecureKeyBytes, common::DaemonErrorCode> IavPrimulaKeyHandler::Export() const
 {
+    std::lock_guard<std::mutex> lock{m_mutex};
     // Export only the cached public key after checking permissions and release state.
     if (!score::crypto::HasPermission(m_handle.permissions, score::crypto::KeyOperationPermission::kExport) ||
         m_released)
@@ -71,6 +73,7 @@ Expected<key_management::SecureKeyBytes, common::DaemonErrorCode> IavPrimulaKeyH
 
 const std::uint8_t* IavPrimulaKeyHandler::GetPublicKey(std::size_t& size) const noexcept
 {
+    std::lock_guard<std::mutex> lock{m_mutex};
     size = m_released ? 0U : m_public_key.size();
     return size == 0U ? nullptr : m_public_key.data();
 }

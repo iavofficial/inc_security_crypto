@@ -51,7 +51,7 @@ Expected<std::monostate, common::DaemonErrorCode> IavPrimulaKemHandler::Initiali
 {
     // Bind an optional IAV-Primula key. A key is required later for
     // decapsulation, but not for key generation or encapsulation.
-    m_key = nullptr;
+    m_key_handler = nullptr;
     if (init_params.bound_key_handler != nullptr)
     {
         const auto* key = dynamic_cast<const IavPrimulaKeyHandler*>(init_params.bound_key_handler);
@@ -59,7 +59,7 @@ Expected<std::monostate, common::DaemonErrorCode> IavPrimulaKemHandler::Initiali
         {
             return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
         }
-        m_key = key->GetNativeHandle();
+        m_key_handler = key;
     }
     return {};
 }
@@ -130,7 +130,7 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandl
 {
     const auto* ciphertext = std::get_if<score::cpp::span<const std::uint8_t>>(&request);
     const auto info = common::LookupPqcAlgorithm(m_algorithm);
-    if ((m_key == nullptr) || (ciphertext == nullptr) || !info.has_value() ||
+    if ((m_key_handler == nullptr) || (ciphertext == nullptr) || !info.has_value() ||
         (ciphertext->size() != info->signature_or_ciphertext_size))
     {
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
@@ -140,7 +140,9 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> IavPrimulaKemHandl
     // initialization and return the resulting shared secret.
     std::vector<std::uint8_t> secret(info->shared_secret_size);
     std::size_t length = secret.size();
-    const auto status = iav_kem_decapsulate(m_key, ciphertext->data(), ciphertext->size(), secret.data(), &length);
+    const auto status = m_key_handler->ExecuteNativeOperation([&](const auto* key) {
+        return key == nullptr ? IavStatusInvalidArgument : iav_kem_decapsulate(key, ciphertext->data(), ciphertext->size(), secret.data(), &length);
+    });
     if ((status != IavStatusOk) || (length != secret.size()))
     {
         return make_unexpected(common::DaemonErrorCode::kOperationFailed);

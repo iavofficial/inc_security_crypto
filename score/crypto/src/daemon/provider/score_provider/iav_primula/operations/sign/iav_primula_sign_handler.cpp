@@ -90,12 +90,12 @@ Expected<std::monostate, DaemonErrorCode> IavPrimulaSignHandler::InitializeConte
     }
 
     const auto* primula_key = dynamic_cast<const IavPrimulaKeyHandler*>(init_params.bound_key_handler);
-    if ((primula_key == nullptr) || (primula_key->GetNativeHandle() == nullptr))
+    if (primula_key == nullptr)
     {
         return make_unexpected(DaemonErrorCode::kIncompatibleKeyType);
     }
 
-    m_key = primula_key->GetNativeHandle();
+    m_key_handler = primula_key;
     return std::monostate{};
 }
 
@@ -137,7 +137,7 @@ Expected<ResponseParameters, DaemonErrorCode> IavPrimulaSignHandler::SingleShotS
         return make_unexpected(DaemonErrorCode::kInvalidDataType);
     }
 
-    if (m_key == nullptr)
+    if (m_key_handler == nullptr)
     {
         return make_unexpected(DaemonErrorCode::kKeySlotEmpty);
     }
@@ -169,7 +169,9 @@ Expected<ResponseParameters, DaemonErrorCode> IavPrimulaSignHandler::SingleShotS
     }
 
     std::size_t signature_length = expected_signature_length;
-    const auto status = iav_sign(m_key, input->data(), input->size(), signature_data, &signature_length);
+    const auto status = m_key_handler->ExecuteNativeOperation([&](const auto* key) {
+        return key == nullptr ? IavStatusInvalidArgument : iav_sign(key, input->data(), input->size(), signature_data, &signature_length);
+    });
     if (status != IavStatusOk || signature_length != expected_signature_length)
     {
         return make_unexpected(DaemonErrorCode::kAlgorithmExecutionFailed);

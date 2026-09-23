@@ -19,6 +19,7 @@
 
 #include "score/crypto/src/daemon/provider/score_provider/operations/verify/score_verify_handler.hpp"
 #include "score/iav_primula/include/iav_primula_ffi.h"
+namespace score::crypto::daemon::provider::score_provider::iav_primula { class IavPrimulaKeyHandler; }
 
 namespace score::crypto::daemon::provider::score_provider::iav_primula
 {
@@ -69,7 +70,7 @@ class IavPrimulaVerifyHandler final : public operations::verify::ScoreVerifyHand
   private:
     /// @brief Validate that the configured algorithm is a supported ML-DSA algorithm.
     [[nodiscard]] Expected<std::monostate, common::DaemonErrorCode> ValidateAlgorithm() const;
-    iav_primula_key_handle* m_key{nullptr};  ///< Non-owning handle borrowed from the bound key handler.
+    const IavPrimulaKeyHandler* m_key_handler{nullptr};
 };
 }  // namespace score::crypto::daemon::provider::score_provider::iav_primula
 

@@ -19,6 +19,8 @@
 #include "score/crypto/src/daemon/key_management/interfaces/i_key_handler.hpp"
 #include "score/iav_primula/include/iav_primula_ffi.h"
 #include <vector>
+#include <mutex>
+#include <utility>
 
 namespace score::crypto::daemon::provider::score_provider::iav_primula
 {
@@ -65,13 +67,12 @@ class IavPrimulaKeyHandler final : public key_management::IKeyHandler
     /// The identifier is stored in the provider key metadata and is used to
     /// associate the key with the provider that created or imported it.
     [[nodiscard]] common::ProviderId GetProviderId() const noexcept override;
-    /// @brief Return the native IAV-Primula key handle.
-    ///
-    /// Returns nullptr when the key was imported as public key material or has
-    /// already been released. The returned handle remains owned by this handler.
-    [[nodiscard]] iav_primula_key_handle* GetNativeHandle() const noexcept
+    /// @brief Execute an operation while retaining ownership of the native key.
+    template <typename Operation>
+    auto ExecuteNativeOperation(Operation&& operation) const
     {
-        return m_native_key;
+        std::lock_guard<std::mutex> lock{m_mutex};
+        return std::forward<Operation>(operation)(m_native_key);
     }
     /// @brief Return a non-owning pointer to the cached public key.
     ///
@@ -84,6 +85,7 @@ class IavPrimulaKeyHandler final : public key_management::IKeyHandler
     std::vector<std::uint8_t> m_public_key;      ///< Cached public key material.
     key_management::ProviderKeyHandle m_handle;  ///< Provider metadata associated with the key.
     bool m_released{false};                      ///< Whether the key material has already been released.
+    mutable std::mutex m_mutex;                  ///< Protects native key and cached material.
 };
 }  // namespace score::crypto::daemon::provider::score_provider::iav_primula
 

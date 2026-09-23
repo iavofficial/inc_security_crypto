@@ -67,11 +67,11 @@ Expected<std::monostate, common::DaemonErrorCode> IavPrimulaVerifyHandler::Initi
         return make_unexpected(common::DaemonErrorCode::kKeySlotEmpty);
     }
     const auto* key = dynamic_cast<const IavPrimulaKeyHandler*>(init_params.bound_key_handler);
-    if (key == nullptr || key->GetNativeHandle() == nullptr)
+    if (key == nullptr)
     {
         return make_unexpected(common::DaemonErrorCode::kIncompatibleKeyType);
     }
-    m_key = key->GetNativeHandle();
+    m_key_handler = key;
     return std::monostate{};
 }
 
@@ -91,7 +91,7 @@ Expected<bool, common::DaemonErrorCode> IavPrimulaVerifyHandler::SingleShotVerif
     {
         return make_unexpected(common::DaemonErrorCode::kInvalidDataType);
     }
-    if (m_key == nullptr)
+    if (m_key_handler == nullptr)
     {
         return make_unexpected(common::DaemonErrorCode::kKeySlotEmpty);
     }
@@ -99,7 +99,9 @@ Expected<bool, common::DaemonErrorCode> IavPrimulaVerifyHandler::SingleShotVerif
     {
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
-    const auto status = iav_verify(m_key, message->data(), message->size(), sig->data(), sig->size());
+    const auto status = m_key_handler->ExecuteNativeOperation([&](const auto* native_key) {
+        return native_key == nullptr ? IavStatusInvalidArgument : iav_verify(native_key, message->data(), message->size(), sig->data(), sig->size());
+    });
     // Map backend verification status to the handler contract: an invalid
     // signature returns false, while backend errors are returned as failures.
     if (status == IavStatusVerificationFailed)

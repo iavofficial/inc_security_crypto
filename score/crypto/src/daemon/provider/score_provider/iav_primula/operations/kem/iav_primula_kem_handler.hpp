@@ -19,6 +19,7 @@
 
 #include "score/crypto/src/daemon/provider/score_provider/operations/kem/score_kem_handler.hpp"
 #include "score/iav_primula/include/iav_primula_ffi.h"
+namespace score::crypto::daemon::provider::score_provider::iav_primula { class IavPrimulaKeyHandler; }
 
 namespace score::crypto::daemon::provider::score_provider::iav_primula
 {
@@ -73,7 +74,7 @@ class IavPrimulaKemHandler final : public operations::kem::ScoreKemHandler
     ///
     /// @return The mapped algorithm, or kUnsupportedAlgorithm if unsupported.
     [[nodiscard]] Expected<iav_algorithm, common::DaemonErrorCode> GetAlgorithm() const noexcept;
-    iav_primula_key_handle* m_key{nullptr};  ///< Non-owning handle borrowed from the bound key handler.
+    const IavPrimulaKeyHandler* m_key_handler{nullptr};
 };
 
 }  // namespace score::crypto::daemon::provider::score_provider::iav_primula
