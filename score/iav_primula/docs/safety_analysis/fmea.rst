@@ -16,19 +16,19 @@
 FMEA (Failure Modes and Effects Analysis)
 =========================================
 
-.. document:: IAV Primula FMEA
+.. document:: IAV-Primula FMEA
    :id: doc__iav_primula_fmea
    :version: 1
-   :status: draft
+   :status: invalid
    :safety: QM
    :security: YES
    :realizes: wp__sw_component_fmea
    :tags: iav_primula
 
-.. note::
-   Current component scope is ``QM`` and contains only deterministic in-process
-   string return behavior. The generic fault model is recorded as not applicable
-   for this baseline.
+The component is currently classified as ``QM`` and the concrete PQC backend
+is not connected. The FMEA nevertheless records the relevant failure modes of
+the defined C ABI and the expected backend integration. The entries remain
+``draft`` until the implementation and safety requirements have been verified.
 
 Failure Mode List
 -----------------
@@ -75,12 +75,12 @@ Failure Mode List
       - No numerical safety boundary handling in current scope.
     * - CO_01_02
       - maximum constraint boundary is violated
-      - no
-      - No numerical safety boundary handling in current scope.
+      - yes
+      - Output buffer capacity can be smaller than the required public-key, signature, ciphertext, or shared-secret size.
     * - EX_01_01
       - Process calculates wrong result(s) (subset of data corruption faults)
-      - no
-      - Function returns a fixed literal without algorithmic processing.
+      - yes
+      - A PQC backend can fail or return an invalid result; the FFI must not report success for an untrusted result.
     * - EX_01_02
       - processing too slow (only relevant if timing is considered)
       - no
@@ -91,8 +91,8 @@ Failure Mode List
       - No minimum timing constraint allocated.
     * - EX_01_04
       - loss of execution
-      - no
-      - Not safety-relevant in current ``QM`` scope.
+      - yes
+      - A failed or interrupted cleanup operation can leave key resources allocated or allow an invalid handle lifecycle.
     * - EX_01_05
       - processing changes to arbitrary process
       - no
@@ -105,5 +105,71 @@ Failure Mode List
 FMEA
 ----
 
-No ``comp_saf_fmea`` entries are required for the current baseline.
-Re-evaluate this document once safety-relevant behavior is introduced.
+.. comp_saf_fmea:: Invalid pointer or length
+   :violates: comp_arc_sta__iav_primula__sv
+   :id: comp_saf_fmea__iav_primula__ptr_len
+   :version: 1
+   :fault_id: EX_01_01
+   :failure_effect: Invalid memory access or incorrect processing can cause a crash, corrupted output, or an unsafe caller reaction.
+   :mitigated_by: comp_req__iav_primula__ptr_len
+   :sufficient: no
+   :status: invalid
+
+   The implementation shall validate required pointers and associated lengths
+   before accessing memory. The current stub does not access the supplied
+   memory because all cryptographic operations return unsupported.
+
+.. comp_saf_fmea:: Output buffer too small
+   :violates: comp_arc_sta__iav_primula__sv
+   :id: comp_saf_fmea__iav_primula__buf_small
+   :version: 1
+   :fault_id: CO_01_02
+   :failure_effect: Output truncation or an out-of-bounds write can corrupt memory or produce a result that the caller incorrectly treats as valid.
+   :mitigated_by: comp_req__iav_primula__protect_output_buffers, comp_req__iav_primula__multi_output
+   :sufficient: no
+   :status: invalid
+
+   The implementation shall check all output capacities before writing and
+   shall return ``IavStatusBufferTooSmall`` without a partial result.
+
+.. comp_saf_fmea:: Incorrect status code
+   :violates: comp_arc_sta__iav_primula__sv
+   :id: comp_saf_fmea__iav_primula__error_status
+   :version: 1
+   :fault_id: EX_01_01
+   :failure_effect: The caller may apply an incorrect error reaction or use invalid cryptographic output if a failure is reported with the wrong status code.
+   :mitigated_by: comp_req__iav_primula__stable_status_codes
+   :sufficient: no
+   :status: invalid
+
+   Status values shall be stable between Rust and C and shall distinguish
+   invalid arguments, buffer exhaustion, verification failure, unsupported
+   algorithms, and cryptographic failure.
+
+.. comp_saf_fmea:: Key resource leak or use after destruction
+   :violates: comp_arc_sta__iav_primula__sv
+   :id: comp_saf_fmea__iav_primula__key_lifecycle
+   :version: 1
+   :fault_id: EX_01_04
+   :failure_effect: A leaked or reused key resource can exhaust resources, expose stale state, or cause an invalid cryptographic operation.
+   :mitigated_by: comp_req__iav_primula__key_handle_lifecycle
+   :sufficient: no
+   :status: invalid
+
+   Successful key handles shall be released through ``iav_key_destroy()``.
+   Null, invalid, and repeated destruction behavior must be specified and
+   tested before key generation is enabled.
+
+.. comp_saf_fmea:: Cryptographic operation failure
+   :violates: comp_arc_sta__iav_primula__sv
+   :id: comp_saf_fmea__iav_primula__crypto_failure
+   :version: 1
+   :fault_id: EX_01_01
+   :failure_effect: A failed signature, verification, encapsulation, or decapsulation operation can result in an incorrect security or safety decision.
+   :mitigated_by: comp_req__iav_primula__ml_dsa_operations, comp_req__iav_primula__ml_kem_operations
+   :sufficient: no
+   :status: invalid
+
+   Backend failures shall be reported as ``IavStatusCryptoFailure`` and shall
+   not be confused with a valid result. Invalid signatures shall be reported
+   as ``IavStatusVerificationFailed``.
