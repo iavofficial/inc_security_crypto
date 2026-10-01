@@ -12,10 +12,10 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-.. document:: IAV Primula Implementation Inspection Checklist
+.. document:: IAV-Primula Implementation Inspection Checklist
   :id: doc__iav_primula_impl_inspection
   :version: 1
-  :status: draft
+  :status: invalid
   :safety: QM
   :security: YES
   :realizes: wp__sw_implementation_inspection
