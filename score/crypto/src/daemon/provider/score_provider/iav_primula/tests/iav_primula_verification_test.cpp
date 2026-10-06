@@ -102,9 +102,8 @@ TEST(IavPrimulaVerificationTest, ValidatesKeyTypeAndSignatureSize)
     const std::uint8_t message[] = {1U, 2U};
     // ML-DSA-44 signatures are 2420 bytes; ten bytes are intentionally invalid.
     std::vector<std::uint8_t> signature(10U);
-    common::RequestParameter input = score::cpp::span<const std::uint8_t>{message, 2U};
-    auto verify =
-        handler.SingleShotVerify(input, score::cpp::span<const std::uint8_t>{signature.data(), signature.size()});
+    auto verify = handler.SingleShotVerify(score::cpp::span<const std::uint8_t>{message, 2U},
+                                           score::cpp::span<const std::uint8_t>{signature.data(), signature.size()});
     EXPECT_EQ(verify.error(), common::DaemonErrorCode::kInvalidArgument);
 }
 
@@ -124,8 +123,7 @@ TEST(IavPrimulaVerificationTest, RejectsSingleShotRequestWithoutSignature)
         score::cpp::span<const std::uint8_t>{message, 2U},
     };
     common::OperationIdentifier operation{};
-    operation.operationAction =
-        ::score::crypto::daemon::provider::handler::verify_handler_operations::VERIFY_SS;
+    operation.operationAction = ::score::crypto::daemon::provider::handler::verify_handler_operations::VERIFY_SS;
 
     auto result = handler.Execute(operation, request);
     ASSERT_FALSE(result.has_value());

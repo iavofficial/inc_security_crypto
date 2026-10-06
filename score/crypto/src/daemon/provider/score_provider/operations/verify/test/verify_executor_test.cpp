@@ -37,10 +37,10 @@ class TestVerifyHandler final : public ScoreVerifyHandler
         return result;
     }
 
-    Expected<bool, DaemonErrorCode> SingleShotVerify(const common::RequestParameter&,
-                                                     const common::RequestParameter& signature) override
+    Expected<bool, DaemonErrorCode> SingleShotVerify(score::cpp::span<const std::uint8_t>,
+                                                     score::cpp::span<const std::uint8_t> signature) override
     {
-        return FinalizeVerify(std::get<score::cpp::span<const std::uint8_t>>(signature));
+        return FinalizeVerify(signature);
     }
 
     Expected<bool, DaemonErrorCode> result{true};

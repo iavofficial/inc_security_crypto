@@ -118,7 +118,7 @@ Expected<std::monostate, DaemonErrorCode> VerifyExecutor::ExecuteInit(ScoreVerif
 Expected<std::monostate, DaemonErrorCode> VerifyExecutor::ExecuteUpdate(ScoreVerifyHandler& handler,
                                                                         RequestParameters& request)
 {
-    // UPDATE requires one input buffer containing data for the active stream.
+    // UPDATE requires one input byte span containing data for the active stream.
     if (request.empty())
     {
         return make_unexpected(DaemonErrorCode::kInsufficientParameters);
@@ -175,7 +175,13 @@ Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::ExecuteSingleShot(
         return make_unexpected(DaemonErrorCode::kInvalidDataType);
     }
 
-    const auto result = handler.SingleShotVerify(*data, request[1]);
+    auto* signature = std::get_if<score::cpp::span<const std::uint8_t>>(&request[1]);
+    if (signature == nullptr)
+    {
+        return make_unexpected(DaemonErrorCode::kInvalidDataType);
+    }
+
+    const auto result = handler.SingleShotVerify(*data, *signature);
     if (!result.has_value())
     {
         return make_unexpected(result.error());

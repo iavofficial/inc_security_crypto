@@ -60,13 +60,13 @@ Expected<std::monostate, common::DaemonErrorCode> ScoreVerifyHandler::Reset()
 // ---------------------------------------------------------------------------
 
 Expected<std::monostate, common::DaemonErrorCode> ScoreVerifyHandler::InitVerify(
-    std::optional<common::RequestParameter> /*initial_data*/)
+    std::optional<score::cpp::span<const std::uint8_t>> /*initial_data*/)
 {
     return make_unexpected(common::DaemonErrorCode::kUnsupportedOperation);
 }
 
 Expected<std::monostate, common::DaemonErrorCode> ScoreVerifyHandler::UpdateVerify(
-    const common::RequestParameter& /*data*/)
+    score::cpp::span<const std::uint8_t> /*data*/)
 {
     return make_unexpected(common::DaemonErrorCode::kUnsupportedOperation);
 }
@@ -80,8 +80,8 @@ Expected<bool, common::DaemonErrorCode> ScoreVerifyHandler::FinalizeVerify(
 }
 
 Expected<bool, common::DaemonErrorCode> ScoreVerifyHandler::SingleShotVerify(
-    const common::RequestParameter& /*data*/,
-    const common::RequestParameter& /*signature*/)
+    score::cpp::span<const std::uint8_t> /*data*/,
+    score::cpp::span<const std::uint8_t> /*signature*/)
 {
     // The base implementation reports an unsupported operation rather than
     // false, which is reserved for an invalid signature after verification.
