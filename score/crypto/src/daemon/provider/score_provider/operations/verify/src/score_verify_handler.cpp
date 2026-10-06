@@ -72,8 +72,7 @@ Expected<std::monostate, common::DaemonErrorCode> ScoreVerifyHandler::UpdateVeri
 }
 
 Expected<bool, common::DaemonErrorCode> ScoreVerifyHandler::FinalizeVerify(
-    std::optional<common::RequestParameter> /*final_data*/,
-    std::optional<common::RequestParameter> /*output*/)
+    score::cpp::span<const std::uint8_t> /*signature*/)
 {
     // The base implementation reports an unsupported operation rather than
     // false, which is reserved for an invalid signature after verification.

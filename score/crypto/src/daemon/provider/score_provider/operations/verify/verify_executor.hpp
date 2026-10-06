@@ -70,7 +70,7 @@ class VerifyExecutor final
     /// @brief Finalize a streaming verification.
     ///
     /// @param handler Verification handler receiving the operation.
-    /// @param request Signature and optional final data or output parameters.
+    /// @param request Exactly one read-only signature buffer.
     /// @return Verification result, or a daemon error reported by the handler.
     [[nodiscard]] Expected<common::ResponseParameters, common::DaemonErrorCode> ExecuteFinalize(
         ScoreVerifyHandler& handler,

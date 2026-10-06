@@ -20,6 +20,8 @@
 #include "score/crypto/src/daemon/common/daemon_error.hpp"
 #include "score/crypto/src/daemon/common/types.hpp"
 #include "score/crypto/src/daemon/provider/handler/i_handler.hpp"
+#include "score/span.hpp"
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <utility>
@@ -114,13 +116,11 @@ class ScoreVerifyHandler : public handler::Handler
 
     /// @brief Finalize the verification and return the signature result.
     ///
-    /// @param final_data Optional final data to add before verification.
-    /// @param output Optional signature or output buffer.
+    /// @param signature Signature to verify against the data supplied through UpdateVerify().
     /// @return `true` if the signature is valid, `false` if it is invalid, or
     ///         a daemon error if the verification cannot be performed.
     [[nodiscard]] virtual Expected<bool, common::DaemonErrorCode> FinalizeVerify(
-        std::optional<common::RequestParameter> final_data,
-        std::optional<common::RequestParameter> output);
+        score::cpp::span<const std::uint8_t> signature);
 
     /// @brief Perform single-shot verification without streaming.
     ///
