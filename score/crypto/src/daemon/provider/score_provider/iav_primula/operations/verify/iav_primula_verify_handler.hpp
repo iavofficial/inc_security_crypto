@@ -63,8 +63,8 @@ class IavPrimulaVerifyHandler final : public operations::verify::ScoreVerifyHand
     /// @param data Message to verify.
     /// @param signature Signature to verify against the message.
     [[nodiscard]] Expected<bool, common::DaemonErrorCode> SingleShotVerify(
-        const common::RequestParameter& data,
-        const common::RequestParameter& signature) override;
+        score::cpp::span<const std::uint8_t> data,
+        score::cpp::span<const std::uint8_t> signature) override;
 
   private:
     /// @brief Validate that the configured algorithm is a supported ML-DSA algorithm.

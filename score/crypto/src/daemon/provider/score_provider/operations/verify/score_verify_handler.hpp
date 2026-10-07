@@ -20,6 +20,8 @@
 #include "score/crypto/src/daemon/common/daemon_error.hpp"
 #include "score/crypto/src/daemon/common/types.hpp"
 #include "score/crypto/src/daemon/provider/handler/i_handler.hpp"
+#include "score/span.hpp"
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <utility>
@@ -104,23 +106,21 @@ class ScoreVerifyHandler : public handler::Handler
     ///
     /// @param initial_data Optional data to include during initialization.
     [[nodiscard]] virtual Expected<std::monostate, common::DaemonErrorCode> InitVerify(
-        std::optional<common::RequestParameter> initial_data);
+        std::optional<score::cpp::span<const std::uint8_t>> initial_data);
 
     /// @brief Add data to the active verification stream.
     ///
     /// @param data Message data to add to the verification.
     [[nodiscard]] virtual Expected<std::monostate, common::DaemonErrorCode> UpdateVerify(
-        const common::RequestParameter& data);
+        score::cpp::span<const std::uint8_t> data);
 
     /// @brief Finalize the verification and return the signature result.
     ///
-    /// @param final_data Optional final data to add before verification.
-    /// @param output Optional signature or output buffer.
+    /// @param signature Signature to verify against the data supplied through UpdateVerify().
     /// @return `true` if the signature is valid, `false` if it is invalid, or
     ///         a daemon error if the verification cannot be performed.
     [[nodiscard]] virtual Expected<bool, common::DaemonErrorCode> FinalizeVerify(
-        std::optional<common::RequestParameter> final_data,
-        std::optional<common::RequestParameter> output);
+        score::cpp::span<const std::uint8_t> signature);
 
     /// @brief Perform single-shot verification without streaming.
     ///
@@ -129,8 +129,8 @@ class ScoreVerifyHandler : public handler::Handler
     /// @return `true` if the signature is valid, `false` if it is invalid, or
     ///         a daemon error if the verification cannot be performed.
     [[nodiscard]] virtual Expected<bool, common::DaemonErrorCode> SingleShotVerify(
-        const common::RequestParameter& data,
-        const common::RequestParameter& signature);
+        score::cpp::span<const std::uint8_t> data,
+        score::cpp::span<const std::uint8_t> signature);
 
   protected:
     common::AlgorithmId m_algorithm;                                           ///< Algorithm handled by this instance.

@@ -75,32 +75,6 @@ Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::Execute(ScoreVerif
     // Initialization and update return no response parameters. The stream state
     // is advanced only when the handler accepts the operation.
 
-    if (operationId.operationAction == handler::verify_handler_operations::VERIFY_FINALIZE)
-    {
-        auto result = ExecuteInit(handler, request);
-        if (result.has_value())
-        {
-            handler.SetOperationState(nextState);
-        }
-        else
-        {
-            return make_unexpected(result.error());
-        }
-    }
-
-    if (operationId.operationAction == handler::verify_handler_operations::VERIFY_UPDATE)
-    {
-        auto result = ExecuteUpdate(handler, request);
-        if (result.has_value())
-        {
-            handler.SetOperationState(nextState);
-        }
-        else
-        {
-            return make_unexpected(result.error());
-        }
-    }
-
     const auto result = [&]() -> Expected<std::monostate, DaemonErrorCode> {
         if (operationId.operationAction == handler::verify_handler_operations::VERIFY_INIT)
         {
@@ -144,7 +118,7 @@ Expected<std::monostate, DaemonErrorCode> VerifyExecutor::ExecuteInit(ScoreVerif
 Expected<std::monostate, DaemonErrorCode> VerifyExecutor::ExecuteUpdate(ScoreVerifyHandler& handler,
                                                                         RequestParameters& request)
 {
-    // UPDATE requires one input buffer containing data for the active stream.
+    // UPDATE requires one input byte span containing data for the active stream.
     if (request.empty())
     {
         return make_unexpected(DaemonErrorCode::kInsufficientParameters);
@@ -162,26 +136,28 @@ Expected<std::monostate, DaemonErrorCode> VerifyExecutor::ExecuteUpdate(ScoreVer
 Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::ExecuteFinalize(ScoreVerifyHandler& handler,
                                                                               RequestParameters& request)
 {
-    // FINALIZE accepts the signature data and optional final streaming data.
-    std::optional<score::cpp::span<std::uint8_t>> output;
-    if (!request.empty())
+    // FINALIZE only accepts the signature; message data is supplied through UPDATE.
+    if (request.empty())
     {
-        if (auto* buf = std::get_if<score::cpp::span<std::uint8_t>>(&request[0]))
-        {
-            output.emplace(*buf);
-        }
+        return make_unexpected(DaemonErrorCode::kInsufficientParameters);
+    }
+    if (request.size() != 1U)
+    {
+        return make_unexpected(DaemonErrorCode::kInvalidArgument);
     }
 
-    std::optional<score::cpp::span<const std::uint8_t>> finalData;
-    if (request.size() > 1)
+    auto* signature = std::get_if<score::cpp::span<const std::uint8_t>>(&request[0]);
+    if (signature == nullptr)
     {
-        if (auto* buf = std::get_if<score::cpp::span<const std::uint8_t>>(&request[1]))
-        {
-            finalData.emplace(*buf);
-        }
+        return make_unexpected(DaemonErrorCode::kInvalidDataType);
     }
 
-    return handler.FinalizeVerify(output, finalData);
+    const auto result = handler.FinalizeVerify(*signature);
+    if (!result.has_value())
+    {
+        return make_unexpected(result.error());
+    }
+    return ResponseParameters{result.value()};
 }
 
 Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::ExecuteSingleShot(ScoreVerifyHandler& handler,
@@ -199,7 +175,18 @@ Expected<ResponseParameters, DaemonErrorCode> VerifyExecutor::ExecuteSingleShot(
         return make_unexpected(DaemonErrorCode::kInvalidDataType);
     }
 
-    return handler.SingleShotVerify(*data, request[1]);
+    auto* signature = std::get_if<score::cpp::span<const std::uint8_t>>(&request[1]);
+    if (signature == nullptr)
+    {
+        return make_unexpected(DaemonErrorCode::kInvalidDataType);
+    }
+
+    const auto result = handler.SingleShotVerify(*data, *signature);
+    if (!result.has_value())
+    {
+        return make_unexpected(result.error());
+    }
+    return ResponseParameters{result.value()};
 }
 
 Expected<std::monostate, DaemonErrorCode> VerifyExecutor::ExecuteReset(ScoreVerifyHandler& handler,

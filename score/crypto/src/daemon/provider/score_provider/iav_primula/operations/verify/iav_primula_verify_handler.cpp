@@ -62,12 +62,19 @@ Expected<std::monostate, common::DaemonErrorCode> IavPrimulaVerifyHandler::Initi
     {
         return make_unexpected(base.error());
     }
-    if (init_params.bound_key_handler == nullptr)
+    const auto* bound_key = init_params.bound_key_handler;
+    if (bound_key == nullptr || init_params.provider_id == common::kInvalidProviderId)
     {
-        return make_unexpected(common::DaemonErrorCode::kKeySlotEmpty);
+        return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
-    const auto* key = dynamic_cast<const IavPrimulaKeyHandler*>(init_params.bound_key_handler);
-    if (key == nullptr || key->GetNativeHandle() == nullptr)
+    if (bound_key->GetProviderId() != init_params.provider_id)
+    {
+        return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
+    }
+    // The Primula key factory creates IavPrimulaKeyHandler instances for this provider.
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast) -- provider identity checked above
+    const auto* key = static_cast<const IavPrimulaKeyHandler*>(bound_key);
+    if (key->GetNativeHandle() == nullptr)
     {
         return make_unexpected(common::DaemonErrorCode::kIncompatibleKeyType);
     }
@@ -76,8 +83,8 @@ Expected<std::monostate, common::DaemonErrorCode> IavPrimulaVerifyHandler::Initi
 }
 
 Expected<bool, common::DaemonErrorCode> IavPrimulaVerifyHandler::SingleShotVerify(
-    const common::RequestParameter& data,
-    const common::RequestParameter& signature)
+    score::cpp::span<const std::uint8_t> data,
+    score::cpp::span<const std::uint8_t> signature)
 {
     // Verify a complete message and signature in a single operation.
     auto algorithm = ValidateAlgorithm();
@@ -85,21 +92,15 @@ Expected<bool, common::DaemonErrorCode> IavPrimulaVerifyHandler::SingleShotVerif
     {
         return make_unexpected(algorithm.error());
     }
-    const auto* message = std::get_if<score::cpp::span<const std::uint8_t>>(&data);
-    const auto* sig = std::get_if<score::cpp::span<const std::uint8_t>>(&signature);
-    if (message == nullptr || sig == nullptr)
-    {
-        return make_unexpected(common::DaemonErrorCode::kInvalidDataType);
-    }
     if (m_key == nullptr)
     {
         return make_unexpected(common::DaemonErrorCode::kKeySlotEmpty);
     }
-    if (sig->data() == nullptr || sig->size() != SignatureSize(m_algorithm))
+    if (signature.data() == nullptr || signature.size() != SignatureSize(m_algorithm))
     {
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
-    const auto status = iav_verify(m_key, message->data(), message->size(), sig->data(), sig->size());
+    const auto status = iav_verify(m_key, data.data(), data.size(), signature.data(), signature.size());
     // Map backend verification status to the handler contract: an invalid
     // signature returns false, while backend errors are returned as failures.
     if (status == IavStatusVerificationFailed)

@@ -149,26 +149,23 @@ Expected<std::monostate, DaemonErrorCode> SignExecutor::ExecuteUpdate(ScoreSignH
 Expected<ResponseParameters, DaemonErrorCode> SignExecutor::ExecuteFinalize(ScoreSignHandler& handler,
                                                                             RequestParameters& request)
 {
-    // FINALIZE accepts an optional output buffer followed by optional final data.
-    std::optional<score::cpp::span<std::uint8_t>> output;
-    if (!request.empty())
+    // FINALIZE accepts one output buffer. Message data is supplied via UPDATE.
+    if (request.empty())
     {
-        if (auto* buf = std::get_if<score::cpp::span<std::uint8_t>>(&request[0]))
-        {
-            output.emplace(*buf);
-        }
+        return make_unexpected(DaemonErrorCode::kInsufficientParameters);
+    }
+    if (request.size() != 1U)
+    {
+        return make_unexpected(DaemonErrorCode::kInvalidArgument);
     }
 
-    std::optional<score::cpp::span<const std::uint8_t>> finalData;
-    if (request.size() > 1)
+    const auto* output = std::get_if<score::cpp::span<std::uint8_t>>(&request[0]);
+    if (output == nullptr)
     {
-        if (auto* buf = std::get_if<score::cpp::span<const std::uint8_t>>(&request[1]))
-        {
-            finalData.emplace(*buf);
-        }
+        return make_unexpected(DaemonErrorCode::kInvalidDataType);
     }
 
-    return handler.FinalizeSign(output, finalData);
+    return handler.FinalizeSign(*output);
 }
 
 Expected<ResponseParameters, DaemonErrorCode> SignExecutor::ExecuteSingleShot(ScoreSignHandler& handler,

@@ -70,8 +70,8 @@ class SignExecutor final
     /// @brief Finalize a streaming signature.
     ///
     /// @param handler Signature handler receiving the operation.
-    /// @param request Optional output buffer and final data.
-    /// @return Signature response, or a daemon error reported by the handler.
+    /// @param request Exactly one output buffer; message data must be passed via UPDATE.
+    /// @return Signature response, or a daemon error if the request is invalid or the handler fails.
     [[nodiscard]] Expected<common::ResponseParameters, common::DaemonErrorCode> ExecuteFinalize(
         ScoreSignHandler& handler,
         common::RequestParameters& request);
