@@ -114,11 +114,11 @@ class ScoreSignHandler : public handler::Handler
 
     /// @brief Finalize the signature and produce the output.
     ///
-    /// @param final_data Optional final data to add before signing.
-    /// @param output Optional caller-provided output buffer.
+    /// Message data must be supplied through UpdateSign() before finalization.
+    ///
+    /// @param output Caller-provided buffer for the generated signature.
     [[nodiscard]] virtual Expected<common::ResponseParameters, common::DaemonErrorCode> FinalizeSign(
-        std::optional<common::RequestParameter> final_data,
-        std::optional<common::RequestParameter> output);
+        score::cpp::span<std::uint8_t> output);
 
     /// @brief Perform a single-shot signature without streaming.
     ///

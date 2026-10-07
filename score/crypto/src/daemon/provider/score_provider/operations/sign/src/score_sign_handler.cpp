@@ -65,8 +65,7 @@ Expected<std::monostate, common::DaemonErrorCode> ScoreSignHandler::UpdateSign(c
 }
 
 Expected<common::ResponseParameters, common::DaemonErrorCode> ScoreSignHandler::FinalizeSign(
-    std::optional<common::RequestParameter> /*final_data*/,
-    std::optional<common::RequestParameter> /*output*/)
+    score::cpp::span<std::uint8_t> /*output*/)
 {
     return make_unexpected(common::DaemonErrorCode::kUnsupportedOperation);
 }
