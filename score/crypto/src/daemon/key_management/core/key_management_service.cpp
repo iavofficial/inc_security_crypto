@@ -318,7 +318,18 @@ Expected<KeyOperationLease, common::DaemonErrorCode> KeyManagementService::Acqui
     {
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
-    if (!score::crypto::HasPermission(handler.GetHandle().permissions, permission))
+
+    const auto& handle = handler.GetHandle();
+    const bool uses_public_key_permissions =
+        handle.material_kind == KeyMaterialKind::kPublicKey &&
+        (permission == score::crypto::KeyOperationPermission::kAgree ||
+         permission == score::crypto::KeyOperationPermission::kExport);
+    const auto granted_permissions =
+        uses_public_key_permissions
+            ? handle.public_key_permissions.value_or(score::crypto::KeyOperationPermission::kAll)
+            : handle.permissions;
+
+    if (!score::crypto::HasPermission(granted_permissions, permission))
     {
         return make_unexpected(common::DaemonErrorCode::kKeyOperationNotPermitted);
     }

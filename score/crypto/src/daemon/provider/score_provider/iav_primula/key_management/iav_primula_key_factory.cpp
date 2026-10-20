@@ -71,7 +71,13 @@ Expected<const IavPrimulaKeyHandler*, common::DaemonErrorCode> ValidateKemKey(
     {
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
-    if (!score::crypto::HasPermission(handler.GetHandle().permissions, score::crypto::KeyOperationPermission::kAgree))
+    const auto& handle = handler.GetHandle();
+    const auto granted_permissions =
+        kind == key_management::KeyMaterialKind::kPublicKey
+            ? handle.public_key_permissions.value_or(score::crypto::KeyOperationPermission::kAll)
+            : handle.permissions;
+
+    if (!score::crypto::HasPermission(granted_permissions, score::crypto::KeyOperationPermission::kAgree))
     {
         return make_unexpected(common::DaemonErrorCode::kKeyOperationNotPermitted);
     }
