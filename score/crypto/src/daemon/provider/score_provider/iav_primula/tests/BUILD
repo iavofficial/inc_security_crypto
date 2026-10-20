@@ -4,6 +4,7 @@ cc_library(
     name = "iav_primula_test_support",
     srcs = ["iav_primula_test_support.cpp"],
     hdrs = ["iav_primula_test_support.hpp"],
+    testonly = True,
     visibility = ["//score/crypto/src/daemon/provider/score_provider/iav_primula/tests:__subpackages__"],
     deps = [
         "//score/iav_primula:iav_primula_ffi_headers",

@@ -17,6 +17,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 cc_library(
     name = "api_header_smoke",
     srcs = ["api_header_smoke.c"],
+    testonly = True,
     deps = [
         "//score/iav_primula:iav_primula_ffi_headers",
         "//score/iav_primula:primula_platform_types",

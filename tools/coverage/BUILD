@@ -45,6 +45,8 @@ score_coverage_scope(
         "//score/cryptoki:cryptoki_headers",
         "//score/cryptoki:cryptoki_lib",
         "//score/iav_primula",
+        "//score/iav_primula:primula",
+        "//score/iav_primula:shared_support",
     ],
 )
 

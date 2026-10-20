@@ -355,6 +355,7 @@ alias(
 cc_library(
     name = "shared_support",
     visibility = [
+        "//tools/coverage:__pkg__",
         "//score/iav_primula:__pkg__",
         "//score/iav_primula:__subpackages__",
     ],
@@ -440,6 +441,7 @@ cc_library(
 cc_library(
     name = "primula",
     visibility = [
+        "//tools/coverage:__pkg__",
         "//score/iav_primula:__pkg__",
         "//score/iav_primula:__subpackages__",
     ],
