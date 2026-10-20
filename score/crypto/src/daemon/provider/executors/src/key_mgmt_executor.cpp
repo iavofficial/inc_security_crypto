@@ -551,11 +551,22 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleImport(
     {
         return make_unexpected(result.error());
     }
-    if ((!result.value()) || (result.value()->GetHandle().algorithm != params.algorithm) ||
-        (result.value()->GetHandle().permissions != params.permissions) || (result.value()->GetHandle().key_size == 0U))
+    if (!result.value())
     {
         return make_unexpected(Error::kOperationFailed);
     }
+
+    const auto& handle = result.value()->GetHandle();
+    const auto actual_permissions =
+        handle.material_kind == km::KeyMaterialKind::kPublicKey
+            ? handle.public_key_permissions.value_or(Permission::kAll)
+            : handle.permissions;
+
+    if (handle.algorithm != params.algorithm || actual_permissions != params.permissions || handle.key_size == 0U)
+    {
+        return make_unexpected(Error::kOperationFailed);
+    }
+
     auto id = RegisterOutput(ctx, std::move(result.value()));
     if (!id.has_value())
     {
