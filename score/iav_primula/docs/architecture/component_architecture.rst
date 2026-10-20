@@ -28,8 +28,10 @@ Component Architecture Documentation
 Overview
 --------
 
-The IAV Primula component is a lightweight Rust library exposing one public API
-to return a deterministic baseline message.
+IAV Primula is a Bazel C library. It exposes the stable C ABI in
+``include/iav_primula_ffi.h`` and keeps PQCleanAutomotive headers private to
+the implementation targets. The active glue maps ML-DSA and ML-KEM FFI
+operations to the corresponding Automotive parameter-set APIs.
 
 Requirements Linked to Component Architecture
 ---------------------------------------------
@@ -45,19 +47,27 @@ Requirements Linked to Component Architecture
 Description
 -----------
 
-The component currently has no internal sub-components. Public API and
-implementation are both located in ``src/main.rs``.
+The implementation is divided into three responsibilities:
+
+- FFI glue validates arguments, owns opaque key handles, and maps vendor
+  results and buffer sizes to stable status values.
+- PQCleanAutomotive provides the parameter-set cryptographic implementations.
+- The project-owned CommonLib adapter supplies memory helpers and delegates
+  random-byte requests to the registered platform callback.
 
 Design constraints:
 
-- Keep API deterministic and side-effect free.
-- Keep implementation simple for initial onboarding and traceability.
+- Preserve all existing FFI status and algorithm values.
+- Do not provide a deterministic or implicit RNG fallback.
+- Check capacities before writing outputs and do not publish partial results.
+- Keep secret key material and temporary shared secrets securely cleared when
+  released by the glue.
 
 Rationale Behind Architecture Decomposition
 *******************************************
 
-No decomposition into lower-level components is introduced in this initial
-version because complexity is low and responsibilities are clear.
+The decomposition separates the stable ABI and key lifecycle from the
+algorithm implementation and platform entropy boundary.
 
 .. note:: Common decisions across components / cross cutting concepts is at the higher level.
 
@@ -84,7 +94,7 @@ A component can optional also consist of lower level components to further struc
    :safety: QM
    :status: valid
    :belongs_to: comp__iav_primula
-   :fulfils: comp_req__iav_primula__provide_hello_message
+   :fulfils: comp_req__iav_primula__provide_c_ffi
 
    .. needarch::
       :scale: 50
@@ -102,26 +112,31 @@ Dynamic Architecture
    :safety: QM
    :status: valid
    :belongs_to: comp__iav_primula
-   :fulfils: comp_req__iav_primula__provide_hello_message
+   :fulfils: comp_req__iav_primula__provide_c_ffi
 
-   Caller invokes ``get_hello_message()`` and receives the constant baseline
-   string response immediately.
+   A caller registers the platform RNG during initialization. For key
+   generation or KEM encapsulation, the FFI starts per-operation entropy error
+   tracking, calls the Automotive implementation, and publishes outputs only
+   if every random-byte request succeeds. Without a provider or after a
+   provider error, the operation returns ``IavStatusCryptoFailure`` and does
+   not publish the generated key or cryptographic outputs.
 
 Interfaces
 ----------
 
-.. real_arc_int:: Public hello message interface
-   :id: real_arc_int__iav_primula__get_hello_message
+.. real_arc_int:: Stable IAV Primula C ABI
+   :id: real_arc_int__iav_primula__c_ffi
    :version: 1
    :security: NO
    :safety: QM
    :status: valid
-   :language: rust
+   :language: c
 
 Internal Components
 -------------------
 
-No internal components are defined in this baseline version.
+The Automotive implementation is an internal dependency and is not exposed
+through the public C++ dependency surface.
 
 .. note::
    Architecture can be split into multiple files. At component level the public interfaces to be used by the user and tester to be shown.

@@ -22,21 +22,25 @@ Component AoU
 
 .. code-block:: rst
 
-   .. aou_req:: Integrate as Rust library API
-      :id: aou_req__iav_primula__integrate_as_rust_library_api
+   .. aou_req:: Register a reviewed platform random-byte provider
+      :id: aou_req__iav_primula__platform_rng
       :reqtype: Process
       :security: YES
       :safety: QM
       :status: valid
 
-      The component user shall link the crate ``iav_primula`` and call the public API from Rust code.
+      The integrator shall register a reviewed, cryptographically secure,
+      thread-safe random-byte callback before invoking key generation or KEM
+      encapsulation. The callback and its context shall remain valid for the
+      lifetime of the process.
 
-   .. aou_req:: Build environment supports Rust 2021
-      :id: aou_req__iav_primula__build_env_supports_rust_2021
+   .. aou_req:: Build environment supports the C implementation
+      :id: aou_req__iav_primula__c_build_env
       :reqtype: Process
       :security: YES
       :safety: QM
       :status: valid
       :tags: environment
 
-      The component shall be built in an environment that supports Rust edition 2021.
+      The component shall be built with a C compiler and Bazel toolchain that
+      support C11 atomics and thread-local storage.

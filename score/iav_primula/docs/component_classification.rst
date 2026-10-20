@@ -26,6 +26,12 @@ Component Classification
    :realizes: wp__sw_component_class
    :tags: iav_primula
 
+.. warning::
+   This classification still contains baseline Rust-stub metrics and has not
+   been re-evaluated for the Automotive C cryptographic implementation. Do not
+   treat the language complexity values or test evidence below as current
+   evidence for the integrated component.
+
 | Classification of ``iav_primula``
 |
 | GitHub: ``https://github.com/eclipse-score/inc_security_crypto/tree/main/score/t.b.d``
@@ -56,7 +62,7 @@ Step 1: Determine (P): the uncertainty of the Processes applied
         * - 1
           - Are rules, state-of-the art processes applied for the design, implementation and verification?
           - HE
-          - Basic project rules are applied (Rust 2021 crate, tests, standard docs structure).
+          - The prior Rust-stub rationale is obsolete; the current C integration requires a fresh process assessment.
 
         * - 2
           - Are requirements available?
@@ -81,7 +87,7 @@ Step 1: Determine (P): the uncertainty of the Processes applied
         * - 6
           - Are verification measures including tests and reports available?
           - HE
-          - Hello-world test exists and verifies expected output.
+          - The hello-world test was removed; M03 functional GTests are pending.
 
 
 | (P=1) shall be selected when none of the determined process measures indicate PE or NE.
@@ -101,9 +107,9 @@ Step 2: Determine (C): the uncertainty of finding systematic faults based on the
 | - HM: High but Manageable
 | - NM: high and Not Manageable
 |
-| **Complexity measure for programming language: RUST**
+| **Complexity measure for programming language: RUST (obsolete stub baseline)**
 
-.. list-table:: Determine (C) for RUST
+.. list-table:: Historical stub-only complexity measure for RUST
     :header-rows: 1
 
     * - Id
