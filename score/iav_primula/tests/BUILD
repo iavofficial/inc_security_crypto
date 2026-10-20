@@ -11,11 +11,45 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@rules_rust//rust:defs.bzl", "rust_test")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 
-rust_test(
-    name = "ffi_test",
-    srcs = ["ffi_test.rs"],
-    edition = "2021",
-    deps = ["//score/iav_primula"],
+cc_library(
+    name = "api_header_smoke",
+    srcs = ["api_header_smoke.c"],
+    deps = [
+        "//score/iav_primula:iav_primula_ffi_headers",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+    ],
+)
+
+cc_binary(
+    name = "ffi_link_smoke",
+    srcs = ["ffi_link_smoke.c"],
+    deps = [
+        "//score/iav_primula:iav_primula_ffi_headers",
+        "//score/iav_primula:iav_primula_staticlib",
+    ],
+)
+
+cc_test(
+    name = "functional_ffi_test",
+    timeout = "moderate",
+    srcs = ["functional_ffi_test.cpp"],
+    deps = [
+        "//score/iav_primula:iav_primula_ffi_headers",
+        "//score/iav_primula:iav_primula_staticlib",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "rng_unconfigured_ffi_test",
+    srcs = ["rng_unconfigured_ffi_test.cpp"],
+    deps = [
+        "//score/iav_primula:iav_primula_ffi_headers",
+        "//score/iav_primula:iav_primula_staticlib",
+        "@googletest//:gtest_main",
+    ],
 )

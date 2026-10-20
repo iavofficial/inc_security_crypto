@@ -11,23 +11,32 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include "score/crypto/src/daemon/common/daemon_error.hpp"
+#include "score/crypto/src/daemon/common/types.hpp"
+#include "score/crypto/src/daemon/key_management/interfaces/key_types.hpp"
 #include "score/crypto/src/daemon/provider/handler/handler_init_params.hpp"
 #include "score/crypto/src/daemon/provider/handler/operations/sign_handler_operations.hpp"
 #include "score/crypto/src/daemon/provider/handler/operations/verify_handler_operations.hpp"
+#include "score/crypto/src/daemon/provider/i_provider.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/iav_primula_provider.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/key_management/iav_primula_key_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/operations/sign/iav_primula_sign_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/operations/verify/iav_primula_verify_handler.hpp"
+#include "score/crypto/src/daemon/provider/score_provider/iav_primula/tests/iav_primula_test_support.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/operations/factory/score_handler_factory.hpp"
+#include "score/iav_primula/include/iav_primula_ffi.h"
 
 #include <gtest/gtest.h>
 
+#include <cstdint>
+#include <vector>
 namespace
 {
 using namespace score::crypto::daemon;
 using namespace score::crypto::daemon::provider;
 using namespace score::crypto::daemon::provider::score_provider;
 using namespace score::crypto::daemon::provider::score_provider::iav_primula;
+namespace test_support = score::crypto::daemon::provider::score_provider::iav_primula::test_support;
 
 // ---------------------------------------------------------------------------
 // SIGN handler creation and initialization
@@ -50,11 +59,11 @@ TEST(IavPrimulaApplicationIntegrationTest, CreatesSignHandlerFromProviderToAlgor
     ASSERT_NE(primula_handler, nullptr);
     EXPECT_EQ(primula_handler->GetAlgorithm(), "ML-DSA-44");
 
-    // Use a non-null sentinel to simulate a bound native key handle without
-    // creating a real backend key.
     key_management::ProviderKeyHandle key_handle{};
     key_handle.provider_id = provider.GetProviderId();
-    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, key_handle};
+    test_support::NativeKey native_key;
+    ASSERT_EQ(test_support::GenerateSignatureKey(IavAlgorithmMlDsa44, native_key), IavStatusOk);
+    IavPrimulaKeyHandler key{native_key.release(), {}, key_handle};
     handler::InitializationParams params{};
     params.provider_id = provider.GetProviderId();
     params.bound_key_handler = &key;
@@ -87,10 +96,11 @@ TEST(IavPrimulaApplicationIntegrationTest, CreatesVerifyHandlerAndReachesAlgorit
     ASSERT_NE(primula_handler, nullptr);
     EXPECT_EQ(primula_handler->GetAlgorithm(), "ML-DSA-44");
 
-    // A non-null sentinel represents a bound native key handle for initialization.
     key_management::ProviderKeyHandle key_handle{};
     key_handle.provider_id = provider.GetProviderId();
-    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, key_handle};
+    test_support::NativeKey native_key;
+    ASSERT_EQ(test_support::GenerateSignatureKey(IavAlgorithmMlDsa44, native_key), IavStatusOk);
+    IavPrimulaKeyHandler key{native_key.release(), {}, key_handle};
     handler::InitializationParams params{};
     params.provider_id = provider.GetProviderId();
     params.bound_key_handler = &key;

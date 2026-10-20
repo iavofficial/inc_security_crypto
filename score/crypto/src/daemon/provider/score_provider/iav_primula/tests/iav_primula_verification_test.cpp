@@ -11,22 +11,34 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "score/crypto/src/daemon/provider/handler/handler_init_params.hpp"
 #include "score/crypto/src/daemon/common/actors.hpp"
+#include "score/crypto/src/daemon/common/daemon_error.hpp"
+#include "score/crypto/src/daemon/common/types.hpp"
+#include "score/crypto/src/daemon/key_management/interfaces/key_types.hpp"
+#include "score/crypto/src/daemon/provider/handler/handler_init_params.hpp"
 #include "score/crypto/src/daemon/provider/handler/operations/verify_handler_operations.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/key_management/iav_primula_key_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/operations/verify/iav_primula_verify_handler.hpp"
+#include "score/crypto/src/daemon/provider/score_provider/iav_primula/tests/iav_primula_test_support.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/operations/verify/verify_executor.hpp"
+#include "score/iav_primula/include/iav_primula_ffi.h"
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <utility>
 #include <vector>
+
+#include "score/span.hpp"
 
 namespace
 {
 using namespace score::crypto::daemon;
 using namespace score::crypto::daemon::provider::score_provider::iav_primula;
 using Executor = score::crypto::daemon::provider::score_provider::operations::verify::VerifyExecutor;
+namespace test_support = score::crypto::daemon::provider::score_provider::iav_primula::test_support;
 
 constexpr common::ProviderId kProviderId{7U};
 
@@ -55,7 +67,7 @@ TEST(IavPrimulaVerificationTest, RejectsUnassignedProviderId)
 {
     IavPrimulaVerifyHandler handler{std::make_unique<Executor>(), "ML-DSA-44"};
     // Both IDs default to invalid; matching invalid IDs must not authorize a cast.
-    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, {}};
+    IavPrimulaKeyHandler key{nullptr, {}, {}};
     ::score::crypto::daemon::provider::handler::InitializationParams params{};
     params.bound_key_handler = &key;
 
@@ -69,7 +81,7 @@ TEST(IavPrimulaVerificationTest, RejectsKeyFromAnotherProvider)
     IavPrimulaVerifyHandler handler{std::make_unique<Executor>(), "ML-DSA-44"};
     key_management::ProviderKeyHandle handle{};
     handle.provider_id = kProviderId;
-    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, handle};
+    IavPrimulaKeyHandler key{nullptr, {}, handle};
     ::score::crypto::daemon::provider::handler::InitializationParams params{};
     params.provider_id = common::ProviderId{8U};
     params.bound_key_handler = &key;
@@ -98,8 +110,9 @@ TEST(IavPrimulaVerificationTest, ValidatesKeyTypeAndSignatureSize)
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), common::DaemonErrorCode::kIncompatibleKeyType);
 
-    // Use a non-null sentinel to simulate a bound native key handle.
-    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, handle};
+    test_support::NativeKey native_key;
+    ASSERT_EQ(test_support::GenerateSignatureKey(IavAlgorithmMlDsa44, native_key), IavStatusOk);
+    IavPrimulaKeyHandler key{native_key.release(), {}, handle};
     params.bound_key_handler = &key;
     ASSERT_TRUE(handler.InitializeContext(params).has_value());
     const std::uint8_t message[] = {1U, 2U};
@@ -117,7 +130,9 @@ TEST(IavPrimulaVerificationTest, RejectsSingleShotRequestWithoutSignature)
     IavPrimulaVerifyHandler handler{std::make_unique<Executor>(), "ML-DSA-44"};
     key_management::ProviderKeyHandle handle{};
     handle.provider_id = kProviderId;
-    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, handle};
+    test_support::NativeKey native_key;
+    ASSERT_EQ(test_support::GenerateSignatureKey(IavAlgorithmMlDsa44, native_key), IavStatusOk);
+    IavPrimulaKeyHandler key{native_key.release(), {}, handle};
     ::score::crypto::daemon::provider::handler::InitializationParams params{};
     params.provider_id = kProviderId;
     params.bound_key_handler = &key;
@@ -129,8 +144,7 @@ TEST(IavPrimulaVerificationTest, RejectsSingleShotRequestWithoutSignature)
     };
     common::OperationIdentifier operation{};
     operation.operationActor = common::actors::OP_ACTOR_VERIFY_HANDLER;
-    operation.operationAction =
-        ::score::crypto::daemon::provider::handler::verify_handler_operations::VERIFY_SS;
+    operation.operationAction = ::score::crypto::daemon::provider::handler::verify_handler_operations::VERIFY_SS;
 
     auto result = handler.Execute(operation, request);
     ASSERT_FALSE(result.has_value());
@@ -166,19 +180,19 @@ TEST(IavPrimulaVerificationTest, PropagatesBackendFailureAndRejectsWrongActor)
 {
     namespace ops = provider::handler::verify_handler_operations;
     IavPrimulaVerifyHandler handler{std::make_unique<Executor>(), "ML-DSA-44"};
-    // The current FFI is a placeholder and never dereferences this sentinel.
     key_management::ProviderKeyHandle key_handle{};
     key_handle.provider_id = kProviderId;
-    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, key_handle};
+    test_support::NativeKey native_key;
+    ASSERT_EQ(test_support::GenerateKemKey(IavAlgorithmMlKem768, native_key), IavStatusOk);
+    IavPrimulaKeyHandler key{native_key.release(), {}, key_handle};
     provider::handler::InitializationParams params{};
     params.provider_id = kProviderId;
     params.bound_key_handler = &key;
     ASSERT_TRUE(handler.InitializeContext(params).has_value());
     const std::uint8_t message[] = {1U, 2U};
     const std::vector<std::uint8_t> signature(handler.GetSignatureSize());
-    common::RequestParameters request{
-        score::cpp::span<const std::uint8_t>{message, 2U},
-        score::cpp::span<const std::uint8_t>{signature.data(), signature.size()}};
+    common::RequestParameters request{score::cpp::span<const std::uint8_t>{message, 2U},
+                                      score::cpp::span<const std::uint8_t>{signature.data(), signature.size()}};
     auto result = handler.Execute({common::actors::OP_ACTOR_VERIFY_HANDLER, ops::VERIFY_SS}, request);
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), common::DaemonErrorCode::kAlgorithmExecutionFailed);

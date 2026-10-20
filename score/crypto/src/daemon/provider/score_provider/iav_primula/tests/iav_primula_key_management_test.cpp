@@ -128,9 +128,8 @@ TEST(IavPrimulaKeyManagementTest, ImportedPublicKeyWithVerifyPermissionCanVerify
     auto imported = ImportPublicKey(factory, public_key, Permission::kVerify);
     ASSERT_TRUE(imported.has_value());
     const auto& handle = imported.value()->GetHandle();
-    EXPECT_TRUE(score::crypto::HasPermission(
-        key_management::GrantedPermissionsFor(handle, Permission::kVerify),
-        Permission::kVerify));
+    EXPECT_TRUE(score::crypto::HasPermission(key_management::GrantedPermissionsFor(handle, Permission::kVerify),
+                                             Permission::kVerify));
 }
 
 TEST(IavPrimulaKeyManagementTest, ImportedPublicKeyPreservesMultiplePublicPermissions)
@@ -145,8 +144,8 @@ TEST(IavPrimulaKeyManagementTest, ImportedPublicKeyPreservesMultiplePublicPermis
     const auto& handle = imported.value()->GetHandle();
     ASSERT_TRUE(handle.public_key_permissions.has_value());
     EXPECT_EQ(handle.public_key_permissions.value(), permissions);
-    EXPECT_TRUE(score::crypto::HasPermission(
-        key_management::GrantedPermissionsFor(handle, Permission::kVerify), Permission::kVerify));
+    EXPECT_TRUE(score::crypto::HasPermission(key_management::GrantedPermissionsFor(handle, Permission::kVerify),
+                                             Permission::kVerify));
     EXPECT_TRUE(imported.value()->Export().has_value());
 }
 
@@ -159,8 +158,8 @@ TEST(IavPrimulaKeyManagementTest, ImportedPublicKeyDeniesUnrequestedPublicPermis
     auto imported = ImportPublicKey(factory, public_key, Permission::kNone);
     ASSERT_TRUE(imported.has_value());
     const auto& handle = imported.value()->GetHandle();
-    EXPECT_FALSE(score::crypto::HasPermission(
-        key_management::GrantedPermissionsFor(handle, Permission::kVerify), Permission::kVerify));
+    EXPECT_FALSE(score::crypto::HasPermission(key_management::GrantedPermissionsFor(handle, Permission::kVerify),
+                                              Permission::kVerify));
     auto denied = imported.value()->Export();
     ASSERT_FALSE(denied.has_value());
     EXPECT_EQ(denied.error(), common::DaemonErrorCode::kKeyOperationNotPermitted);
@@ -176,10 +175,9 @@ TEST(IavPrimulaKeyManagementTest, RoutesKemKeyGenerationToKemBackendPath)
     key_management::KeyGenerationRequest request{};
     request.algorithm = "ML-KEM-768";
 
-    // The current Rust FFI is a deliberate placeholder and therefore returns
-    // an operation failure. The call still exercises the KEM-specific branch
-    // in the factory; once the FFI is implemented this test should be changed
-    // to assert the generated key metadata and public-key size.
+    // This test binary does not register a platform RNG provider, so key
+    // generation must fail closed. The call still exercises the KEM-specific
+    // branch in the factory.
     auto result = factory.GenerateKey(request);
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), common::DaemonErrorCode::kOperationFailed);
