@@ -579,8 +579,11 @@ uint8 FN_DSA_1024_Crypto_Sign_Open(uint8* const m,
             retVal = ERR_NOT_OK;
             bStopFunc = TRUE;
         }
-        sigbuflen--;
-        pmlen = smlen - FN_DSA_1024_NONCELEN - 3u - sigbuflen;
+        else
+        {
+            sigbuflen--;
+            pmlen = smlen - FN_DSA_1024_NONCELEN - 3u - sigbuflen;
+        }
 
         if ((bStopFunc == FALSE) && (sm[2u + FN_DSA_1024_NONCELEN + pmlen] != (0x20u + FN_DSA_1024_LOGN)))
         {
