@@ -100,7 +100,14 @@ key_management::IKeyHandler::Sptr MakeKey(key_management::KeyMaterialKind kind,
     key_management::ProviderKeyHandle handle{};
     handle.provider_id = kProviderId;
     handle.algorithm = std::string{algorithm};
-    handle.permissions = permissions;
+    if (kind == key_management::KeyMaterialKind::kPublicKey)
+    {
+        handle.public_key_permissions = permissions;
+    }
+    else
+    {
+        handle.permissions = permissions;
+    }
     handle.is_asymmetric = kind != key_management::KeyMaterialKind::kSharedSecret;
     handle.key_size = 32U;
     handle.material_kind = kind;
@@ -113,6 +120,17 @@ class KemTestFactory final : public key_management::IKeyFactory
     std::size_t get_size_calls{0U};
     std::size_t encapsulate_calls{0U};
     std::size_t decapsulate_calls{0U};
+
+    score::crypto::Expected<key_management::IKeyHandler::Sptr, Error> ImportKey(
+        const key_management::KeyImportRequest& request) override
+    {
+        if (!IsSupportedKemAlgorithm(request.algorithm) || request.key_data == nullptr ||
+            request.key_data_size == 0U || request.format != score::crypto::FormatType::kRaw)
+        {
+            return score::crypto::make_unexpected(Error::kInvalidArgument);
+        }
+        return MakeKey(key_management::KeyMaterialKind::kPublicKey, request.permissions, request.algorithm);
+    }
 
     score::crypto::Expected<std::size_t, Error> GetEncapsulationCiphertextSize(
         const key_management::KeyEncapsulationRequest& request) const override
@@ -221,6 +239,79 @@ TEST_F(KeyManagementExecutorKemTest, EncapsulationRegistersADeriveOnlySecretAndR
     EXPECT_EQ(secret.value().Handler().GetHandle().material_kind, key_management::KeyMaterialKind::kSharedSecret);
     EXPECT_EQ(secret.value().Handler().GetHandle().permissions, Permission::kDerive);
     EXPECT_FALSE(secret.value().Handler().GetHandle().is_asymmetric);
+}
+
+TEST_F(KeyManagementExecutorKemTest, ImportedPublicKeyPermissionsGovernEncapsulation)
+{
+    const auto ciphertext = KemTestFactory::kCiphertext;
+    for (const auto permissions : {Permission::kAgree, Permission::kNone, Permission::kExport})
+    {
+        common::RequestParameters import_request{
+            std::string_view{kAlgorithm},
+            score::cpp::span<const std::uint8_t>{ciphertext.data(), ciphertext.size()},
+            static_cast<std::uint8_t>(score::crypto::FormatType::kRaw),
+            static_cast<std::uint32_t>(permissions)};
+        auto imported = key_executor->Execute(
+            context, {common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_IMPORT}, import_request);
+        ASSERT_TRUE(imported.has_value());
+        const auto public_key_id = std::get<std::uint64_t>(imported.value()[0]);
+
+        auto handler = service->ResolveKeyForOperation(kClientId, public_key_id);
+        ASSERT_TRUE(handler.has_value());
+        EXPECT_EQ(handler.value()->GetHandle().permissions, Permission::kNone);
+        EXPECT_EQ(handler.value()->GetHandle().public_key_permissions.value(), permissions);
+
+        common::RequestParameters size_request{std::string_view{kAlgorithm}, public_key_id};
+        auto size = key_executor->Execute(
+            context, {common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_GET_ENCAPSULATION_SIZE}, size_request);
+        common::RequestParameters encapsulate_request{
+            std::string_view{kAlgorithm}, public_key_id, static_cast<std::uint64_t>(ciphertext.size())};
+        auto encapsulated = key_executor->Execute(
+            context, {common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_ENCAPSULATE}, encapsulate_request);
+
+        if (permissions == Permission::kAgree)
+        {
+            ASSERT_TRUE(size.has_value());
+            EXPECT_EQ(std::get<std::uint64_t>(size.value()[0]), ciphertext.size());
+            ASSERT_TRUE(encapsulated.has_value());
+            EXPECT_EQ(encapsulated.value().size(), 3U);
+        }
+        else
+        {
+            ASSERT_FALSE(size.has_value());
+            EXPECT_EQ(size.error(), Error::kKeyOperationNotPermitted);
+            ASSERT_FALSE(encapsulated.has_value());
+            EXPECT_EQ(encapsulated.error(), Error::kKeyOperationNotPermitted);
+        }
+    }
+    EXPECT_EQ(factory->encapsulate_calls, 1U);
+}
+
+TEST_F(KeyManagementExecutorKemTest, PrivateKeyCannotUsePublicAgreePermission)
+{
+    key_management::ProviderKeyHandle handle{};
+    handle.provider_id = kProviderId;
+    handle.algorithm = std::string{kAlgorithm};
+    handle.material_kind = key_management::KeyMaterialKind::kPrivateKey;
+    handle.is_asymmetric = true;
+    handle.permissions = Permission::kNone;
+    handle.public_key_permissions = Permission::kAgree;
+    auto key = std::make_shared<TestKeyHandler>(handle, std::make_shared<ReleaseState>());
+    auto registered = service->RegisterKeyMaterial(
+        {kClientId, context.context_node_id, kProviderId}, std::move(key));
+    ASSERT_TRUE(registered.has_value());
+    const auto ciphertext = KemTestFactory::kCiphertext;
+    common::RequestParameters request{
+        std::string_view{kAlgorithm},
+        static_cast<std::uint64_t>(registered.value().node_id),
+        score::cpp::span<const std::uint8_t>{ciphertext.data(), ciphertext.size()}};
+
+    auto result = key_executor->Execute(
+        context, {common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_DECAPSULATE}, request);
+
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), Error::kKeyOperationNotPermitted);
+    EXPECT_EQ(factory->decapsulate_calls, 0U);
 }
 
 // ---------------------------------------------------------------------------
