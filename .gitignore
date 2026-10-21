@@ -94,3 +94,8 @@ target/
 
 # LLVM coverage report output
 /coverage_*/
+
+# majo's ignores
+/external/
+/80-integrate-pqc/
+/99-extend-coverage/
