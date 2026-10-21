@@ -469,20 +469,22 @@ uint8 FN_DSA_1024_Crypto_Sign_Verify(const uint8* const sig,
 {
     uint8 retVal = ERR_OK;
 
-    if (0 !=
-        fn_dsa1024_DoVerify(&sig[1], &sig[1u + FN_DSA_1024_NONCELEN], siglen - 1u - FN_DSA_1024_NONCELEN, m, mlen, pk))
-    {
-        retVal = ERR_NOT_OK;
-    }
-
     if (siglen < (1u + FN_DSA_1024_NONCELEN))
     {
         retVal = ERR_NOT_OK;
     }
-
-    if (sig[0] != (0x30u + FN_DSA_1024_LOGN))
+    else
     {
-        retVal = ERR_NOT_OK;
+        if (0 != fn_dsa1024_DoVerify(
+                     &sig[1], &sig[1u + FN_DSA_1024_NONCELEN], siglen - 1u - FN_DSA_1024_NONCELEN, m, mlen, pk))
+        {
+            retVal = ERR_NOT_OK;
+        }
+
+        if (sig[0] != (0x30u + FN_DSA_1024_LOGN))
+        {
+            retVal = ERR_NOT_OK;
+        }
     }
 
     return retVal;
