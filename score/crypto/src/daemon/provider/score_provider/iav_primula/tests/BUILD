@@ -4,6 +4,11 @@ cc_test(
     name = "iav_primula_key_management_test",
     srcs = ["iav_primula_key_management_test.cpp"],
     deps = [
+        "//score/crypto/src/daemon/common",
+        "//score/crypto/src/daemon/data_manager",
+        "//score/crypto/src/daemon/key_management",
+        "//score/crypto/src/daemon/key_management:key_management_headers",
+        "//score/crypto/src/daemon/provider/executors:key_mgmt_executor",
         "//score/crypto/src/daemon/provider/score_provider/iav_primula:provider_iav_primula_library",
         "@googletest//:gtest_main",
     ],
