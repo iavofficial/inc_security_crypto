@@ -199,3 +199,4 @@ Component Detail Information
    safety_analysis/fmea
    safety_analysis/aou_requirements_template
    component_classification
+   ../src/README

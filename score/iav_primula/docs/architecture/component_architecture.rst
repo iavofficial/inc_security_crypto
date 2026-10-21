@@ -130,7 +130,7 @@ Interfaces
    :security: NO
    :safety: QM
    :status: valid
-   :language: c
+   :language: cpp
 
 Internal Components
 -------------------
