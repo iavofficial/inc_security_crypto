@@ -182,31 +182,33 @@ uint32 FN_DSA_ModqEncode(void *const out, uint32 max_out_len, const uint16 *cons
     {
       out_len = 0;
     }
-
-    /* polyspace +4 CERT-C:EXP36-C [Justified:]"Necessary conversion from void* to object* for functionality. 
-    Ensured proper alignment and validity." */
-    /* polyspace +2 MISRA2012:11.5 [Justified:]"Necessary conversion from void* to object* for functionality. 
-    Ensured proper alignment and validity." */
-    buf     = out;
-    acc     = 0;
-    acc_len = 0;
-
-    for (u = 0; u < n; u++)
+    else
     {
-      acc = (acc << 14) | x[u];
-      acc_len += 14;
+      /* polyspace +4 CERT-C:EXP36-C [Justified:]"Necessary conversion from void* to object* for functionality.
+      Ensured proper alignment and validity." */
+      /* polyspace +2 MISRA2012:11.5 [Justified:]"Necessary conversion from void* to object* for functionality.
+      Ensured proper alignment and validity." */
+      buf     = out;
+      acc     = 0;
+      acc_len = 0;
 
-      while (acc_len >= FN_DSA_BITS_PER_BYTE)
+      for (u = 0; u < n; u++)
       {
-        acc_len -= 8;
-        *buf = (uint8)(acc >> (uint32)acc_len);
-        buf++;
-      }
-    }
+        acc = (acc << 14) | x[u];
+        acc_len += 14;
 
-    if (acc_len > 0)
-    {
-      *buf = (uint8)(acc << (8u - (uint32)acc_len));
+        while (acc_len >= FN_DSA_BITS_PER_BYTE)
+        {
+          acc_len -= 8;
+          *buf = (uint8)(acc >> (uint32)acc_len);
+          buf++;
+        }
+      }
+
+      if (acc_len > 0)
+      {
+        *buf = (uint8)(acc << (8u - (uint32)acc_len));
+      }
     }
   }
   return out_len;
@@ -570,7 +572,10 @@ uint32 FN_DSA_CompEncode(void *const out, uint32 max_out_len, const sint16 *cons
           v         = 0;
           bStopFunc = TRUE;
         }
-        buf[v] = (uint8)(acc << (8u - acc_len));
+        else
+        {
+          buf[v] = (uint8)(acc << (8u - acc_len));
+        }
       }
       if (bStopFunc == FALSE)
       {
