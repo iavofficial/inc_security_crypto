@@ -269,3 +269,143 @@ cc_test(
         "@googletest//:gtest_main",
     ],
 )
+
+# Adopted pqa_c smoke tests (M04).
+
+cc_test(
+    name = "smoke_ml_dsa_44_test",
+    timeout = "moderate",
+    srcs = ["TEST_ML_DSA_44.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:ml_dsa_44",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:crc32",
+        "//score/iav_primula/tests/common:module_test_support",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "smoke_ml_dsa_44_nist_test",
+    timeout = "long",
+    srcs = ["TEST_ML_DSA_44_Nist.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:ml_dsa_44",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/ML_DSA:nist_fips204_testvectors",
+        "//score/iav_primula/tests/common:crc32",
+        "//score/iav_primula/tests/common:module_test_support",
+        "//score/iav_primula/tests/common:smoke_test_helpers",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "smoke_ml_dsa_65_test",
+    timeout = "moderate",
+    srcs = ["TEST_ML_DSA_65.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:ml_dsa_65",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:crc32",
+        "//score/iav_primula/tests/common:module_test_support",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "smoke_ml_dsa_65_nist_test",
+    timeout = "long",
+    srcs = ["TEST_ML_DSA_65_Nist.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:ml_dsa_65",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/ML_DSA:nist_fips204_testvectors",
+        "//score/iav_primula/tests/common:crc32",
+        "//score/iav_primula/tests/common:module_test_support",
+        "//score/iav_primula/tests/common:smoke_test_helpers",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "smoke_ml_dsa_87_test",
+    timeout = "moderate",
+    srcs = ["TEST_ML_DSA_87.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:ml_dsa_87",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:crc32",
+        "//score/iav_primula/tests/common:module_test_support",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "smoke_ml_dsa_87_nist_test",
+    timeout = "long",
+    srcs = ["TEST_ML_DSA_87_Nist.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:ml_dsa_87",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/ML_DSA:nist_fips204_testvectors",
+        "//score/iav_primula/tests/common:crc32",
+        "//score/iav_primula/tests/common:module_test_support",
+        "//score/iav_primula/tests/common:smoke_test_helpers",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "nist_fips204_testvectors",
+    testonly = True,
+    srcs = [
+        "ML_DSA_keyGen_FIPS204_TestData.cpp",
+        "ML_DSA_sigGen_FIPS204_TestData.cpp",
+        "ML_DSA_sigGen_FIPS204_tr1_TestData.cpp",
+        "ML_DSA_sigVer_FIPS204_TestData.cpp",
+    ],
+    hdrs = [
+        "ML_DSA_keyGen_FIPS204_TestData.h",
+        "ML_DSA_sigGen_FIPS204_TestData.h",
+        "ML_DSA_sigGen_FIPS204_tr1_TestData.h",
+        "ML_DSA_sigVer_FIPS204_TestData.h",
+    ],
+    includes = ["."],
+)

@@ -193,3 +193,43 @@ cc_test(
         "@googletest//:gtest_main",
     ],
 )
+
+# Adopted pqa_c smoke tests (M04).
+
+cc_test(
+    name = "smoke_fn_dsa_1024_test",
+    timeout = "moderate",
+    srcs = ["TEST_FN_DSA_1024.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:fn_dsa_1024",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:crc32",
+        "//score/iav_primula/tests/common:module_test_support",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "smoke_fn_dsa_512_test",
+    timeout = "moderate",
+    srcs = ["TEST_FN_DSA_512.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:fn_dsa_512",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:crc32",
+        "//score/iav_primula/tests/common:module_test_support",
+        "@googletest//:gtest_main",
+    ],
+)

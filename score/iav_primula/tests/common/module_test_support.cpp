@@ -16,6 +16,7 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "module_test_support.h"
 #include "score/iav_primula/include/iav_primula_ffi.h"
 
 namespace
@@ -26,11 +27,24 @@ struct ModuleTestRngState
     std::uint32_t next = 1U;
 };
 
+const std::uint8_t* rng_override_bytes = nullptr;
+std::size_t rng_override_len = 0U;
+std::size_t rng_override_offset = 0U;
+
 int FillReferenceRngBytes(std::uint8_t* output, std::size_t output_len, void* user_data)
 {
     if (user_data == nullptr || (output == nullptr && output_len != 0U))
     {
         return 1;
+    }
+
+    if (rng_override_bytes != nullptr)
+    {
+        for (std::size_t index = 0U; index < output_len; ++index)
+        {
+            output[index] = rng_override_offset < rng_override_len ? rng_override_bytes[rng_override_offset++] : 0U;
+        }
+        return 0;
     }
 
     auto* const state = static_cast<ModuleTestRngState*>(user_data);
@@ -59,3 +73,17 @@ class ModuleTestRngEnvironment final : public ::testing::Environment
     ::testing::AddGlobalTestEnvironment(new ModuleTestRngEnvironment());
 
 }  // namespace
+
+ModuleTestRngOverride::ModuleTestRngOverride(const uint8_t* seed, size_t seed_len)
+{
+    rng_override_bytes = seed;
+    rng_override_len = seed_len;
+    rng_override_offset = 0U;
+}
+
+ModuleTestRngOverride::~ModuleTestRngOverride()
+{
+    rng_override_bytes = nullptr;
+    rng_override_len = 0U;
+    rng_override_offset = 0U;
+}

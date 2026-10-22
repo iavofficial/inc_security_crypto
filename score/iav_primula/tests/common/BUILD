@@ -113,6 +113,7 @@ cc_library(
         "fake_fips202.h",
         "fff_IAV.h",
         "fff_helper.hpp",
+        "module_test_support.h",
     ],
     includes = ["."],
     visibility = ["//score/iav_primula/tests:__subpackages__"],
@@ -124,4 +125,13 @@ cc_library(
         "@googletest//:gtest",
     ],
     alwayslink = True,
+)
+
+cc_library(
+    name = "smoke_test_helpers",
+    testonly = True,
+    srcs = ["TEST_Helpers.cpp"],
+    hdrs = ["TEST_Helpers.h"],
+    includes = ["."],
+    visibility = ["//score/iav_primula/tests:__subpackages__"],
 )

@@ -11,6 +11,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
 package(default_visibility = ["//score/iav_primula/tests:__pkg__"])
 
 # Adopted pqa_c module tests (M03).
@@ -118,6 +120,65 @@ cc_test(
         "//score/iav_primula:primula_platform_types",
         "//score/iav_primula:vendor_headers",
         "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:module_test_support",
+        "@googletest//:gtest_main",
+    ],
+)
+
+# Adopted pqa_c smoke tests (M04).
+
+cc_test(
+    name = "smoke_hqc128_test",
+    timeout = "moderate",
+    srcs = ["TEST_Hqc128.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:hqc_128",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:crc32",
+        "//score/iav_primula/tests/common:module_test_support",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "smoke_hqc192_test",
+    timeout = "moderate",
+    srcs = ["TEST_Hqc192.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:hqc_192",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:crc32",
+        "//score/iav_primula/tests/common:module_test_support",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "smoke_hqc256_test",
+    timeout = "moderate",
+    srcs = ["TEST_Hqc256.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:hqc_256",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:crc32",
         "//score/iav_primula/tests/common:module_test_support",
         "@googletest//:gtest_main",
     ],
