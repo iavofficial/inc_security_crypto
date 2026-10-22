@@ -119,3 +119,77 @@ cc_test(
         "@googletest//:gtest_main",
     ],
 )
+
+# Adopted pqa_c module tests (M03).
+
+cc_test(
+    name = "module_fn_dsa_1024_codec_test",
+    timeout = "moderate",
+    srcs = ["M_TEST_FN_DSA_1024_codec.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:fn_dsa_1024",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:module_test_support",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "module_fn_dsa_1024_pqclean_test",
+    timeout = "moderate",
+    srcs = ["M_TEST_FN_DSA_1024_pqclean.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:fn_dsa_1024",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:module_test_support",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "module_fn_dsa_512_codec_test",
+    timeout = "moderate",
+    srcs = ["M_TEST_FN_DSA_512_codec.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:fn_dsa_512",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:module_test_support",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "module_fn_dsa_512_pqclean_test",
+    timeout = "moderate",
+    srcs = ["M_TEST_FN_DSA_512_pqclean.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:fn_dsa_512",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:module_test_support",
+        "@googletest//:gtest_main",
+    ],
+)

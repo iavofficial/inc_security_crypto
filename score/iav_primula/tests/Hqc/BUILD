@@ -12,3 +12,113 @@
 # *******************************************************************************
 
 package(default_visibility = ["//score/iav_primula/tests:__pkg__"])
+
+# Adopted pqa_c module tests (M03).
+
+cc_test(
+    name = "module_hqc128_parsing_test",
+    timeout = "moderate",
+    srcs = ["M_TEST_Hqc128_parsing.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:hqc_128",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:module_test_support",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "module_hqc128_vector_test",
+    timeout = "moderate",
+    srcs = ["M_TEST_Hqc128_vector.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:hqc_128",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:module_test_support",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "module_hqc192_parsing_test",
+    timeout = "moderate",
+    srcs = ["M_TEST_Hqc192_parsing.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:hqc_192",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:module_test_support",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "module_hqc192_vector_test",
+    timeout = "moderate",
+    srcs = ["M_TEST_Hqc192_vector.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:hqc_192",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:module_test_support",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "module_hqc256_parsing_test",
+    timeout = "moderate",
+    srcs = ["M_TEST_Hqc256_parsing.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:hqc_256",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:module_test_support",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "module_hqc256_vector_test",
+    timeout = "moderate",
+    srcs = ["M_TEST_Hqc256_vector.cpp"],
+    copts = [
+        "-include",
+        "Platform_Types.h",
+    ],
+    deps = [
+        "//score/iav_primula:hqc_256",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "//score/iav_primula/tests/common:module_test_support",
+        "@googletest//:gtest_main",
+    ],
+)

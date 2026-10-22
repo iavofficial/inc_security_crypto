@@ -95,3 +95,33 @@ cc_test(
         "@googletest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "crc32",
+    testonly = True,
+    srcs = ["crc32.c"],
+    hdrs = ["crc32.h"],
+    includes = ["."],
+    visibility = ["//score/iav_primula/tests:__subpackages__"],
+)
+
+cc_library(
+    name = "module_test_support",
+    testonly = True,
+    srcs = ["module_test_support.cpp"],
+    hdrs = [
+        "fake_fips202.h",
+        "fff_IAV.h",
+        "fff_helper.hpp",
+    ],
+    includes = ["."],
+    visibility = ["//score/iav_primula/tests:__subpackages__"],
+    deps = [
+        "//score/iav_primula:iav_primula_ffi_headers",
+        "//score/iav_primula:primula_platform_types",
+        "//score/iav_primula:vendor_headers",
+        "//score/iav_primula/src/Libs:commonlib_adapter",
+        "@googletest//:gtest",
+    ],
+    alwayslink = True,
+)
