@@ -14,7 +14,7 @@
 /// @file ml_dsa_context_api_test.cpp
 /// @brief Context-aware detached and attached signing tests for ML-DSA.
 
-#include "coverage_test_support.h"
+#include "score/iav_primula/tests/common/coverage_test_support.h"
 
 #include <gtest/gtest.h>
 

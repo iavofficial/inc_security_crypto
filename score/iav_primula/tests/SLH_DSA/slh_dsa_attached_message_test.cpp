@@ -14,7 +14,7 @@
 /// @file slh_dsa_attached_message_test.cpp
 /// @brief Valid attached-message open/sign tests for SLH-DSA variants.
 
-#include "coverage_test_support.h"
+#include "score/iav_primula/tests/common/coverage_test_support.h"
 
 #include <gtest/gtest.h>
 

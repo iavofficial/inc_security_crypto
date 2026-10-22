@@ -14,7 +14,7 @@
 /// @file fn_dsa_attached_message_test.cpp
 /// @brief Valid attached-message sign/open tests for the FN-DSA public APIs.
 
-#include "coverage_test_support.h"
+#include "score/iav_primula/tests/common/coverage_test_support.h"
 
 #include <gtest/gtest.h>
 
