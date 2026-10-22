@@ -20,7 +20,7 @@ package(default_visibility = ["//score/iav_primula/tests:__pkg__"])
 cc_test(
     name = "module_hqc128_parsing_test",
     timeout = "moderate",
-    srcs = ["M_TEST_Hqc128_parsing.cpp"],
+    srcs = ["HQC_128_parsing_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -38,7 +38,7 @@ cc_test(
 cc_test(
     name = "module_hqc128_vector_test",
     timeout = "moderate",
-    srcs = ["M_TEST_Hqc128_vector.cpp"],
+    srcs = ["HQC_128_vector_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -56,7 +56,7 @@ cc_test(
 cc_test(
     name = "module_hqc192_parsing_test",
     timeout = "moderate",
-    srcs = ["M_TEST_Hqc192_parsing.cpp"],
+    srcs = ["HQC_192_parsing_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -74,7 +74,7 @@ cc_test(
 cc_test(
     name = "module_hqc192_vector_test",
     timeout = "moderate",
-    srcs = ["M_TEST_Hqc192_vector.cpp"],
+    srcs = ["HQC_192_vector_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -92,7 +92,7 @@ cc_test(
 cc_test(
     name = "module_hqc256_parsing_test",
     timeout = "moderate",
-    srcs = ["M_TEST_Hqc256_parsing.cpp"],
+    srcs = ["HQC_256_parsing_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -110,7 +110,7 @@ cc_test(
 cc_test(
     name = "module_hqc256_vector_test",
     timeout = "moderate",
-    srcs = ["M_TEST_Hqc256_vector.cpp"],
+    srcs = ["HQC_256_vector_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -130,7 +130,7 @@ cc_test(
 cc_test(
     name = "smoke_hqc128_test",
     timeout = "moderate",
-    srcs = ["TEST_Hqc128.cpp"],
+    srcs = ["HQC_128_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -149,7 +149,7 @@ cc_test(
 cc_test(
     name = "smoke_hqc192_test",
     timeout = "moderate",
-    srcs = ["TEST_Hqc192.cpp"],
+    srcs = ["HQC_192_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -168,7 +168,7 @@ cc_test(
 cc_test(
     name = "smoke_hqc256_test",
     timeout = "moderate",
-    srcs = ["TEST_Hqc256.cpp"],
+    srcs = ["HQC_256_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",

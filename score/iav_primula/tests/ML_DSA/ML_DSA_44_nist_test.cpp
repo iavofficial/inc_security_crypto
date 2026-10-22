@@ -14,12 +14,12 @@
 /**********************************************************************************************************************/
 /* INCLUDES                                                                                                           */
 /**********************************************************************************************************************/
-#include "ML_DSA_keyGen_FIPS204_TestData.h"
-#include "ML_DSA_sigGen_FIPS204_TestData.h"
-#include "ML_DSA_sigGen_FIPS204_tr1_TestData.h"
-#include "ML_DSA_sigVer_FIPS204_TestData.h"
-#include "TEST_Helpers.h"
+#include "ML_DSA_keyGenFIPS204_testData.h"
+#include "ML_DSA_sigGenFIPS204Tr1_testData.h"
+#include "ML_DSA_sigGenFIPS204_testData.h"
+#include "ML_DSA_sigVerFIPS204_testData.h"
 #include "module_test_support.h"
+#include "test_helpers.h"
 #include <gtest/gtest.h>
 
 extern "C" {

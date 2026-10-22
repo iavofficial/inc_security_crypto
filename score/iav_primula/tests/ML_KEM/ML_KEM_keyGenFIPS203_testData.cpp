@@ -1,5 +1,5 @@
 // Generated from JSON file: ML-KEM-keyGen-FIPS203\internalProjection.json
-#include "ML_KEM_keyGen_FIPS203_TestData.h"
+#include "ML_KEM_keyGenFIPS203_testData.h"
 
 std::vector<ML_KEM_keyGen_TestGroup> ML_KEM_keyGen_testGroups = {
     {

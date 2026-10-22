@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-/// @file ml_dsa_context_api_test.cpp
+/// @file ML_DSA_contextApi_test.cpp
 /// @brief Context-aware detached and attached signing tests for ML-DSA.
 
 #include "score/iav_primula/tests/common/coverage_test_support.h"

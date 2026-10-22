@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-/// @file ml_dsa_malformed_signature_test.cpp
+/// @file ML_DSA_malformedSignature_test.cpp
 /// @brief Tests public verification rejection of malformed ML-DSA signatures.
 
 #include "score/iav_primula/include/iav_primula_ffi.h"

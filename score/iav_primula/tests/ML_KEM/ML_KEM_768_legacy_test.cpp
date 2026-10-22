@@ -14,16 +14,16 @@
 /**********************************************************************************************************************/
 /* INCLUDES                                                                                                           */
 /**********************************************************************************************************************/
-#include "ML_KEM_encapDecap_FIPS203_TestData.h"
-#include "ML_KEM_encapDecap_FIPS203_tr1_TestData.h"
-#include "ML_KEM_keyGen_FIPS203_TestData.h"
-#include "TEST_Helpers.h"
+#include "ML_KEM_encapDecapFIPS203Tr1_testData.h"
+#include "ML_KEM_encapDecapFIPS203_testData.h"
+#include "ML_KEM_keyGenFIPS203_testData.h"
 #include "module_test_support.h"
+#include "test_helpers.h"
 #include <gtest/gtest.h>
 
 extern "C" {
 #include "FsmSw_CommonLib.h"
-#include "ML_KEM_512_api.h"
+#include "ML_KEM_768_api.h"
 #include "ML_KEM_params.h"
 #include "crc32.h"
 }
@@ -31,13 +31,13 @@ extern "C" {
 /**********************************************************************************************************************/
 /* DEFINES                                                                                                            */
 /**********************************************************************************************************************/
-#define CRYPTO_PUBLICKEYBYTES ML_KEM_512_PUBLICKEYBYTES
-#define CRYPTO_SECRETKEYBYTES ML_KEM_512_SECRETKEYBYTES
-#define CRYPTO_INDCPA_BYTES ML_KEM_512_INDCPA_BYTES
-#define CRYPTO_CIPHERTEXTBYTES ML_KEM_512_CIPHERTEXTBYTES
-#define CRYPTO_INDCPA_MSGBYTES ML_KEM_512_INDCPA_MSGBYTES
+#define CRYPTO_PUBLICKEYBYTES ML_KEM_768_PUBLICKEYBYTES
+#define CRYPTO_SECRETKEYBYTES ML_KEM_768_SECRETKEYBYTES
+#define CRYPTO_INDCPA_BYTES ML_KEM_768_INDCPA_BYTES
+#define CRYPTO_CIPHERTEXTBYTES ML_KEM_768_CIPHERTEXTBYTES
+#define CRYPTO_INDCPA_MSGBYTES ML_KEM_768_INDCPA_MSGBYTES
 #define CRYPTO_ML_KEM_SSBYTES ML_KEM_SSBYTES
-#define CRYPTO_ML_KEM_OFFSET_PK CRYPTO_INDCPA_BYTES
+#define CRYPTO_ML_KEM_OFFSET_PK (ML_KEM_768_PUBLICKEYBYTES - CRYPTO_ML_KEM_SSBYTES)
 /**********************************************************************************************************************/
 /* GLOBAL VARIABLES                                                                                                   */
 /**********************************************************************************************************************/
@@ -78,14 +78,14 @@ static uint32 crc32_outMsg_temp;
 /* HELP FUNCTIONS                                                                                                     */
 /**********************************************************************************************************************/
 extern "C" {
-void ML_KEM_512_Indcpa_Dec(uint8 m[ML_KEM_512_INDCPA_MSGBYTES],
-                           const uint8 c[ML_KEM_512_INDCPA_BYTES],
+void ML_KEM_768_Indcpa_Dec(uint8 m[ML_KEM_768_INDCPA_MSGBYTES],
+                           const uint8 c[ML_KEM_768_INDCPA_BYTES],
                            const uint8 sk[CRYPTO_SECRETKEYBYTES]);
-void ML_KEM_512_Indcpa_Enc(uint8 c[ML_KEM_512_INDCPA_BYTES],
-                           const uint8 m[ML_KEM_512_INDCPA_MSGBYTES],
+void ML_KEM_768_Indcpa_Enc(uint8 c[ML_KEM_768_INDCPA_BYTES],
+                           const uint8 m[ML_KEM_768_INDCPA_MSGBYTES],
                            const uint8 pk[CRYPTO_PUBLICKEYBYTES],
                            const uint8 coins[ML_KEM_SYMBYTES]);
-void ML_KEM_512_Indcpa_KeyPair(uint8 pk[CRYPTO_PUBLICKEYBYTES], uint8 sk[CRYPTO_SECRETKEYBYTES]);
+void ML_KEM_768_Indcpa_KeyPair(uint8 pk[CRYPTO_PUBLICKEYBYTES], uint8 sk[CRYPTO_SECRETKEYBYTES]);
 void FsmSw_Fips202_Sha3_512(uint8* const output, const uint8* const input, uint32 inlen);
 void FsmSw_Fips202_Sha3_256(uint8* const output, const uint8* const input, uint32 inlen);
 }
@@ -101,22 +101,21 @@ void FsmSw_Fips202_Sha3_256(uint8* const output, const uint8* const input, uint3
  */
 
 /***********************************************************************************************************************
- * Name:        ML_KEM_512_Legacy_TEST.CreatePkAndSkAlice
+ * Name:        ML_KEM_768_Legacy_TEST.CreatePkAndSkAlice
  *
  * Description: Test should check the value of public and private key of alice
  *
- **********************************************************************************************************************/
-TEST(ML_KEM_512_Legacy_TEST, CreatePkAndSkAlice)
+ ***********************************************************************************************************************/
+TEST(ML_KEM_768_Legacy_TEST, CreatePkAndSkAlice)
 {
     /*
      * Arguments:   - uint8 *pk_alice: pointer to output public key of alice  (of length CRYPTO_PUBLICKEYBYTES bytes)
      *              - uint8 *sk_alice: pointer to output private key of alice (of length CRYPTO_SECRETKEYBYTES bytes)
      */
-
     for (auto& testGroup : ML_KEM_keyGen_testGroups)
     {
-        // check for ML-KEM-512 test group and only testgroups with function = decapsulation
-        if (("ML-KEM-512" == testGroup.parameterSet))
+        // check for ML-KEM-768 test group and only testgroups with function = decapsulation
+        if (("ML-KEM-768" == testGroup.parameterSet))
         {
             for (auto& curTest : testGroup.tests)
             {
@@ -146,14 +145,14 @@ TEST(ML_KEM_512_Legacy_TEST, CreatePkAndSkAlice)
                 ASSERT_EQ(ekLen, CRYPTO_PUBLICKEYBYTES);
                 crc32_pk_alice_temp = crc32(ekNist, CRYPTO_PUBLICKEYBYTES);
 
-                // ML_KEM_512_Crypto_Kem_KeyPair(pk_alice, sk_alice); //does not work directly, because 2x randomness
+                // ML_KEM_768_Crypto_Kem_KeyPair(pk_alice, sk_alice); //does not work directly, because 2x randomness
                 // (d,z) neededd
                 //  So split it into internal KeyGen with randomness d set to Nist test d
 
                 // provide deterministic seed via the test RNG override
                 {
                     ModuleTestRngOverride rng(randD, ML_KEM_SYMBYTES);
-                    ML_KEM_512_Indcpa_KeyPair(pk_alice, sk_alice);
+                    ML_KEM_768_Indcpa_KeyPair(pk_alice, sk_alice);
                 }
                 crc32_pk_alice = crc32(pk_alice, CRYPTO_PUBLICKEYBYTES);
                 crc32_sk_alice = crc32(sk_alice, CRYPTO_SECRETKEYBYTES);
@@ -169,7 +168,7 @@ TEST(ML_KEM_512_Legacy_TEST, CreatePkAndSkAlice)
                 }
 
                 FsmSw_Fips202_Sha3_256(
-                    &sk_alice[CRYPTO_SECRETKEYBYTES - (2u * ML_KEM_SYMBYTES)], pk_alice, ML_KEM_512_PUBLICKEYBYTES);
+                    &sk_alice[CRYPTO_SECRETKEYBYTES - (2u * ML_KEM_SYMBYTES)], pk_alice, CRYPTO_PUBLICKEYBYTES);
 
                 // provide deterministic seed via the test RNG override
                 {
@@ -197,12 +196,12 @@ TEST(ML_KEM_512_Legacy_TEST, CreatePkAndSkAlice)
 }
 
 /***********************************************************************************************************************
- * Name:        ML_KEM_512_Legacy_TEST.GenCipherTxtAndSharedSecretAlice
+ * Name:        ML_KEM_768_Legacy_TEST.GenCipherTxtAndSharedSecretAlice
  *
  * Description: Test should check the value of the cipher text and the shared secret of alice.
  *
- **********************************************************************************************************************/
-TEST(ML_KEM_512_Legacy_TEST, GenCipherTxtAndSharedSecretAlice)
+ ***********************************************************************************************************************/
+TEST(ML_KEM_768_Legacy_TEST, GenCipherTxtAndSharedSecretAlice)
 {
     /*
      * Arguments:   -       uint8 *ct:       pointer to output cipher text (of length CRYPTO_CIPHERTEXTBYTES bytes)
@@ -212,11 +211,10 @@ TEST(ML_KEM_512_Legacy_TEST, GenCipherTxtAndSharedSecretAlice)
     uint8 buf[2u * ML_KEM_SSBYTES] = {0};
     /* Will contain key, coins */
     uint8 kr[2u * ML_KEM_SSBYTES] = {0};
-
     for (auto& testGroup : ML_KEM_encapDecap_testGroups)
     {
-        // check for ML-KEM-512 test group and only testgroups with function = decapsulation
-        if (("ML-KEM-512" == testGroup.parameterSet) && ("encapsulation" == testGroup.function))
+        // check for ML-KEM-768 test group and only testgroups with function = decapsulation
+        if (("ML-KEM-768" == testGroup.parameterSet) && ("encapsulation" == testGroup.function))
         {
             for (auto& curTest : testGroup.tests)
             {
@@ -250,15 +248,15 @@ TEST(ML_KEM_512_Legacy_TEST, GenCipherTxtAndSharedSecretAlice)
                 {
                     ModuleTestRngOverride rng(m, ML_KEM_SYMBYTES);
                     // reproduce internals because curTest.k is not the shared secret, but it matches kr
-                    // instead of: ML_KEM_512_Crypto_Kem_Enc(ct, ss_bob, ekBob);
+                    // instead of: ML_KEM_768_Crypto_Kem_Enc(ct, ss_bob, ekBob);
 
                     (void)FsmSw_CommonLib_RandomBytes(buf, ML_KEM_SYMBYTES);
                     /* Multitarget countermeasure for coins + contributory KEM */
-                    FsmSw_Fips202_Sha3_256(&buf[ML_KEM_SYMBYTES], ekBob, ML_KEM_512_PUBLICKEYBYTES);
+                    FsmSw_Fips202_Sha3_256(&buf[ML_KEM_SYMBYTES], ekBob, ML_KEM_768_PUBLICKEYBYTES);
                     FsmSw_Fips202_Sha3_512(kr, buf, 2u * ML_KEM_SYMBYTES);
 
                     /* coins are in kr[ML_KEM_SYMBYTES] */
-                    ML_KEM_512_Indcpa_Enc(ct, buf, ekBob, &kr[ML_KEM_SYMBYTES]);
+                    ML_KEM_768_Indcpa_Enc(ct, buf, ekBob, &kr[ML_KEM_SYMBYTES]);
                 }
                 crc32_ciphertext = crc32(ct, CRYPTO_CIPHERTEXTBYTES);
                 crc32_sharedsecret_bob = crc32(kr, CRYPTO_ML_KEM_SSBYTES);
@@ -280,12 +278,12 @@ TEST(ML_KEM_512_Legacy_TEST, GenCipherTxtAndSharedSecretAlice)
     }
 }
 /***********************************************************************************************************************
- * Name:        ML_KEM_512_Legacy_TEST.GenCipherTxtAndSharedSecretAlice1Tr
+ * Name:        ML_KEM_768_Legacy_TEST.GenCipherTxtAndSharedSecretAlice1Tr
  *
  * Description: Test should check the value of the cipher text and the shared secret of alice.
  *
- **********************************************************************************************************************/
-TEST(ML_KEM_512_Legacy_TEST, GenCipherTxtAndSharedSecretAlice1Tr)
+ ***********************************************************************************************************************/
+TEST(ML_KEM_768_Legacy_TEST, GenCipherTxtAndSharedSecretAlice1Tr)
 {
     /*
      * Arguments:   -       uint8 *ct:       pointer to output cipher text (of length CRYPTO_CIPHERTEXTBYTES bytes)
@@ -295,11 +293,10 @@ TEST(ML_KEM_512_Legacy_TEST, GenCipherTxtAndSharedSecretAlice1Tr)
     uint8 buf[2u * ML_KEM_SSBYTES] = {0};
     /* Will contain key, coins */
     uint8 kr[2u * ML_KEM_SSBYTES] = {0};
-
     for (auto& testGroup : ML_KEM_encapDecap_tr1_testGroups)
     {
-        // check for ML-KEM-512 test group and only testgroups with function = decapsulation
-        if (("ML-KEM-512" == testGroup.parameterSet) && ("encapsulation" == testGroup.function))
+        // check for ML-KEM-768 test group and only testgroups with function = decapsulation
+        if (("ML-KEM-768" == testGroup.parameterSet) && ("encapsulation" == testGroup.function))
         {
             for (auto& curTest : testGroup.tests)
             {
@@ -333,15 +330,15 @@ TEST(ML_KEM_512_Legacy_TEST, GenCipherTxtAndSharedSecretAlice1Tr)
                 {
                     ModuleTestRngOverride rng(m, ML_KEM_SYMBYTES);
                     // reproduce internals because curTest.k is not the shared secret, but it matches kr
-                    // instead of: ML_KEM_512_Crypto_Kem_Enc(ct, ss_bob, ekBob);
+                    // instead of: ML_KEM_768_Crypto_Kem_Enc(ct, ss_bob, ekBob);
 
                     (void)FsmSw_CommonLib_RandomBytes(buf, ML_KEM_SYMBYTES);
                     /* Multitarget countermeasure for coins + contributory KEM */
-                    FsmSw_Fips202_Sha3_256(&buf[ML_KEM_SYMBYTES], ekBob, ML_KEM_512_PUBLICKEYBYTES);
+                    FsmSw_Fips202_Sha3_256(&buf[ML_KEM_SYMBYTES], ekBob, ML_KEM_768_PUBLICKEYBYTES);
                     FsmSw_Fips202_Sha3_512(kr, buf, 2u * ML_KEM_SYMBYTES);
 
                     /* coins are in kr[ML_KEM_SYMBYTES] */
-                    ML_KEM_512_Indcpa_Enc(ct, buf, ekBob, &kr[ML_KEM_SYMBYTES]);
+                    ML_KEM_768_Indcpa_Enc(ct, buf, ekBob, &kr[ML_KEM_SYMBYTES]);
                 }
                 crc32_ciphertext = crc32(ct, CRYPTO_CIPHERTEXTBYTES);
                 crc32_sharedsecret_bob = crc32(kr, CRYPTO_ML_KEM_SSBYTES);
@@ -364,12 +361,12 @@ TEST(ML_KEM_512_Legacy_TEST, GenCipherTxtAndSharedSecretAlice1Tr)
 }
 
 /***********************************************************************************************************************
- * Name:        ML_KEM_512_Legacy_TEST.GenSharedSecretForCipherTxtAndPrivateKeyBob
+ * Name:        ML_KEM_768_Legacy_TEST.GenSharedSecretForCipherTxtAndPrivateKeyBob
  *
  * Description: Test should check the decription of the shared secret from bob and the default shared secret.
  *
- **********************************************************************************************************************/
-TEST(ML_KEM_512_Legacy_TEST, GenSharedSecretForCipherTxtAndPrivateKeyBob)
+ ***********************************************************************************************************************/
+TEST(ML_KEM_768_Legacy_TEST, GenSharedSecretForCipherTxtAndPrivateKeyBob)
 {
     /*
      * Arguments:   -       uint8 *ss_alice: pointer to output shared secret (of length CRYPTO_ML_KEM_SSBYTES bytes)
@@ -385,8 +382,8 @@ TEST(ML_KEM_512_Legacy_TEST, GenSharedSecretForCipherTxtAndPrivateKeyBob)
 
     for (auto& testGroup : ML_KEM_encapDecap_testGroups)
     {
-        // check for ML-KEM-512 test group and only testgroups with function = decapsulation
-        if (("ML-KEM-512" == testGroup.parameterSet) && ("decapsulation" == testGroup.function))
+        // check for ML-KEM-768 test group and only testgroups with function = decapsulation
+        if (("ML-KEM-768" == testGroup.parameterSet) && ("decapsulation" == testGroup.function))
         {
             for (auto& curTest : testGroup.tests)
             {
@@ -415,9 +412,9 @@ TEST(ML_KEM_512_Legacy_TEST, GenSharedSecretForCipherTxtAndPrivateKeyBob)
                 crc32_sharedsecret_bob = crc32(kBob, CRYPTO_ML_KEM_SSBYTES);
 
                 // calculate shared secret ss_alice from the given cyphertext and the decapsulation key from alice
-                // ML_KEM_512_Crypto_Kem_Dec(ss_alice, cypherText, dkAlice);
+                // ML_KEM_768_Crypto_Kem_Dec(ss_alice, cypherText, dkAlice);
                 // reproduce internals because curTest.k is not the shared secret, but it matches kr
-                ML_KEM_512_Indcpa_Dec(buf, cypherText, dkAlice);
+                ML_KEM_768_Indcpa_Dec(buf, cypherText, dkAlice);
 
                 /* Multitarget countermeasure for coins + contributory KEM */
                 for (i = 0; i < CRYPTO_ML_KEM_SSBYTES; i++)
@@ -446,12 +443,12 @@ TEST(ML_KEM_512_Legacy_TEST, GenSharedSecretForCipherTxtAndPrivateKeyBob)
 }
 
 /***********************************************************************************************************************
- * Name:        ML_KEM_512_Legacy_TEST.GenSharedSecretForCipherTxtAndPrivateKeyBob1Tr
+ * Name:        ML_KEM_768_Legacy_TEST.GenSharedSecretForCipherTxtAndPrivateKeyBob1Tr
  *
  * Description: Test should check the decription of the shared secret from bob and the default shared secret.
  *
- **********************************************************************************************************************/
-TEST(ML_KEM_512_Legacy_TEST, GenSharedSecretForCipherTxtAndPrivateKeyBob1Tr)
+ ***********************************************************************************************************************/
+TEST(ML_KEM_768_Legacy_TEST, GenSharedSecretForCipherTxtAndPrivateKeyBob1Tr)
 {
     /*
      * Arguments:   -       uint8 *ss_alice: pointer to output shared secret (of length CRYPTO_ML_KEM_SSBYTES bytes)
@@ -467,8 +464,8 @@ TEST(ML_KEM_512_Legacy_TEST, GenSharedSecretForCipherTxtAndPrivateKeyBob1Tr)
 
     for (auto& testGroup : ML_KEM_encapDecap_tr1_testGroups)
     {
-        // check for ML-KEM-512 test group and only testgroups with function = decapsulation
-        if (("ML-KEM-512" == testGroup.parameterSet) && ("decapsulation" == testGroup.function))
+        // check for ML-KEM-768 test group and only testgroups with function = decapsulation
+        if (("ML-KEM-768" == testGroup.parameterSet) && ("decapsulation" == testGroup.function))
         {
             for (auto& curTest : testGroup.tests)
             {
@@ -497,9 +494,9 @@ TEST(ML_KEM_512_Legacy_TEST, GenSharedSecretForCipherTxtAndPrivateKeyBob1Tr)
                 crc32_sharedsecret_bob = crc32(kBob, CRYPTO_ML_KEM_SSBYTES);
 
                 // calculate shared secret ss_alice from the given cyphertext and the decapsulation key from alice
-                // ML_KEM_512_Crypto_Kem_Dec(ss_alice, cypherText, dkAlice);
+                // ML_KEM_768_Crypto_Kem_Dec(ss_alice, cypherText, dkAlice);
                 // reproduce internals because curTest.k is not the shared secret, but it matches kr
-                ML_KEM_512_Indcpa_Dec(buf, cypherText, dkAlice);
+                ML_KEM_768_Indcpa_Dec(buf, cypherText, dkAlice);
 
                 /* Multitarget countermeasure for coins + contributory KEM */
                 for (i = 0; i < CRYPTO_ML_KEM_SSBYTES; i++)

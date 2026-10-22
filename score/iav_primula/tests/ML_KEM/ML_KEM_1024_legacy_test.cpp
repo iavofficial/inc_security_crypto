@@ -14,11 +14,11 @@
 /**********************************************************************************************************************/
 /* INCLUDES                                                                                                           */
 /**********************************************************************************************************************/
-#include "ML_KEM_encapDecap_FIPS203_TestData.h"
-#include "ML_KEM_encapDecap_FIPS203_tr1_TestData.h"
-#include "ML_KEM_keyGen_FIPS203_TestData.h"
-#include "TEST_Helpers.h"
+#include "ML_KEM_encapDecapFIPS203Tr1_testData.h"
+#include "ML_KEM_encapDecapFIPS203_testData.h"
+#include "ML_KEM_keyGenFIPS203_testData.h"
 #include "module_test_support.h"
+#include "test_helpers.h"
 #include <gtest/gtest.h>
 
 extern "C" {

@@ -1,5 +1,5 @@
 // Generated from JSON file: ML-DSA-sigGen-FIPS204\internalProjection.json
-#include "ML_DSA_sigGen_FIPS204_TestData.h"
+#include "ML_DSA_sigGenFIPS204_testData.h"
 #include <string>
 #include <vector>
 

@@ -1,5 +1,5 @@
 // Generated from JSON file: ML-DSA-keyGen-FIPS204\internalProjection.json
-#include "ML_DSA_keyGen_FIPS204_TestData.h"
+#include "ML_DSA_keyGenFIPS204_testData.h"
 
 std::vector<ML_DSA_keyGen_TestGroup> ML_DSA_keyGen_testGroups = {
     {

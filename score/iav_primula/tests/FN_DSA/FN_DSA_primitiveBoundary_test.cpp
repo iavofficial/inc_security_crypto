@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-/// @file fn_dsa_primitive_boundary_test.cpp
+/// @file FN_DSA_primitiveBoundary_test.cpp
 /// @brief Tests FN-DSA norm and PRNG refill boundaries.
 
 #include <gtest/gtest.h>

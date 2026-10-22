@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-/// @file slh_dsa_attached_message_test.cpp
+/// @file SLH_DSA_attachedMessage_test.cpp
 /// @brief Valid attached-message open/sign tests for SLH-DSA variants.
 
 #include "score/iav_primula/tests/common/coverage_test_support.h"

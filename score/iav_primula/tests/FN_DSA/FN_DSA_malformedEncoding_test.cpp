@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-/// @file fn_dsa_malformed_encoding_test.cpp
+/// @file FN_DSA_malformedEncoding_test.cpp
 /// @brief Rejects malformed FN-DSA public keys, secret keys, and signatures.
 
 #include "score/iav_primula/include/iav_primula_ffi.h"

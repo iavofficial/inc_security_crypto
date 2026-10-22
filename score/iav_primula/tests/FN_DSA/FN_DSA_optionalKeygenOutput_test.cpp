@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-/// @file fn_dsa_optional_keygen_output_test.cpp
+/// @file FN_DSA_optionalKeygenOutput_test.cpp
 /// @brief Tests FN-DSA key generation when the public-key output is omitted.
 
 #include <gtest/gtest.h>

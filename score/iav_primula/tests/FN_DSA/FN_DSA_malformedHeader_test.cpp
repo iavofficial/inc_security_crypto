@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-/// @file fn_dsa_malformed_header_test.cpp
+/// @file FN_DSA_malformedHeader_test.cpp
 /// @brief Malformed FN-DSA detached-signature and attached-message header tests.
 
 #include "score/iav_primula/include/iav_primula_ffi.h"

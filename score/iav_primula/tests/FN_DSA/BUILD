@@ -18,7 +18,7 @@ package(default_visibility = ["//score/iav_primula/tests:__pkg__"])
 cc_test(
     name = "fn_dsa_malformed_header_test",
     timeout = "moderate",
-    srcs = ["fn_dsa_malformed_header_test.cpp"],
+    srcs = ["FN_DSA_malformedHeader_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -35,7 +35,7 @@ cc_test(
 
 cc_test(
     name = "fn_dsa_codec_boundary_test",
-    srcs = ["fn_dsa_codec_boundary_test.cpp"],
+    srcs = ["FN_DSA_codecBoundary_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -52,7 +52,7 @@ cc_test(
 cc_test(
     name = "fn_dsa_malformed_encoding_test",
     timeout = "moderate",
-    srcs = ["fn_dsa_malformed_encoding_test.cpp"],
+    srcs = ["FN_DSA_malformedEncoding_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -70,7 +70,7 @@ cc_test(
 cc_test(
     name = "fn_dsa_optional_keygen_output_test",
     timeout = "moderate",
-    srcs = ["fn_dsa_optional_keygen_output_test.cpp"],
+    srcs = ["FN_DSA_optionalKeygenOutput_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -86,7 +86,7 @@ cc_test(
 
 cc_test(
     name = "fn_dsa_primitive_boundary_test",
-    srcs = ["fn_dsa_primitive_boundary_test.cpp"],
+    srcs = ["FN_DSA_primitiveBoundary_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -103,7 +103,7 @@ cc_test(
 cc_test(
     name = "fn_dsa_attached_message_test",
     timeout = "moderate",
-    srcs = ["fn_dsa_attached_message_test.cpp"],
+    srcs = ["FN_DSA_attachedMessage_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -125,7 +125,7 @@ cc_test(
 cc_test(
     name = "module_fn_dsa_1024_codec_test",
     timeout = "moderate",
-    srcs = ["M_TEST_FN_DSA_1024_codec.cpp"],
+    srcs = ["FN_DSA_1024_codec_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -143,7 +143,7 @@ cc_test(
 cc_test(
     name = "module_fn_dsa_1024_pqclean_test",
     timeout = "moderate",
-    srcs = ["M_TEST_FN_DSA_1024_pqclean.cpp"],
+    srcs = ["FN_DSA_1024_pqclean_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -161,7 +161,7 @@ cc_test(
 cc_test(
     name = "module_fn_dsa_512_codec_test",
     timeout = "moderate",
-    srcs = ["M_TEST_FN_DSA_512_codec.cpp"],
+    srcs = ["FN_DSA_512_codec_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -179,7 +179,7 @@ cc_test(
 cc_test(
     name = "module_fn_dsa_512_pqclean_test",
     timeout = "moderate",
-    srcs = ["M_TEST_FN_DSA_512_pqclean.cpp"],
+    srcs = ["FN_DSA_512_pqclean_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -199,7 +199,7 @@ cc_test(
 cc_test(
     name = "smoke_fn_dsa_1024_test",
     timeout = "moderate",
-    srcs = ["TEST_FN_DSA_1024.cpp"],
+    srcs = ["FN_DSA_1024_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -218,7 +218,7 @@ cc_test(
 cc_test(
     name = "smoke_fn_dsa_512_test",
     timeout = "moderate",
-    srcs = ["TEST_FN_DSA_512.cpp"],
+    srcs = ["FN_DSA_512_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",

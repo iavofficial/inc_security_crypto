@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-/// @file fn_dsa_attached_message_test.cpp
+/// @file FN_DSA_attachedMessage_test.cpp
 /// @brief Valid attached-message sign/open tests for the FN-DSA public APIs.
 
 #include "score/iav_primula/tests/common/coverage_test_support.h"

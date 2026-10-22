@@ -15,7 +15,7 @@
 #define SCORE_IAV_PRIMULA_TESTS_FFF_HELPER_HPP
 
 extern "C" {
-#include "fff_IAV.h"
+#include "fff_iav.h"
 }
 
 DEFINE_FFF_GLOBALS

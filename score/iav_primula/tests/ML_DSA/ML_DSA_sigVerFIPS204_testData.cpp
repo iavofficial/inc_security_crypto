@@ -1,5 +1,5 @@
 // Generated from JSON file: ML-DSA-sigVer-FIPS204\internalProjection.json
-#include "ML_DSA_sigVer_FIPS204_TestData.h"
+#include "ML_DSA_sigVerFIPS204_testData.h"
 
 std::vector<ML_DSA_sigVer_TestGroup> ML_DSA_sigVer_testGroups = {
     {

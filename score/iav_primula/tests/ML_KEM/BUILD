@@ -20,7 +20,7 @@ package(default_visibility = ["//score/iav_primula/tests:__pkg__"])
 cc_test(
     name = "smoke_ml_kem_1024_test",
     timeout = "moderate",
-    srcs = ["TEST_ML_KEM_1024.cpp"],
+    srcs = ["ML_KEM_1024_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -39,7 +39,7 @@ cc_test(
 cc_test(
     name = "smoke_ml_kem_1024_legacy_test",
     timeout = "long",
-    srcs = ["TEST_ML_KEM_1024_legacy.cpp"],
+    srcs = ["ML_KEM_1024_legacy_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -60,7 +60,7 @@ cc_test(
 cc_test(
     name = "smoke_ml_kem_512_test",
     timeout = "moderate",
-    srcs = ["TEST_ML_KEM_512.cpp"],
+    srcs = ["ML_KEM_512_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -79,7 +79,7 @@ cc_test(
 cc_test(
     name = "smoke_ml_kem_512_legacy_test",
     timeout = "long",
-    srcs = ["TEST_ML_KEM_512_legacy.cpp"],
+    srcs = ["ML_KEM_512_legacy_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -100,7 +100,7 @@ cc_test(
 cc_test(
     name = "smoke_ml_kem_768_test",
     timeout = "moderate",
-    srcs = ["TEST_ML_KEM_768.cpp"],
+    srcs = ["ML_KEM_768_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -119,7 +119,7 @@ cc_test(
 cc_test(
     name = "smoke_ml_kem_768_legacy_test",
     timeout = "long",
-    srcs = ["TEST_ML_KEM_768_legacy.cpp"],
+    srcs = ["ML_KEM_768_legacy_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -141,14 +141,14 @@ cc_library(
     name = "nist_fips203_testvectors",
     testonly = True,
     srcs = [
-        "ML_KEM_encapDecap_FIPS203_TestData.cpp",
-        "ML_KEM_encapDecap_FIPS203_tr1_TestData.cpp",
-        "ML_KEM_keyGen_FIPS203_TestData.cpp",
+        "ML_KEM_encapDecapFIPS203Tr1_testData.cpp",
+        "ML_KEM_encapDecapFIPS203_testData.cpp",
+        "ML_KEM_keyGenFIPS203_testData.cpp",
     ],
     hdrs = [
-        "ML_KEM_encapDecap_FIPS203_TestData.h",
-        "ML_KEM_encapDecap_FIPS203_tr1_TestData.h",
-        "ML_KEM_keyGen_FIPS203_TestData.h",
+        "ML_KEM_encapDecapFIPS203Tr1_testData.h",
+        "ML_KEM_encapDecapFIPS203_testData.h",
+        "ML_KEM_keyGenFIPS203_testData.h",
     ],
     includes = ["."],
 )

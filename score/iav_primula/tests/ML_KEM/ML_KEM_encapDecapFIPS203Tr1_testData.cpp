@@ -1,5 +1,5 @@
 // Generated from JSON file: ML-KEM-encapDecap-FIPS203-tr1\internalProjection.json
-#include "ML_KEM_encapDecap_FIPS203_tr1_TestData.h"
+#include "ML_KEM_encapDecapFIPS203Tr1_testData.h"
 
 std::vector<ML_KEM_encapDecap_tr1_Testgroup> ML_KEM_encapDecap_tr1_testGroups = {
     {

@@ -18,7 +18,7 @@ package(default_visibility = ["//score/iav_primula/tests:__pkg__"])
 cc_test(
     name = "slh_dsa_attached_message_test",
     timeout = "moderate",
-    srcs = ["slh_dsa_attached_message_test.cpp"],
+    srcs = ["SLH_DSA_attachedMessage_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -40,7 +40,7 @@ cc_test(
 cc_test(
     name = "module_slh_dsa_sha2_128fsimple_hash_sha2_test",
     timeout = "moderate",
-    srcs = ["M_TEST_SLH_DSA_SHA2_128fSimple_hash_sha2.cpp"],
+    srcs = ["SLH_DSA_SHA2_128fSimple_hashSha2_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -59,7 +59,7 @@ cc_test(
 cc_test(
     name = "module_slh_dsa_sha2_128fsimple_sign_test",
     timeout = "moderate",
-    srcs = ["M_TEST_SLH_DSA_SHA2_128fSimple_sign.cpp"],
+    srcs = ["SLH_DSA_SHA2_128fSimple_sign_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -77,7 +77,7 @@ cc_test(
 cc_test(
     name = "module_slh_dsa_sha2_128ssimple_hash_sha2_test",
     timeout = "moderate",
-    srcs = ["M_TEST_SLH_DSA_SHA2_128sSimple_hash_sha2.cpp"],
+    srcs = ["SLH_DSA_SHA2_128sSimple_hashSha2_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -96,7 +96,7 @@ cc_test(
 cc_test(
     name = "module_slh_dsa_sha2_128ssimple_sign_test",
     timeout = "moderate",
-    srcs = ["M_TEST_SLH_DSA_SHA2_128sSimple_sign.cpp"],
+    srcs = ["SLH_DSA_SHA2_128sSimple_sign_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -114,7 +114,7 @@ cc_test(
 cc_test(
     name = "module_slh_dsa_sha2_192fsimple_hash_sha2_test",
     timeout = "moderate",
-    srcs = ["M_TEST_SLH_DSA_SHA2_192fSimple_hash_sha2.cpp"],
+    srcs = ["SLH_DSA_SHA2_192fSimple_hashSha2_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -133,7 +133,7 @@ cc_test(
 cc_test(
     name = "module_slh_dsa_sha2_192fsimple_sign_test",
     timeout = "moderate",
-    srcs = ["M_TEST_SLH_DSA_SHA2_192fSimple_sign.cpp"],
+    srcs = ["SLH_DSA_SHA2_192fSimple_sign_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -151,7 +151,7 @@ cc_test(
 cc_test(
     name = "module_slh_dsa_sha2_192ssimple_hash_sha2_test",
     timeout = "moderate",
-    srcs = ["M_TEST_SLH_DSA_SHA2_192sSimple_hash_sha2.cpp"],
+    srcs = ["SLH_DSA_SHA2_192sSimple_hashSha2_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -170,7 +170,7 @@ cc_test(
 cc_test(
     name = "module_slh_dsa_sha2_192ssimple_sign_test",
     timeout = "moderate",
-    srcs = ["M_TEST_SLH_DSA_SHA2_192sSimple_sign.cpp"],
+    srcs = ["SLH_DSA_SHA2_192sSimple_sign_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -188,7 +188,7 @@ cc_test(
 cc_test(
     name = "module_slh_dsa_sha2_256fsimple_hash_sha2_test",
     timeout = "moderate",
-    srcs = ["M_TEST_SLH_DSA_SHA2_256fSimple_hash_sha2.cpp"],
+    srcs = ["SLH_DSA_SHA2_256fSimple_hashSha2_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -207,7 +207,7 @@ cc_test(
 cc_test(
     name = "module_slh_dsa_sha2_256fsimple_sign_test",
     timeout = "moderate",
-    srcs = ["M_TEST_SLH_DSA_SHA2_256fSimple_sign.cpp"],
+    srcs = ["SLH_DSA_SHA2_256fSimple_sign_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -225,7 +225,7 @@ cc_test(
 cc_test(
     name = "module_slh_dsa_sha2_256ssimple_hash_sha2_test",
     timeout = "moderate",
-    srcs = ["M_TEST_SLH_DSA_SHA2_256sSimple_hash_sha2.cpp"],
+    srcs = ["SLH_DSA_SHA2_256sSimple_hashSha2_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -244,7 +244,7 @@ cc_test(
 cc_test(
     name = "module_slh_dsa_sha2_256ssimple_sign_test",
     timeout = "moderate",
-    srcs = ["M_TEST_SLH_DSA_SHA2_256sSimple_sign.cpp"],
+    srcs = ["SLH_DSA_SHA2_256sSimple_sign_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -262,7 +262,7 @@ cc_test(
 cc_test(
     name = "module_slh_dsa_shake_128fsimple_sign_test",
     timeout = "moderate",
-    srcs = ["M_TEST_SLH_DSA_SHAKE_128fSimple_sign.cpp"],
+    srcs = ["SLH_DSA_SHAKE_128fSimple_sign_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -280,7 +280,7 @@ cc_test(
 cc_test(
     name = "module_slh_dsa_shake_128ssimple_sign_test",
     timeout = "moderate",
-    srcs = ["M_TEST_SLH_DSA_SHAKE_128sSimple_sign.cpp"],
+    srcs = ["SLH_DSA_SHAKE_128sSimple_sign_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -298,7 +298,7 @@ cc_test(
 cc_test(
     name = "module_slh_dsa_shake_192fsimple_sign_test",
     timeout = "moderate",
-    srcs = ["M_TEST_SLH_DSA_SHAKE_192fSimple_sign.cpp"],
+    srcs = ["SLH_DSA_SHAKE_192fSimple_sign_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -316,7 +316,7 @@ cc_test(
 cc_test(
     name = "module_slh_dsa_shake_192ssimple_sign_test",
     timeout = "moderate",
-    srcs = ["M_TEST_SLH_DSA_SHAKE_192sSimple_sign.cpp"],
+    srcs = ["SLH_DSA_SHAKE_192sSimple_sign_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -334,7 +334,7 @@ cc_test(
 cc_test(
     name = "module_slh_dsa_shake_256fsimple_sign_test",
     timeout = "moderate",
-    srcs = ["M_TEST_SLH_DSA_SHAKE_256fSimple_sign.cpp"],
+    srcs = ["SLH_DSA_SHAKE_256fSimple_sign_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -352,7 +352,7 @@ cc_test(
 cc_test(
     name = "module_slh_dsa_shake_256ssimple_sign_test",
     timeout = "moderate",
-    srcs = ["M_TEST_SLH_DSA_SHAKE_256sSimple_sign.cpp"],
+    srcs = ["SLH_DSA_SHAKE_256sSimple_sign_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -372,7 +372,7 @@ cc_test(
 cc_test(
     name = "smoke_slh_dsa_sha2_128fsimple_test",
     timeout = "moderate",
-    srcs = ["TEST_SLH_DSA_SHA2_128fSimple.cpp"],
+    srcs = ["SLH_DSA_SHA2_128fSimple_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -391,7 +391,7 @@ cc_test(
 cc_test(
     name = "smoke_slh_dsa_sha2_128ssimple_test",
     timeout = "moderate",
-    srcs = ["TEST_SLH_DSA_SHA2_128sSimple.cpp"],
+    srcs = ["SLH_DSA_SHA2_128sSimple_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -410,7 +410,7 @@ cc_test(
 cc_test(
     name = "smoke_slh_dsa_sha2_192fsimple_test",
     timeout = "moderate",
-    srcs = ["TEST_SLH_DSA_SHA2_192fSimple.cpp"],
+    srcs = ["SLH_DSA_SHA2_192fSimple_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -429,7 +429,7 @@ cc_test(
 cc_test(
     name = "smoke_slh_dsa_sha2_192ssimple_test",
     timeout = "moderate",
-    srcs = ["TEST_SLH_DSA_SHA2_192sSimple.cpp"],
+    srcs = ["SLH_DSA_SHA2_192sSimple_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -448,7 +448,7 @@ cc_test(
 cc_test(
     name = "smoke_slh_dsa_sha2_256fsimple_test",
     timeout = "moderate",
-    srcs = ["TEST_SLH_DSA_SHA2_256fSimple.cpp"],
+    srcs = ["SLH_DSA_SHA2_256fSimple_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -467,7 +467,7 @@ cc_test(
 cc_test(
     name = "smoke_slh_dsa_sha2_256ssimple_test",
     timeout = "moderate",
-    srcs = ["TEST_SLH_DSA_SHA2_256sSimple.cpp"],
+    srcs = ["SLH_DSA_SHA2_256sSimple_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -486,7 +486,7 @@ cc_test(
 cc_test(
     name = "smoke_slh_dsa_shake_128fsimple_test",
     timeout = "moderate",
-    srcs = ["TEST_SLH_DSA_SHAKE_128fSimple.cpp"],
+    srcs = ["SLH_DSA_SHAKE_128fSimple_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -505,7 +505,7 @@ cc_test(
 cc_test(
     name = "smoke_slh_dsa_shake_128ssimple_test",
     timeout = "moderate",
-    srcs = ["TEST_SLH_DSA_SHAKE_128sSimple.cpp"],
+    srcs = ["SLH_DSA_SHAKE_128sSimple_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -524,7 +524,7 @@ cc_test(
 cc_test(
     name = "smoke_slh_dsa_shake_192fsimple_test",
     timeout = "moderate",
-    srcs = ["TEST_SLH_DSA_SHAKE_192fSimple.cpp"],
+    srcs = ["SLH_DSA_SHAKE_192fSimple_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -543,7 +543,7 @@ cc_test(
 cc_test(
     name = "smoke_slh_dsa_shake_192ssimple_test",
     timeout = "moderate",
-    srcs = ["TEST_SLH_DSA_SHAKE_192sSimple.cpp"],
+    srcs = ["SLH_DSA_SHAKE_192sSimple_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -562,7 +562,7 @@ cc_test(
 cc_test(
     name = "smoke_slh_dsa_shake_256fsimple_test",
     timeout = "moderate",
-    srcs = ["TEST_SLH_DSA_SHAKE_256fSimple.cpp"],
+    srcs = ["SLH_DSA_SHAKE_256fSimple_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -581,7 +581,7 @@ cc_test(
 cc_test(
     name = "smoke_slh_dsa_shake_256ssimple_test",
     timeout = "moderate",
-    srcs = ["TEST_SLH_DSA_SHAKE_256sSimple.cpp"],
+    srcs = ["SLH_DSA_SHAKE_256sSimple_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",

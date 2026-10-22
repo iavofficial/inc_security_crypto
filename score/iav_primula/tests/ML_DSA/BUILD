@@ -18,7 +18,7 @@ package(default_visibility = ["//score/iav_primula/tests:__pkg__"])
 cc_test(
     name = "ml_dsa_malformed_signature_test",
     timeout = "moderate",
-    srcs = ["ml_dsa_malformed_signature_test.cpp"],
+    srcs = ["ML_DSA_malformedSignature_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -35,7 +35,7 @@ cc_test(
 cc_test(
     name = "ml_dsa_context_api_test",
     timeout = "moderate",
-    srcs = ["ml_dsa_context_api_test.cpp"],
+    srcs = ["ML_DSA_contextApi_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -57,7 +57,7 @@ cc_test(
 cc_test(
     name = "module_ml_dsa_44_packing_test",
     timeout = "moderate",
-    srcs = ["M_TEST_ML_DSA_44_packing.cpp"],
+    srcs = ["ML_DSA_44_packing_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -75,7 +75,7 @@ cc_test(
 cc_test(
     name = "module_ml_dsa_44_poly_test",
     timeout = "moderate",
-    srcs = ["M_TEST_ML_DSA_44_poly.cpp"],
+    srcs = ["ML_DSA_44_poly_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -93,7 +93,7 @@ cc_test(
 cc_test(
     name = "module_ml_dsa_44_rounding_test",
     timeout = "moderate",
-    srcs = ["M_TEST_ML_DSA_44_rounding.cpp"],
+    srcs = ["ML_DSA_44_rounding_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -111,7 +111,7 @@ cc_test(
 cc_test(
     name = "module_ml_dsa_44_sign_test",
     timeout = "moderate",
-    srcs = ["M_TEST_ML_DSA_44_sign.cpp"],
+    srcs = ["ML_DSA_44_sign_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -129,7 +129,7 @@ cc_test(
 cc_test(
     name = "module_ml_dsa_65_packing_test",
     timeout = "moderate",
-    srcs = ["M_TEST_ML_DSA_65_packing.cpp"],
+    srcs = ["ML_DSA_65_packing_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -147,7 +147,7 @@ cc_test(
 cc_test(
     name = "module_ml_dsa_65_poly_test",
     timeout = "moderate",
-    srcs = ["M_TEST_ML_DSA_65_poly.cpp"],
+    srcs = ["ML_DSA_65_poly_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -165,7 +165,7 @@ cc_test(
 cc_test(
     name = "module_ml_dsa_65_rounding_test",
     timeout = "moderate",
-    srcs = ["M_TEST_ML_DSA_65_rounding.cpp"],
+    srcs = ["ML_DSA_65_rounding_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -183,7 +183,7 @@ cc_test(
 cc_test(
     name = "module_ml_dsa_65_sign_test",
     timeout = "moderate",
-    srcs = ["M_TEST_ML_DSA_65_sign.cpp"],
+    srcs = ["ML_DSA_65_sign_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -201,7 +201,7 @@ cc_test(
 cc_test(
     name = "module_ml_dsa_87_packing_test",
     timeout = "moderate",
-    srcs = ["M_TEST_ML_DSA_87_packing.cpp"],
+    srcs = ["ML_DSA_87_packing_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -219,7 +219,7 @@ cc_test(
 cc_test(
     name = "module_ml_dsa_87_poly_test",
     timeout = "moderate",
-    srcs = ["M_TEST_ML_DSA_87_poly.cpp"],
+    srcs = ["ML_DSA_87_poly_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -237,7 +237,7 @@ cc_test(
 cc_test(
     name = "module_ml_dsa_87_rounding_test",
     timeout = "moderate",
-    srcs = ["M_TEST_ML_DSA_87_rounding.cpp"],
+    srcs = ["ML_DSA_87_rounding_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -255,7 +255,7 @@ cc_test(
 cc_test(
     name = "module_ml_dsa_87_sign_test",
     timeout = "moderate",
-    srcs = ["M_TEST_ML_DSA_87_sign.cpp"],
+    srcs = ["ML_DSA_87_sign_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -275,7 +275,7 @@ cc_test(
 cc_test(
     name = "smoke_ml_dsa_44_test",
     timeout = "moderate",
-    srcs = ["TEST_ML_DSA_44.cpp"],
+    srcs = ["ML_DSA_44_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -294,7 +294,7 @@ cc_test(
 cc_test(
     name = "smoke_ml_dsa_44_nist_test",
     timeout = "long",
-    srcs = ["TEST_ML_DSA_44_Nist.cpp"],
+    srcs = ["ML_DSA_44_nist_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -315,7 +315,7 @@ cc_test(
 cc_test(
     name = "smoke_ml_dsa_65_test",
     timeout = "moderate",
-    srcs = ["TEST_ML_DSA_65.cpp"],
+    srcs = ["ML_DSA_65_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -334,7 +334,7 @@ cc_test(
 cc_test(
     name = "smoke_ml_dsa_65_nist_test",
     timeout = "long",
-    srcs = ["TEST_ML_DSA_65_Nist.cpp"],
+    srcs = ["ML_DSA_65_nist_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -355,7 +355,7 @@ cc_test(
 cc_test(
     name = "smoke_ml_dsa_87_test",
     timeout = "moderate",
-    srcs = ["TEST_ML_DSA_87.cpp"],
+    srcs = ["ML_DSA_87_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -374,7 +374,7 @@ cc_test(
 cc_test(
     name = "smoke_ml_dsa_87_nist_test",
     timeout = "long",
-    srcs = ["TEST_ML_DSA_87_Nist.cpp"],
+    srcs = ["ML_DSA_87_nist_test.cpp"],
     copts = [
         "-include",
         "Platform_Types.h",
@@ -396,16 +396,16 @@ cc_library(
     name = "nist_fips204_testvectors",
     testonly = True,
     srcs = [
-        "ML_DSA_keyGen_FIPS204_TestData.cpp",
-        "ML_DSA_sigGen_FIPS204_TestData.cpp",
-        "ML_DSA_sigGen_FIPS204_tr1_TestData.cpp",
-        "ML_DSA_sigVer_FIPS204_TestData.cpp",
+        "ML_DSA_keyGenFIPS204_testData.cpp",
+        "ML_DSA_sigGenFIPS204Tr1_testData.cpp",
+        "ML_DSA_sigGenFIPS204_testData.cpp",
+        "ML_DSA_sigVerFIPS204_testData.cpp",
     ],
     hdrs = [
-        "ML_DSA_keyGen_FIPS204_TestData.h",
-        "ML_DSA_sigGen_FIPS204_TestData.h",
-        "ML_DSA_sigGen_FIPS204_tr1_TestData.h",
-        "ML_DSA_sigVer_FIPS204_TestData.h",
+        "ML_DSA_keyGenFIPS204_testData.h",
+        "ML_DSA_sigGenFIPS204Tr1_testData.h",
+        "ML_DSA_sigGenFIPS204_testData.h",
+        "ML_DSA_sigVerFIPS204_testData.h",
     ],
     includes = ["."],
 )

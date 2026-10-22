@@ -111,8 +111,8 @@ cc_library(
     srcs = ["module_test_support.cpp"],
     hdrs = [
         "fake_fips202.h",
-        "fff_IAV.h",
         "fff_helper.hpp",
+        "fff_iav.h",
         "module_test_support.h",
     ],
     includes = ["."],
@@ -130,8 +130,8 @@ cc_library(
 cc_library(
     name = "smoke_test_helpers",
     testonly = True,
-    srcs = ["TEST_Helpers.cpp"],
-    hdrs = ["TEST_Helpers.h"],
+    srcs = ["test_helpers.cpp"],
+    hdrs = ["test_helpers.h"],
     includes = ["."],
     visibility = ["//score/iav_primula/tests:__subpackages__"],
 )

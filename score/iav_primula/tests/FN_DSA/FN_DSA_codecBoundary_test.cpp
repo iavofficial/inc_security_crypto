@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-/// @file fn_dsa_codec_boundary_test.cpp
+/// @file FN_DSA_codecBoundary_test.cpp
 /// @brief Boundary and malformed-input tests for the FN-DSA encodings.
 
 #include <gtest/gtest.h>
