@@ -107,8 +107,8 @@ TEST(ML_DSA_65_sign_TEST, SignOpenBadSigMsgSecretTooShort)
 TEST(ML_DSA_65_sign_TEST, SignOpenBadSigMessageNotSigned)
 {
     uint8_t pk[] = {"mock_key"};
-    uint8_t m[FSMSW_ML_DSA_65_CRYPTO_BYTES];
-    uint32 mlen = FSMSW_ML_DSA_65_CRYPTO_BYTES;
+    uint8_t m[2 * FSMSW_ML_DSA_65_CRYPTO_BYTES];
+    uint32 mlen = sizeof(m);
 
     uint8_t sm[2 * FSMSW_ML_DSA_65_CRYPTO_BYTES];
     uint32 smlen = sizeof(sm);
