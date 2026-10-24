@@ -306,61 +306,63 @@ uint8 ML_DSA_44_Crypto_Sign_Verify_Ctx(const uint8 *const sig, uint32 siglen, co
   {
     retVal = ERR_NOT_OK;
   }
-
-  ML_DSA_44_UnpackPk(rho, &t1, pk);
-  if (0 < ML_DSA_44_UnpackSig(c, &z, &h, sig))
+  else
   {
-    retVal = ERR_NOT_OK;
-  }
-  if (0 < ML_DSA_44_Polyvecl_Chknorm(&z, (sint32)(GAMMA1_ML_DSA_44 - BETA_ML_DSA_44)))
-  {
-    retVal = ERR_NOT_OK;
-  }
-
-  /* Compute CRH(H(rho, t1), msg) */
-  FsmSw_Fips202_Shake256(mu, TRBYTES_ML_DSA, pk, FSMSW_ML_DSA_44_CRYPTO_PUBLICKEYBYTES);
-  FsmSw_Fips202_Shake256_IncInit(&state);
-  FsmSw_Fips202_Shake256_IncAbsorb(&state, mu, TRBYTES_ML_DSA);
-  mu[0] = 0;
-  mu[1] = (uint8)ctxlen;
-  FsmSw_Fips202_Shake256_IncAbsorb(&state, mu, 2);
-  FsmSw_Fips202_Shake256_IncAbsorb(&state, ctx, ctxlen);
-  FsmSw_Fips202_Shake256_IncAbsorb(&state, m, mlen);
-  FsmSw_Fips202_Shake256_IncFinalize(&state);
-  FsmSw_Fips202_Shake256_IncSqueeze(mu, CRHBYTES_ML_DSA, &state);
-
-  /* Matrix-vector multiplication; compute Az - c2^dt1 */
-  ML_DSA_44_Poly_Challenge(&cp, c); /* uses only the first SEEDBYTES bytes of c */
-  ML_DSA_44_Polyvec_MatrixExpand(mat, rho);
-
-  ML_DSA_44_Polyvecl_Ntt(&z);
-  ML_DSA_44_Polyvec_MatrixPointwiseMontgomery(&w1, mat, &z);
-
-  ML_DSA_44_Poly_Ntt(&cp);
-  ML_DSA_44_Polyveck_Shiftl(&t1);
-  ML_DSA_44_Polyveck_Ntt(&t1);
-  ML_DSA_44_Polyveck_PointwisePolyMontgomery(&t1, &cp, &t1);
-
-  ML_DSA_44_Polyveck_Sub(&w1, &w1, &t1);
-  ML_DSA_44_Polyveck_Reduce(&w1);
-  ML_DSA_44_Polyveck_InvnttTomont(&w1);
-
-  /* Reconstruct w1 */
-  ML_DSA_44_Polyveck_CAddQ(&w1);
-  ML_DSA_44_Polyveck_UseHint(&w1, &w1, &h);
-  ML_DSA_44_Polyveck_PackW1(buf, &w1);
-
-  /* Call random oracle and verify */
-  FsmSw_Fips202_Shake256_IncInit(&state);
-  FsmSw_Fips202_Shake256_IncAbsorb(&state, mu, CRHBYTES_ML_DSA);
-  FsmSw_Fips202_Shake256_IncAbsorb(&state, buf, K_ML_DSA_44 * POLYW1_PACKEDBYTES_ML_DSA_44);
-  FsmSw_Fips202_Shake256_IncFinalize(&state);
-  FsmSw_Fips202_Shake256_IncSqueeze(c2, CTILDEBYTES_ML_DSA_44, &state);
-  for (i = 0u; i < CTILDEBYTES_ML_DSA_44; ++i)
-  {
-    if (c[i] != c2[i])
+    ML_DSA_44_UnpackPk(rho, &t1, pk);
+    if (0 < ML_DSA_44_UnpackSig(c, &z, &h, sig))
     {
       retVal = ERR_NOT_OK;
+    }
+    if (0 < ML_DSA_44_Polyvecl_Chknorm(&z, (sint32)(GAMMA1_ML_DSA_44 - BETA_ML_DSA_44)))
+    {
+      retVal = ERR_NOT_OK;
+    }
+
+    /* Compute CRH(H(rho, t1), msg) */
+    FsmSw_Fips202_Shake256(mu, TRBYTES_ML_DSA, pk, FSMSW_ML_DSA_44_CRYPTO_PUBLICKEYBYTES);
+    FsmSw_Fips202_Shake256_IncInit(&state);
+    FsmSw_Fips202_Shake256_IncAbsorb(&state, mu, TRBYTES_ML_DSA);
+    mu[0] = 0;
+    mu[1] = (uint8)ctxlen;
+    FsmSw_Fips202_Shake256_IncAbsorb(&state, mu, 2);
+    FsmSw_Fips202_Shake256_IncAbsorb(&state, ctx, ctxlen);
+    FsmSw_Fips202_Shake256_IncAbsorb(&state, m, mlen);
+    FsmSw_Fips202_Shake256_IncFinalize(&state);
+    FsmSw_Fips202_Shake256_IncSqueeze(mu, CRHBYTES_ML_DSA, &state);
+
+    /* Matrix-vector multiplication; compute Az - c2^dt1 */
+    ML_DSA_44_Poly_Challenge(&cp, c); /* uses only the first SEEDBYTES bytes of c */
+    ML_DSA_44_Polyvec_MatrixExpand(mat, rho);
+
+    ML_DSA_44_Polyvecl_Ntt(&z);
+    ML_DSA_44_Polyvec_MatrixPointwiseMontgomery(&w1, mat, &z);
+
+    ML_DSA_44_Poly_Ntt(&cp);
+    ML_DSA_44_Polyveck_Shiftl(&t1);
+    ML_DSA_44_Polyveck_Ntt(&t1);
+    ML_DSA_44_Polyveck_PointwisePolyMontgomery(&t1, &cp, &t1);
+
+    ML_DSA_44_Polyveck_Sub(&w1, &w1, &t1);
+    ML_DSA_44_Polyveck_Reduce(&w1);
+    ML_DSA_44_Polyveck_InvnttTomont(&w1);
+
+    /* Reconstruct w1 */
+    ML_DSA_44_Polyveck_CAddQ(&w1);
+    ML_DSA_44_Polyveck_UseHint(&w1, &w1, &h);
+    ML_DSA_44_Polyveck_PackW1(buf, &w1);
+
+    /* Call random oracle and verify */
+    FsmSw_Fips202_Shake256_IncInit(&state);
+    FsmSw_Fips202_Shake256_IncAbsorb(&state, mu, CRHBYTES_ML_DSA);
+    FsmSw_Fips202_Shake256_IncAbsorb(&state, buf, K_ML_DSA_44 * POLYW1_PACKEDBYTES_ML_DSA_44);
+    FsmSw_Fips202_Shake256_IncFinalize(&state);
+    FsmSw_Fips202_Shake256_IncSqueeze(c2, CTILDEBYTES_ML_DSA_44, &state);
+    for (i = 0u; i < CTILDEBYTES_ML_DSA_44; ++i)
+    {
+      if (c[i] != c2[i])
+      {
+        retVal = ERR_NOT_OK;
+      }
     }
   }
 

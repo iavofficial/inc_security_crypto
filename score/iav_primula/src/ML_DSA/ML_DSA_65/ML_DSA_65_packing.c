@@ -337,12 +337,19 @@ sint8 ML_DSA_65_UnpackSig(uint8 c[CTILDEBYTES_ML_DSA_65], polyvecl_D3 *z, polyve
 
     for (j = k; j < sig_temp[OMEGA_ML_DSA_65 + i]; ++j)
     {
-      /* Coefficients are ordered for strong unforgeability */
-      if ((j > k) && (sig_temp[j] <= sig_temp[j - 1u]))
+      if (((uint32)(sig_temp - sig) + (uint32)j) < FSMSW_ML_DSA_65_CRYPTO_BYTES)
+      {
+        /* Coefficients are ordered for strong unforgeability */
+        if ((j > k) && (sig_temp[j] <= sig_temp[j - 1u]))
+        {
+          retVal = 1;
+        }
+        h->vec[i].coeffs[sig_temp[j]] = 1;
+      }
+      else
       {
         retVal = 1;
       }
-      h->vec[i].coeffs[sig_temp[j]] = 1;
     }
 
     k = sig_temp[OMEGA_ML_DSA_65 + i];

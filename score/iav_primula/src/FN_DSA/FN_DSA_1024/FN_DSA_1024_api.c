@@ -583,32 +583,33 @@ uint8 FN_DSA_1024_Crypto_Sign_Open(uint8* const m,
         {
             sigbuflen--;
             pmlen = smlen - FN_DSA_1024_NONCELEN - 3u - sigbuflen;
-        }
 
-        if ((bStopFunc == FALSE) && (sm[2u + FN_DSA_1024_NONCELEN + pmlen] != (0x20u + FN_DSA_1024_LOGN)))
-        {
-            retVal = ERR_NOT_OK;
-            bStopFunc = TRUE;
-        }
+            if ((bStopFunc == FALSE) &&
+                (sm[2u + FN_DSA_1024_NONCELEN + pmlen] != (0x20u + FN_DSA_1024_LOGN)))
+            {
+                retVal = ERR_NOT_OK;
+                bStopFunc = TRUE;
+            }
 
-        sigbuf = &sm[2u + FN_DSA_1024_NONCELEN + pmlen + 1u];
+            sigbuf = &sm[2u + FN_DSA_1024_NONCELEN + pmlen + 1u];
 
-        /* The 2-byte length header and the one-byte signature header have been verified. Nonce is at sm+2, followed by
-         * the message itself. Message length is in pmlen. sigbuf/sigbuflen point to the signature value (excluding the
-         * header byte). */
-        /* polyspace +2 MISRA2012:13.5 [Justified:]"DoVerify function returns 0 on success and -1 on error, which is
-        equivalent to works/doesn't work" */
-        if ((bStopFunc == FALSE) &&
-            (fn_dsa1024_DoVerify(&sm[2], sigbuf, sigbuflen, &sm[2u + FN_DSA_1024_NONCELEN], pmlen, pk) < 0))
-        {
-            retVal = ERR_NOT_OK;
-        }
-        else
-        {
-            /* Signature is correct, we just have to copy/move the message to its final destination.
-             * The FsmSw_CommonLib_MemMove() properly handles overlaps. */
-            FsmSw_CommonLib_MemMove(m, &sm[2u + FN_DSA_1024_NONCELEN], pmlen);
-            *mlen = pmlen;
+            /* The 2-byte length header and the one-byte signature header have been verified. Nonce is at sm+2, followed by
+             * the message itself. Message length is in pmlen. sigbuf/sigbuflen point to the signature value (excluding the
+             * header byte). */
+            /* polyspace +2 MISRA2012:13.5 [Justified:]"DoVerify function returns 0 on success and -1 on error, which is
+            equivalent to works/doesn't work" */
+            if ((bStopFunc == FALSE) &&
+                (fn_dsa1024_DoVerify(&sm[2], sigbuf, sigbuflen, &sm[2u + FN_DSA_1024_NONCELEN], pmlen, pk) < 0))
+            {
+                retVal = ERR_NOT_OK;
+            }
+            else
+            {
+                /* Signature is correct, we just have to copy/move the message to its final destination.
+                 * The FsmSw_CommonLib_MemMove() properly handles overlaps. */
+                FsmSw_CommonLib_MemMove(m, &sm[2u + FN_DSA_1024_NONCELEN], pmlen);
+                *mlen = pmlen;
+            }
         }
     }
     return retVal;
