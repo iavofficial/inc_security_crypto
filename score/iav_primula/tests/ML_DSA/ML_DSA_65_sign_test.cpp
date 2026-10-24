@@ -34,7 +34,7 @@ TEST(ML_DSA_65_sign_TEST, SignVerifyBadSignatureLength)
 
     uint8_t m[] = {"test_message"};
     uint32 mlen = sizeof(m);
-    uint8_t pk[] = {"mock_key"};
+    uint8_t pk[FSMSW_ML_DSA_65_CRYPTO_PUBLICKEYBYTES] = {"mock_key"};
 
     uint8_t sig[FSMSW_ML_DSA_65_CRYPTO_BYTES - 1] = {0};
     uint32 siglen = 1;
@@ -50,7 +50,7 @@ TEST(ML_DSA_65_sign_TEST, SignVerifyBadSignature)
     uint32 siglen = FSMSW_ML_DSA_65_CRYPTO_BYTES;
     uint8_t m[] = {"test_message"};
     uint32 mlen = sizeof(m);
-    uint8_t pk[] = {"mock_key"};
+    uint8_t pk[FSMSW_ML_DSA_65_CRYPTO_PUBLICKEYBYTES] = {"mock_key"};
 
     int retVal = ML_DSA_65_Crypto_Sign_Verify(sig, siglen, m, mlen, pk);
 
@@ -63,7 +63,7 @@ TEST(ML_DSA_65_sign_TEST, SignVerifyBadSignatureFormat)
     uint32 siglen = FSMSW_ML_DSA_65_CRYPTO_BYTES;
     uint8_t m[] = {"test_message"};
     uint32 mlen = sizeof(m);
-    uint8_t pk[] = {"mock_key"};
+    uint8_t pk[FSMSW_ML_DSA_65_CRYPTO_PUBLICKEYBYTES] = {"mock_key"};
 
     int retVal = ML_DSA_65_Crypto_Sign_Verify(sig, siglen, m, mlen, pk);
 
@@ -92,7 +92,7 @@ TEST(ML_DSA_65_sign_TEST, SignVerifyMessageNotSigned)
 
 TEST(ML_DSA_65_sign_TEST, SignOpenBadSigMsgSecretTooShort)
 {
-    uint8_t pk[] = {"mock_key"};
+    uint8_t pk[FSMSW_ML_DSA_65_CRYPTO_PUBLICKEYBYTES] = {"mock_key"};
     uint8_t m[FSMSW_ML_DSA_65_CRYPTO_BYTES];
     uint32 mlen = FSMSW_ML_DSA_65_CRYPTO_BYTES;
 
@@ -106,7 +106,7 @@ TEST(ML_DSA_65_sign_TEST, SignOpenBadSigMsgSecretTooShort)
 
 TEST(ML_DSA_65_sign_TEST, SignOpenBadSigMessageNotSigned)
 {
-    uint8_t pk[] = {"mock_key"};
+    uint8_t pk[FSMSW_ML_DSA_65_CRYPTO_PUBLICKEYBYTES] = {"mock_key"};
     uint8_t m[2 * FSMSW_ML_DSA_65_CRYPTO_BYTES];
     uint32 mlen = sizeof(m);
 

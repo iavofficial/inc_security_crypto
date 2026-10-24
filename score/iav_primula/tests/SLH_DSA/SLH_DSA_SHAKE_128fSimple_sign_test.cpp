@@ -95,7 +95,7 @@ TEST(SLH_DSA_SHAKE_128fSimple_sign_TEST, SignOpenBadSigMsgSecretTooShort)
 
 TEST(SLH_DSA_SHAKE_128fSimple_sign_TEST, SignOpenBadSigMessageNotSigned)
 {
-    uint8_t pk[] = {"mock_key"};
+    uint8_t pk[CRYPTO_PUBLICKEYBYTES] = {"mock_key"};
     uint8_t m[2 * CRYPTO_BYTES];
     uint32 mlen = sizeof(m);
 

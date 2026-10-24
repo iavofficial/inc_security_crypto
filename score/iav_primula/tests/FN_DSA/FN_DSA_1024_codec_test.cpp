@@ -215,7 +215,7 @@ TEST(PQClean_FN_DSA_1024_codec_TEST, TrimI16EncodeNothingWrong)
     max_out_len = n;
     unsigned bits = 8;
     sint8 x[n] = {0};
-    uint8_t out[EXAMPLE_OUT_SIZE];
+    uint8_t out[n] = {0};
     (void)FsmSw_CommonLib_RandomBytes(out, EXAMPLE_OUT_SIZE);
 
     out_len = ((n * bits) + 7) >> 3;
@@ -319,7 +319,7 @@ TEST(PQClean_FN_DSA_1024_codec_TEST, TrimI8EncodeNothingWrong)
     unsigned bits = 8;
     max_out_len = n;
     int8_t x[n] = {0};
-    uint8_t out[EXAMPLE_OUT_SIZE];
+    uint8_t out[n] = {0};
     (void)FsmSw_CommonLib_RandomBytes(out, EXAMPLE_OUT_SIZE);
 
     out_len = ((n * bits) + 7) >> 3;
