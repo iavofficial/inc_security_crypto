@@ -31,36 +31,26 @@ IAV Primula Component
 Abstract
 ========
 
-IAV_Primula is a cryptographic driver in Rust focused on integrating
-post-quantum (PQ) algorithms and establishing a future-ready foundation for
-cryptographic processing in the S-CORE context. The component emphasizes a
-clear, robust, and maintainable architecture that provides safe and structured
-integration paths for quantum-resistant methods. At the current planning stage,
-integrating classical cryptographic algorithms is not intended; the initial
-scope is fully focused on PQ-based capabilities and their clean technical
-embedding.
+IAV Primula is a C library that integrates the PQCleanAutomotive post-quantum
+cryptographic implementation behind the stable C ABI in
+``include/iav_primula_ffi.h``. The public interface provides signature key
+management, detached signatures, and key encapsulation operations without
+exposing Automotive implementation headers to C++ consumers.
 
-The cryptodriver is designed around a consistent job-processing model. The
-offered processing jobs include, among others, Signature Generate, Signature
-Verification, Key Generate, and Key Exchange. Processing is intended to follow
-clearly defined interfaces and traceable request/response flows, enabling
-integrators to use cryptographic operations and key-related processes in a
-uniform way. Extensibility is also considered from the beginning so that
-additional PQ algorithms and operations can be added in a controlled manner.
-
-By being implemented in Rust, IAV_Primula benefits from strong memory-safety
-properties and improved robustness against common implementation errors.
-Overall, the component addresses the need for a modern, integration-friendly,
-and post-quantum-focused cryptographic driver baseline designed for long-term
-security and structured evolution.
+The current FFI glue implements ML-DSA-44/65/87 and ML-KEM-512/768/1024.
+Additional parameter sets are planned in the integration milestones. Key
+generation and KEM encapsulation require a platform cryptographically secure
+random-byte provider to be registered before use. No default entropy source is
+provided; this checkout does not yet integrate a reviewed platform provider,
+so production use remains blocked until one is supplied and validated.
 
 
 Rationale
 =========
 
-The initial implementation is intentionally minimal. A deterministic and
-side-effect-free function allows us to validate repository setup, Rust crate
-integration, and first test execution with very low complexity.
+The integration keeps the existing C ABI and implements it as a Bazel C
+library. Automotive sources and headers remain private implementation details;
+only the stable FFI header is intended for external C/C++ consumers.
 
 .. note::
    The rationale should provide evidence of consensus within the community and discuss important objections or concerns raised during discussion.
@@ -69,26 +59,38 @@ integration, and first test execution with very low complexity.
 Specification
 =============
 
-The component currently provides a single public interface:
-
-- ``get_hello_message() -> &'static str``
-
-The requirement, architecture, and implementation inspection preparation are
-documented in the linked sub-documents.
+The public interface is declared in ``include/iav_primula_ffi.h``. Bazel
+consumers link ``//score/iav_primula:iav_primula`` or
+``//score/iav_primula:iav_primula_staticlib`` and depend separately on
+``//score/iav_primula:iav_primula_ffi_headers`` for the stable header.
+Algorithms outside the current ML-DSA/ML-KEM glue scope return
+``IavStatusUnsupportedAlgorithm`` until their integration milestone is
+complete.
 
 
 Backwards Compatibility
 =======================
 
-No backwards compatibility impact is expected at this stage. The component is
-new and currently has no consumers with compatibility constraints.
+Existing status and algorithm numeric values and existing function signatures
+are retained. Additional algorithm identifiers and the one-time RNG-provider
+registration function are additive ABI extensions.
 
 
 Security Impact
 ===============
 
-No relevant security impact is identified for the current scope. The API
-returns a constant string and performs no external interaction.
+This component performs security-critical cryptographic operations. The
+Automotive algorithms call a common random-byte interface whose source
+implementation uses a deterministic LCG; that source is excluded from the
+active build. A project-owned adapter fails closed when no platform provider is
+registered or when a provider request fails, and the glue discards and clears
+temporary results on detected entropy errors.
+
+The current checkout has no reviewed platform RNG registered by the crypto
+provider. Consequently, ML-DSA/ML-KEM key generation and ML-KEM encapsulation
+return ``IavStatusCryptoFailure`` until an integrator supplies a reviewed,
+thread-safe platform provider. The target compiler, allocator behavior, and
+secure-clear implementation also require validation on the deployment MCU.
 
 .. note::
    If there are security concerns in relation to the CR, those concerns should be explicitly written out to make sure reviewers of the CR are aware of them.
@@ -139,8 +141,9 @@ project code under Apache-2.0.
 How to Teach This
 =================
 
-Use the component as a simple Rust library baseline and reference the test
-``returns_expected_message`` as a minimal example for unit/integration flow.
+Include ``iav_primula_ffi.h``, register the platform RNG during initialization,
+and call the stable FFI through the public Bazel C library. Functional
+algorithm coverage and edge-case tests are tracked in M03.
 
 .. note::
    For a CR that adds new functionality or changes behaviour, it is helpful to include a section on how to teach users, new and experienced, how to apply the CR to their work.
@@ -161,8 +164,10 @@ No alternatives were evaluated yet due to the intentionally small first scope.
 Open Issues
 ===========
 
-- Extend API beyond baseline hello message.
-- Decide whether detailed design document remains needed after growth.
+- Integrate and review a target-specific entropy provider.
+- Implement the remaining FN-DSA, SLH-DSA, and HQC FFI glue.
+- Validate the allocator and C11 atomic/thread-local requirements on the target.
+- Add functional GTests for algorithm round trips and FFI edge cases.
 - Confirm if safety analysis artifacts are required once safety-relevant
   behavior is introduced.
 
@@ -194,3 +199,4 @@ Component Detail Information
    safety_analysis/fmea
    safety_analysis/aou_requirements_template
    component_classification
+   ../src/README

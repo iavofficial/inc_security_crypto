@@ -30,8 +30,8 @@ Scope
 Functional Requirements
 -----------------------
 
-.. comp_req:: Provide hello message function
-   :id: comp_req__iav_primula__provide_hello_message
+.. comp_req:: Provide the stable C cryptographic interface
+   :id: comp_req__iav_primula__provide_c_ffi
    :version: 1
    :reqtype: Functional
    :security: NO
@@ -39,32 +39,32 @@ Functional Requirements
    :status: valid
    :satisfied_by: comp__iav_primula
 
-   The component shall provide a public Rust function
-   ``get_hello_message() -> &'static str``.
-
-.. Note:
-   ``get_hello_message()`` shall return the exact value
-   ``"Hello World from iav_primula"``.
+   The component shall provide the public C functions declared by
+   ``include/iav_primula_ffi.h`` and preserve the numeric values of existing
+   status and algorithm identifiers.
 
 Assumption of Use Requirements
 ------------------------------
 
-.. aou_req:: Integrate as Rust library API
-   :id: aou_req__iav_primula__rust_lib_api
+.. aou_req:: Register a reviewed platform random-byte provider
+   :id: aou_req__iav_primula__platform_rng
    :version: 1
    :reqtype: Process
    :security: YES
    :safety: QM
    :status: valid
 
-   The component user shall link the crate ``iav_primula`` and call the public
-   API from Rust code.
+   The integrator shall register a reviewed, cryptographically secure,
+   thread-safe random-byte callback before invoking key generation or KEM
+   encapsulation. The callback and its context shall remain valid for the
+   lifetime of the process. The callback shall return success only after
+   filling the complete requested buffer.
 
 Environmental Requirements
 --------------------------
 
-.. aou_req:: Build environment supports Rust 2021
-   :id: aou_req__iav_primula__rust2021_build_env
+.. aou_req:: Build environment supports the C implementation
+   :id: aou_req__iav_primula__c_build_env
    :version: 1
    :reqtype: Process
    :security: YES
@@ -72,8 +72,9 @@ Environmental Requirements
    :status: valid
    :tags: environment
 
-   The component shall be built in an environment that supports Rust edition
-   2021, consistent with the component BUILD definition.
+   The component shall be built with a C compiler and Bazel toolchain that
+   support the C11 atomics and thread-local storage used by RNG registration
+   and per-operation error tracking.
 
 .. needextend:: "c.this_doc()"
    :+tags: iav_primula

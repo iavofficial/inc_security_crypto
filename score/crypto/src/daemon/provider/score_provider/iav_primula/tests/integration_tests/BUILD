@@ -8,7 +8,9 @@ cc_test(
         "//score/crypto/src/daemon/provider/handler:sign_handler_operations",
         "//score/crypto/src/daemon/provider/handler:verify_handler_operations",
         "//score/crypto/src/daemon/provider/score_provider/iav_primula:provider_iav_primula_library",
+        "//score/crypto/src/daemon/provider/score_provider/iav_primula/tests:iav_primula_test_support",
         "//score/crypto/src/daemon/provider/score_provider/operations/factory:score_handler_factory",
+        "//score/iav_primula:iav_primula_ffi_headers",
         "@googletest//:gtest_main",
     ],
 )
