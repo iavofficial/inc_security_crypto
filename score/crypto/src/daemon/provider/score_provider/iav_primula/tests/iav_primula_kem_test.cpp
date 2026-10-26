@@ -11,21 +11,32 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include "score/crypto/src/daemon/common/daemon_error.hpp"
+#include "score/crypto/src/daemon/common/types.hpp"
 #include "score/crypto/src/daemon/provider/handler/handler_init_params.hpp"
 #include "score/crypto/src/daemon/provider/handler/operations/kem_handler_operations.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/key_management/iav_primula_key_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/operations/kem/iav_primula_kem_handler.hpp"
+#include "score/crypto/src/daemon/provider/score_provider/iav_primula/tests/iav_primula_test_support.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/operations/kem/kem_executor.hpp"
+#include "score/iav_primula/include/iav_primula_ffi.h"
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <variant>
 #include <vector>
+
+#include "score/span.hpp"
 
 namespace
 {
 using namespace score::crypto::daemon;
 using namespace score::crypto::daemon::provider::score_provider::iav_primula;
 using Executor = score::crypto::daemon::provider::score_provider::operations::kem::KemExecutor;
+namespace test_support = score::crypto::daemon::provider::score_provider::iav_primula::test_support;
 
 // ---------------------------------------------------------------------------
 // Algorithm and input validation
@@ -63,20 +74,24 @@ TEST(IavPrimulaKemTest, PropagatesBackendStatusForValidEncapsulation)
     EXPECT_EQ(result.error(), common::DaemonErrorCode::kOperationFailed);
 }
 
-TEST(IavPrimulaKemTest, PropagatesBackendStatusForValidDecapsulation)
+TEST(IavPrimulaKemTest, DecapsulatesInvalidCiphertextUsingImplicitRejection)
 {
     IavPrimulaKemHandler handler{std::make_unique<Executor>(), "ML-KEM-768"};
-    // Use a non-null sentinel to simulate a bound native key handle. The
-    // backend operation is expected to fail before dereferencing this handle.
-    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, {}};
+    test_support::NativeKey native_key;
+    ASSERT_EQ(test_support::GenerateKemKey(IavAlgorithmMlKem768, native_key), IavStatusOk);
+    IavPrimulaKeyHandler key{native_key.release(), {}, {}};
     ::score::crypto::daemon::provider::handler::InitializationParams params{};
     params.bound_key_handler = &key;
     ASSERT_TRUE(handler.InitializeContext(params).has_value());
-    // ML-KEM-768 ciphertexts contain 1088 bytes.
+    // ML-KEM invalid ciphertexts have an implicit-rejection secret.
     const std::vector<std::uint8_t> ciphertext(1088U, 0U);
     auto result = handler.Decapsulate(score::cpp::span<const std::uint8_t>{ciphertext.data(), ciphertext.size()});
-    ASSERT_FALSE(result.has_value());
-    EXPECT_EQ(result.error(), common::DaemonErrorCode::kOperationFailed);
+    ASSERT_TRUE(result.has_value());
+    ASSERT_EQ(result->size(), 1U);
+    const auto* secret = std::get_if<common::OwnedBuffer>(&result->front());
+    ASSERT_NE(secret, nullptr);
+    constexpr std::size_t kSharedSecretSize = 32U;
+    EXPECT_EQ(secret->size(), kSharedSecretSize);
 }
 
 // ---------------------------------------------------------------------------

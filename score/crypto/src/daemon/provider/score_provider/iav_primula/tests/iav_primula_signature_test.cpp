@@ -11,22 +11,34 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "score/crypto/src/daemon/provider/handler/handler_init_params.hpp"
 #include "score/crypto/src/daemon/common/actors.hpp"
+#include "score/crypto/src/daemon/common/daemon_error.hpp"
+#include "score/crypto/src/daemon/common/types.hpp"
+#include "score/crypto/src/daemon/key_management/interfaces/key_types.hpp"
+#include "score/crypto/src/daemon/provider/handler/handler_init_params.hpp"
 #include "score/crypto/src/daemon/provider/handler/operations/sign_handler_operations.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/key_management/iav_primula_key_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/operations/sign/iav_primula_sign_handler.hpp"
+#include "score/crypto/src/daemon/provider/score_provider/iav_primula/tests/iav_primula_test_support.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/operations/sign/sign_executor.hpp"
+#include "score/iav_primula/include/iav_primula_ffi.h"
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <utility>
 #include <vector>
+
+#include "score/span.hpp"
 
 namespace
 {
 using namespace score::crypto::daemon;
 using namespace score::crypto::daemon::provider::score_provider::iav_primula;
 using Executor = score::crypto::daemon::provider::score_provider::operations::sign::SignExecutor;
+namespace test_support = score::crypto::daemon::provider::score_provider::iav_primula::test_support;
 constexpr common::ProviderId kProviderId{7U};
 
 // ---------------------------------------------------------------------------
@@ -47,8 +59,8 @@ TEST(IavPrimulaSignatureTest, ReportsSupportedSizesAndRejectsKem)
         EXPECT_EQ(handler.GetSignatureSize(), test_case.second);
         common::RequestParameters request;
         auto result = handler.Execute(
-            {common::actors::OP_ACTOR_SIGN_HANDLER,
-             provider::handler::sign_handler_operations::SIGN_GET_SIZE}, request);
+            {common::actors::OP_ACTOR_SIGN_HANDLER, provider::handler::sign_handler_operations::SIGN_GET_SIZE},
+            request);
         ASSERT_TRUE(result.has_value());
         ASSERT_EQ(result->size(), 1U);
         EXPECT_EQ(std::get<std::uint64_t>(result->front()), test_case.second);
@@ -69,11 +81,11 @@ TEST(IavPrimulaSignatureTest, ReportsSupportedSizesAndRejectsKem)
 TEST(IavPrimulaSignatureTest, ValidatesOutputBuffer)
 {
     IavPrimulaSignHandler handler{std::make_unique<Executor>(), "ML-DSA-44"};
-    // Use a non-null sentinel to simulate a bound native key handle without
-    // creating a real backend key.
     key_management::ProviderKeyHandle key_handle{};
     key_handle.provider_id = kProviderId;
-    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, key_handle};
+    test_support::NativeKey native_key;
+    ASSERT_EQ(test_support::GenerateSignatureKey(IavAlgorithmMlDsa44, native_key), IavStatusOk);
+    IavPrimulaKeyHandler key{native_key.release(), {}, key_handle};
     ::score::crypto::daemon::provider::handler::InitializationParams params{};
     params.provider_id = kProviderId;
     params.bound_key_handler = &key;
@@ -92,10 +104,13 @@ TEST(IavPrimulaSignatureTest, ValidatesSingleShotRequestAndPropagatesBackendFail
 {
     namespace ops = provider::handler::sign_handler_operations;
     IavPrimulaSignHandler handler{std::make_unique<Executor>(), "ML-DSA-44"};
-    // The current FFI is a placeholder and never dereferences this sentinel.
     key_management::ProviderKeyHandle key_handle{};
     key_handle.provider_id = kProviderId;
-    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, key_handle};
+    // A valid ML-KEM key is deliberately bound to the ML-DSA handler so the
+    // backend safely reports an incompatible key family.
+    test_support::NativeKey native_key;
+    ASSERT_EQ(test_support::GenerateKemKey(IavAlgorithmMlKem768, native_key), IavStatusOk);
+    IavPrimulaKeyHandler key{native_key.release(), {}, key_handle};
     provider::handler::InitializationParams params{};
     params.provider_id = kProviderId;
     params.bound_key_handler = &key;
