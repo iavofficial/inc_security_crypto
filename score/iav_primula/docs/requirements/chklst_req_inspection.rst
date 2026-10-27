@@ -16,7 +16,7 @@
 .. document:: IAV Primula Requirements Inspection Checklist
   :id: doc__iav_primula_req_inspection
   :version: 1
-  :status: draft
+  :status: invalid
   :safety: QM
   :security: YES
   :realizes: wp__requirements_inspect
@@ -127,7 +127,7 @@ See also :need:`doc_concept__wp_inspections` for further information about revie
       -
     * - REQ_07_02
       - Is the attribute *security* set correctly?
-      - For component requirements this checklist item is supported by automated check: "Every requirement which satisfies a feature requirement with security attribute set to YES inherits this". But the component requirements/architecture may additionally also be subject to a :need:`wp__sw_component_security_analysis`.
+      - For component requirements this checklist item is supported by automated check: "Every requirement which satisfies a feature requirement with security attribute set to YES inherits this". The security attributes of the component requirements and architecture shall nevertheless be reviewed for correctness.
       -
       -
       -
