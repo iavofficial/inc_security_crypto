@@ -53,12 +53,6 @@ template <typename T>
     return (!value.empty()) && (value.size() <= score::crypto::AlgorithmId::max_capacity) &&
            (value.find('\0') == std::string_view::npos);
 }
-
-// Validates that no unsupported key-operation-permission bits are set.
-[[nodiscard]] bool ValidPermissions(std::uint64_t value)
-{
-    return value <= static_cast<std::uint64_t>(Permission::kAll);
-}
 }  // namespace
 
 // ---------------------------------------------------------------------------
@@ -528,22 +522,22 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleImport(
     {
         return make_unexpected(Error::kInvalidArgument);
     }
-    const auto* algorithm = Parameter<std::string_view>(request, 0U);
+    const auto algorithm = km_parse::ExtractAlgorithm(request, 0U);
     const auto* data = Parameter<InputBytes>(request, 1U);
     const auto* format = Parameter<std::uint8_t>(request, 2U);
-    const auto* permissions = Parameter<std::uint32_t>(request, 3U);
-    if ((!algorithm) || (!ValidAlgorithm(*algorithm)) || (!data) || (data->empty()) || (!data->data()) ||
-        (!format) || (*format > static_cast<std::uint8_t>(score::crypto::FormatType::kRaw)) || (!permissions) ||
-        (!ValidPermissions(*permissions)))
+    const auto permissions = km_parse::ExtractOptionalPermissions(request, 3U);
+    if ((!algorithm.has_value()) || (!ValidAlgorithm(algorithm.value())) || (!data) || (data->empty()) ||
+        (!data->data()) || (!format) || (*format > static_cast<std::uint8_t>(score::crypto::FormatType::kRaw)) ||
+        (!permissions.has_value()))
     {
         return make_unexpected(Error::kInvalidArgument);
     }
     km::KeyImportRequest params;
-    params.algorithm = std::string{*algorithm};
+    params.algorithm = std::string{algorithm.value()};
     params.key_data = data->data();
     params.key_data_size = data->size();
     params.format = static_cast<score::crypto::FormatType>(*format);
-    params.permissions = static_cast<Permission>(*permissions);
+    params.permissions = permissions.value();
     common::ResponseParameters output;
     output.reserve(2U);
     auto result = m_factory->ImportKey(params);
