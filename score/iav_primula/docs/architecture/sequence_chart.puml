@@ -1,0 +1,186 @@
+/********************************************************************************
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Apache License Version 2.0 which is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ ********************************************************************************/
+
+@startuml iav_primula_verify_sequence
+title IAV_PRIMULA – Signature Verification with ML-DSA-44
+
+hide footbox
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+actor "Application" as app
+participant "Daemon-Initialisierung" as startup
+participant "Crypto API" as crypto_api
+participant "Mediator" as mediator
+participant "ProviderManager" as provider_manager
+participant "ScoreProviderFactory" as score_factory
+participant "PrimulaBackendAdapter" as iav_factory
+participant "IavPrimulaProvider" as provider
+participant "IavPrimulaHandlerFactory" as factory
+participant "IavPrimulaVerifyHandler" as verify_handler
+participant "VerifyExecutor" as executor
+participant "IavPrimulaKeyHandler" as key_handler
+participant "Rust FFI\n(iav_verify)" as ffi
+
+note over app, ffi
+  Example algorithm: ML-DSA-44
+  Handler ID: VERIFY
+  Operation: VERIFY_SS (single-shot verification)
+end note
+
+note over app, key_handler
+  Precondition: The application has a keyRef for an
+  IAV_PRIMULA key with a valid native handle.
+  An imported public key without a native handle
+  is rejected by InitializeContext() as an incompatible key.
+end note
+
+== Provider Registration During Initialization ==
+
+startup -> score_factory : CreateAndRegister(config)
+activate score_factory
+score_factory -> score_factory : providerImpl == "primula"?
+score_factory -> iav_factory : GetProviderCreator()
+activate iav_factory
+iav_factory --> score_factory : ProviderCreator
+score_factory -> provider : create_provider()
+score_factory -> provider_manager : RegisterProvider(\n"IAV_PRIMULA", provider, SPECIALIZED)
+provider_manager --> score_factory : registration successful / error
+deactivate iav_factory
+score_factory --> startup : initialization result
+deactivate score_factory
+
+note over startup, provider_manager
+  Registration runs only at defined points in time,
+  typically during daemon startup or an explicit
+  provider reconfiguration. Provider initialization
+  is separate and occurs on the first provider lookup
+  or when otherwise required. The application does not
+  trigger registration for every individual verify request.
+end note
+
+== 1. Request a Verify Context ==
+
+app -> crypto_api : CTX_CREATE(VERIFY, "ML-DSA-44", keyRef)
+crypto_api -> mediator : CTX_CREATE(VERIFY, "ML-DSA-44", keyRef)
+activate mediator
+
+mediator -> provider_manager : resolve provider for IAV_PRIMULA
+provider_manager --> mediator : IavPrimulaProvider
+
+mediator -> provider : GetCryptoHandlerFactory()
+provider --> mediator : ICryptoHandlerFactory
+
+mediator -> factory : CreateHandler("VERIFY", "ML-DSA-44")
+factory -> factory : algorithm validation
+factory -> verify_handler : constructor(VerifyExecutor, "ML-DSA-44")
+factory --> mediator : Handler::Sptr
+
+== 2. Bind the Public Key to the Context ==
+
+mediator -> mediator : resolve keyRef and bind key
+mediator -> verify_handler : InitializeContext(init_params)
+activate verify_handler
+
+verify_handler -> verify_handler : ValidateAlgorithm()
+verify_handler -> verify_handler : initialize base context
+verify_handler -> key_handler : GetNativeHandle()
+key_handler --> verify_handler : native key handle
+verify_handler --> mediator : success / error
+deactivate verify_handler
+
+mediator --> crypto_api : contextId / error
+crypto_api --> app : contextId / error
+deactivate mediator
+
+note over app
+  The context remains available after CTX_CREATE.
+  The application uses the contextId afterwards,
+  not the handler directly.
+end note
+
+== 3. Verify the Message and Signature ==
+
+app -> crypto_api : Execute(contextId, OperationIdentifier{VERIFY_HANDLER, VERIFY_SS}, RequestParameters{message, signature})
+activate mediator
+crypto_api -> mediator : Execute(contextId, OperationIdentifier{VERIFY_HANDLER, VERIFY_SS}, RequestParameters{message, signature})
+mediator -> verify_handler : Execute(operationId, request)
+activate verify_handler
+verify_handler -> executor : Execute(handler, operationId, request)
+activate executor
+
+executor -> executor : recognize VERIFY_SS
+executor -> executor : state must be IDLE
+executor -> executor : validate request parameters
+executor -> verify_handler : SingleShotVerify(message, signature)
+
+verify_handler -> verify_handler : validate algorithm
+verify_handler -> verify_handler : validate RequestParameters as byte spans
+verify_handler -> verify_handler : verify signature size = 2420 bytes
+verify_handler -> ffi : iav_verify(nativeKey, message, signature)
+activate ffi
+ffi --> verify_handler : iav_status
+deactivate ffi
+
+alt iav_status == IAV_STATUS_OK
+    verify_handler --> executor : Expected<bool>{true}
+    executor --> verify_handler : ResponseParameters{true}
+    verify_handler --> mediator : ResponseParameters{true}
+    mediator --> crypto_api : signature valid (true)
+    crypto_api --> app : signature valid (true)
+else iav_status == IAV_STATUS_VERIFICATION_FAILED
+    verify_handler --> executor : Expected<bool>{false}
+    executor --> verify_handler : ResponseParameters{false}
+    verify_handler --> mediator : ResponseParameters{false}
+    mediator --> crypto_api : signature invalid (false)
+    crypto_api --> app : signature invalid (false)
+else other backend status
+    verify_handler --> executor : kAlgorithmExecutionFailed
+    executor --> mediator : error
+    mediator --> crypto_api : verification failed
+    crypto_api --> app : verification failed
+end
+
+deactivate executor
+deactivate verify_handler
+deactivate mediator
+
+note over app, ffi
+  Note for the current branch:
+  ffi.rs is still a stub and currently returns
+  IAV_STATUS_UNSUPPORTED_ALGORITHM. The handler
+  forwards this status to the application as
+  kAlgorithmExecutionFailed.
+end note
+
+legend
+  <b>Important C++ Interfaces</b>
+
+  <i>ICryptoHandlerFactory::CreateHandler(handlerId, algorithm)</i>
+  Creates a handler for VERIFY and ML-DSA-44.
+
+  <i>Handler::InitializeContext(InitializationParams)</i>
+  Initializes the context and binds the provider-specific key.
+
+  <i>Handler::Execute(OperationIdentifier, RequestParameters)</i>
+  Executes an operation on the already initialized context.
+
+  <i>VERIFY_SS</i>
+  Means single-shot verification: the message and signature are passed in a
+  single request. Streaming would require VERIFY_INIT, VERIFY_UPDATE, and
+  VERIFY_FINALIZE in sequence.
+endlegend
+
+@enduml

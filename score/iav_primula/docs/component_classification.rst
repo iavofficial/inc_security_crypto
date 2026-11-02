@@ -15,25 +15,26 @@
 Component Classification
 ========================
 
-.. note:: Document header
-
-.. document:: IAV Primula Component Classification
+.. document:: IAV-Primula Component Classification
    :id: doc__iav_primula_comp_class
    :version: 1
-   :status: draft
+   :status: invalid
    :safety: QM
    :security: YES
    :realizes: wp__sw_component_class
    :tags: iav_primula
 
-| Classification of ``iav_primula``
+| Classification of ``iav_primula`` (IAV-Primula)
 |
-| GitHub: ``https://github.com/eclipse-score/inc_security_crypto/tree/main/score/t.b.d``
+| Repository path: ``score/iav_primula``
 |
 | Additional documentation considered:
 | - ``docs/index.rst``
 | - ``docs/requirements/requirements.rst``
 | - ``docs/architecture/component_architecture.rst``
+| - ``docs/detailed_design/detailed_design.rst``
+| - ``docs/safety_analysis/dfa.rst``
+| - ``docs/safety_analysis/fmea.rst``
 
 
 Step 1: Determine (P): the uncertainty of the Processes applied
@@ -55,33 +56,33 @@ Step 1: Determine (P): the uncertainty of the Processes applied
 
         * - 1
           - Are rules, state-of-the art processes applied for the design, implementation and verification?
-          - HE
-          - Basic project rules are applied (Rust 2021 crate, tests, standard docs structure).
+          - PE
+          - Rust 2021, Bazel, C-ABI, test, and documentation processes are established, but the concrete PQC implementation and its verification are not complete.
 
         * - 2
           - Are requirements available?
-          - HE
-          - Initial component requirements are documented.
+          - PE
+          - Requirements for the C ABI, algorithms, handles, status codes, and buffers are documented, but the functional requirements remain draft until implementation and review are complete.
 
         * - 3
           - Are specifications for functionalities and properties available (architecture)?
-          - HE
-          - Initial component architecture documentation is available.
+          - PE
+          - The C++ to C ABI to Rust FFI decomposition is documented, but the PQC backend is not connected and the architecture is still draft.
 
         * - 4
           - Are design specifications available?
-          - HE
-          - Detailed design baseline exists for current low complexity scope.
+          - PE
+          - FFI representation, ownership, and error handling are documented, but successful key lifecycle and backend behavior are not yet implemented.
 
         * - 5
           - Are configuration specification and data available, if applicable?
           - HE
-          - No dedicated configuration data is currently required.
+          - No dedicated runtime configuration data is currently required for the Rust FFI stub.
 
         * - 6
           - Are verification measures including tests and reports available?
-          - HE
-          - Hello-world test exists and verifies expected output.
+          - PE
+          - Two Rust tests verify stub return values and Rust/C ABI identifier consistency. No tests yet verify real PQC operations, pointer validation, buffer handling, or key-resource cleanup.
 
 
 | (P=1) shall be selected when none of the determined process measures indicate PE or NE.
@@ -89,7 +90,9 @@ Step 1: Determine (P): the uncertainty of the Processes applied
 |       the risk of systematic faults due to these gaps is sufficiently low or manageable by mitigating the gaps.
 | (P=3) in all other cases.
 
-``iav_primula`` is determined as ``P=1``
+``iav_primula`` is determined as ``P=2`` because process evidence is currently
+partial but the identified gaps are manageable while the backend and its
+verification are being developed.
 
 
 Step 2: Determine (C): the uncertainty of finding systematic faults based on the Complexity
@@ -116,7 +119,7 @@ Step 2: Determine (C): the uncertainty of finding systematic faults based on the
       - High amount of Lines of Code
       - Lines of Code (without comments) (generated code is excluded, e.g. ProtoCmpl)
       - NH
-      - 1 function
+      - Small Rust implementation with 9 exported FFI functions.
 
     * - 2
       - Unsafe code used / total unsafe code
@@ -124,26 +127,26 @@ Step 2: Determine (C): the uncertainty of finding systematic faults based on the
             * LoUC+N: lines of unsafe code with safety note
             * LoUC  : lines of unsafe code, no safety note
       - NH
-      - 0
+      - 0 explicit unsafe blocks; the FFI still accepts raw pointers and requires boundary validation.
 
     * - 3
       - | Test exists / Coverage (Function, Line)
         | (maybe better: testability, but how to measure?)
       - Existing Tests Coverage
       - NH
-      - 1 test present
+      - 2 tests present; coverage of the concrete backend is not yet available.
 
     * - 4
       - High amount of public function interfaces
       - Number of public function interfaces
       - NH
-      - 1 public function
+      - 9 exported C-ABI functions plus C-compatible status and algorithm types.
 
     * - 5
       - High amount of function parameters
       - Number of parameters
       - NH
-      - 0 parameters for public API
+      - Up to 7 parameters on the KEM encapsulation interface, including output pointers and lengths.
 
 
 | (C=1) shall be selected when none of the determined complexity measures indicate HM or NM.
@@ -152,7 +155,10 @@ Step 2: Determine (C): the uncertainty of finding systematic faults based on the
 | (C=3) in all other cases.
 |
 
-``iav_primula`` is determined as ``C=1``
+``iav_primula`` is determined as ``C=1``. The FFI boundary adds pointer,
+buffer, ownership, and error-handling considerations, but the current code
+size and structural complexity remain below the defined high-complexity
+thresholds.
 
 
 Step 3: Determine (CLAS_OUT): the classification outcome
@@ -177,7 +183,13 @@ Step 3: Determine (CLAS_OUT): the classification outcome
 
 Step 4: Document all results and rationale for choosing (P) and (C) and (CLAS_OUT)
 ----------------------------------------------------------------------------------
-This document
+The current result is ``P=2`` and ``C=1``. This leads to ``CLAS_OUT=Q``
+according to the classification matrix. The process rating is reduced from
+``P=1`` because the concrete PQC backend, complete FFI validation, key-handle
+lifecycle, and corresponding verification evidence are still open. The
+complexity rating remains ``C=1`` because the implementation is small and the
+measured complexity indicators do not reach the high-complexity category,
+although the FFI boundary requires dedicated review.
 
 
 Step 5: Based on (CLAS_OUT) select the activities

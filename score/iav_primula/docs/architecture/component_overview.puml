@@ -1,0 +1,285 @@
+/********************************************************************************
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Apache License Version 2.0 which is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ ********************************************************************************/
+
+@startuml iav_primula_component_diagram
+title IAV_PRIMULA – Components and Call Paths
+
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam defaultFontName Arial
+
+package "Daemon" as daemon {
+  component "Application / Crypto API" as app #D6EAF8
+  component "Mediator / CryptoOperations" as mediator #D6EAF8
+  component "ProviderManager" as provider_manager #D6EAF8
+  component "ScoreProviderFactory" as provider_factory #D6EAF8
+
+  app --> mediator : CreateHandler(context, algorithm)\nExecute(operation)
+  mediator --> provider_manager : select provider
+  provider_manager --> provider_factory : register provider
+}
+
+package "Score Provider Layer (implemented)" as score_provider {
+  component "PrimulaBackendAdapter" as iav_factory #D5F5E3
+  component "IavPrimulaProvider\n(IAV_PRIMULA / SPECIALIZED)" as iav_provider #D5F5E3
+  component "IavPrimulaHandlerFactory" as handler_factory #D5F5E3
+
+  provider_factory --> iav_factory : providerImpl = primula
+  iav_factory --> iav_provider : creates and registers
+  iav_provider --> handler_factory : CreateHandlerFactory()
+}
+
+package "Provider-Neutral Handler Layer (implemented)" as generic_handlers {
+  component "ScoreSignHandler" as score_sign #A9DFBF
+  component "SignExecutor\nState Machine / Dispatch" as sign_executor #A9DFBF
+  component "ScoreVerifyHandler" as score_verify #A9DFBF
+  component "VerifyExecutor\nState Machine / Dispatch" as verify_executor #A9DFBF
+  component "ScoreKemHandler" as score_kem #A9DFBF
+  component "KemExecutor\nDispatch" as kem_executor #A9DFBF
+
+  handler_factory --> score_sign : SIGN + ML-DSA
+  handler_factory --> score_verify : VERIFY + ML-DSA
+  handler_factory ..> score_kem : KEM + ML-KEM\n(provider-neutral basis)
+
+  score_sign --> sign_executor : Execute()
+  score_verify --> verify_executor : Execute()
+  score_kem --> kem_executor : Execute()
+}
+
+package "IAV_PRIMULA Provider Implementation (implemented)" as iav_implementation {
+  component "IavPrimulaSignHandler" as iav_sign #FCF3CF
+  component "IavPrimulaVerifyHandler" as iav_verify #FCF3CF
+  component "IavPrimulaKemHandler" as iav_kem #FCF3CF
+  component "IavPrimulaKeyFactory" as key_factory #FCF3CF
+  component "IavPrimulaKeyHandler\n(owns opaque native key handle)" as key_handler #FCF3CF
+
+  score_sign <|-- iav_sign
+  score_verify <|-- iav_verify
+  score_kem <|-- iav_kem
+  handler_factory --> iav_sign : creates
+  handler_factory --> iav_verify : creates
+  handler_factory --> iav_kem : creates for ML-KEM
+
+  iav_provider --> key_factory : initialize
+  key_factory --> key_handler : GenerateKey / ImportKey
+  iav_sign --> key_handler : bound key
+  iav_verify --> key_handler : bound key
+}
+
+package "Rust Backend / C ABI (partially implemented)" as rust_backend {
+  component "iav_primula_ffi.h\nC ABI" as ffi_header #D6EAF8
+  component "ffi.rs\nRust FFI Layer" as ffi_rs #FDEBD0
+  component "Primula Crypto Implementation\n(planned / not connected)" as primula_crypto #F5B7B1
+
+  key_factory --> ffi_header : iav_keypair_generate()\niav_public_key_export()
+  iav_sign --> ffi_header : iav_sign()
+  iav_verify --> ffi_header : iav_verify()
+  iav_kem --> ffi_header : iav_kem_keypair_generate()\niav_kem_public_key_export()\niav_kem_encapsulate()\niav_kem_decapsulate()
+  ffi_header --> ffi_rs : ABI boundary
+  ffi_rs -[#b22222]-> primula_crypto : intended backend call
+}
+
+package "Operation IDs / Algorithm Metadata" as metadata {
+  component "actors.hpp / operation_names.hpp" as operation_ids #E8DAEF
+  component "algorithm_info.hpp\nML-DSA / ML-KEM sizes" as algorithm_info #E8DAEF
+
+  operation_ids ..> sign_executor
+  operation_ids ..> verify_executor
+  operation_ids ..> kem_executor
+  algorithm_info ..> handler_factory : algorithm validation
+  algorithm_info ..> iav_sign
+  algorithm_info ..> iav_verify
+  algorithm_info ..> key_factory
+}
+
+note right of iav_sign
+  Implemented in the current C++ code:
+  - algorithm validation
+  - signature sizes
+  - single-shot dispatch
+  - buffer and key checks
+
+  Planned extension:
+  concrete ML-DSA streaming support.
+end note
+
+note right of score_kem
+  The KEM API and executor form the
+  provider-neutral basis.
+
+  The IAV_PRIMULA path uses
+  IavPrimulaKemHandler. It validates
+  algorithms and buffer sizes and
+  delegates to the C ABI.
+end note
+
+note bottom of ffi_rs
+  The ABI functions are exported, but
+  the actual Rust cryptography is still
+  a stub. Key generation, signing,
+  verification, and KEM currently return
+  IAV_STATUS_UNSUPPORTED_ALGORITHM.
+end note
+
+legend
+  <b>Layer descriptions</b>
+
+  <b>Color coding</b>
+  <color:#21618C>Blue</color>   Daemon and public C ABI
+  <color:#196F3D>Green</color>  implemented provider layer
+  <color:#148F77>Teal</color>   provider-neutral handlers
+  <color:#9A7D0A>Yellow</color> IAV_PRIMULA adapter implementation
+  <color:#6C3483>Purple</color> operation and algorithm metadata
+  <color:#CA6F1E>Orange</color> Rust FFI layer
+  <color:#B03A2E>Red</color>    not implemented / stub
+
+  <b>Daemon</b>
+  The daemon is the application-facing mediation and runtime layer. It
+  receives cryptographic requests, selects the appropriate provider through
+  the ProviderManager, creates a concrete handler, and forwards operations,
+  parameters, and bound keys. This keeps the application and daemon core
+  independent of the concrete cryptographic implementation.
+
+  <i>Application / Crypto API</i>
+  The entry point for a caller. It requests a context or handler for an
+  operation and algorithm, then starts the requested cryptographic operation.
+
+  <i>Mediator / CryptoOperations</i>
+  Mediates between the application-facing API and daemon services. It
+  translates context and operation requests into provider calls and forwards
+  request and response parameters.
+
+  <i>ProviderManager</i>
+  Manages registered cryptographic providers and selects the provider based on
+  the provider ID or configuration. This allows the daemon to use multiple
+  implementations without depending on their concrete classes.
+
+  <i>ScoreProviderFactory</i>
+  Reads the configured implementation tag and registers the matching provider.
+  For <i>providerImpl = primula</i>, it uses the
+  <i>PrimulaBackendAdapter</i>.
+
+  <b>Score Provider Layer</b>
+  Provides the common provider lifecycle and registration model. It connects
+  provider registration with handler creation and provider-specific key
+  management.
+
+  <i>PrimulaBackendAdapter</i>
+  Provides the provider metadata for <i>primula</i> and creates an
+  <i>IavPrimulaProvider</i>. The provider is registered as
+  <i>SPECIALIZED</i> and is used for PQC operations.
+
+  <i>IavPrimulaProvider</i>
+  Implements provider initialization and shutdown. It also provides the
+  IAV_PRIMULA key factory and handler factory. Initialization currently only
+  creates the key factory; the concrete Primula cryptography is not initialized
+  yet.
+
+  <i>IavPrimulaHandlerFactory</i>
+  Selects the concrete handler based on the handler ID and algorithm: ML-DSA
+  produces sign or verify handlers, while ML-KEM produces the KEM handler.
+  Unsupported algorithm families are rejected.
+
+  <b>Operation IDs / Algorithm Metadata</b>
+  Defines the common identifiers and size information. It ensures that
+  handlers and executors use the same operations, algorithms, and buffer sizes.
+
+  <i>actors.hpp / operation_names.hpp</i>
+  Define numeric actor and operation identifiers and their readable names for
+  logging and dispatch. They provide the common language between daemon,
+  executor, and handler.
+
+  <i>algorithm_info.hpp</i>
+  Contains the supported ML-DSA and ML-KEM parameter sets and fixed sizes.
+  Lookup and validation functions are shared by factories, handlers, and the
+  key factory.
+
+  <b>Provider-Neutral Handler Layer</b>
+  Unifies calls to sign, verify, and KEM operations. It encapsulates the common
+  handler contract, parameter validation, and operation state management.
+
+  <i>ScoreSignHandler / ScoreVerifyHandler</i>
+  Implement the common handler contract for signing and verification. They
+  hold the algorithm and streaming state and delegate processing to derived
+  provider handlers.
+
+  <i>SignExecutor / VerifyExecutor</i>
+  Translate operation IDs into typed handler calls. They validate parameters,
+  enforce the INIT, UPDATE, and FINALIZE order, and handle single-shot and
+  reset operations.
+
+  <i>ScoreKemHandler</i>
+  Defines the provider-neutral contract for key generation, encapsulation,
+  decapsulation, and reset. Concrete KEM processing is added by
+  <i>IavPrimulaKemHandler</i>.
+
+  <i>KemExecutor</i>
+  Dispatches KEM operation IDs and validates the basic number and form of
+  request parameters before calling the concrete KEM handler.
+
+  <b>IAV_PRIMULA Provider Implementation</b>
+  Contains the concrete adapter logic for IAV_PRIMULA. It validates algorithms
+  and inputs, binds provider-owned keys, and translates generic requests into
+  the IAV_PRIMULA C ABI.
+
+  <i>IavPrimulaSignHandler</i>
+  Validates ML-DSA, binds a native private key, and implements IAV_PRIMULA
+  single-shot signing including signature-size and output-buffer checks.
+
+  <i>IavPrimulaVerifyHandler</i>
+  Validates ML-DSA, binds the native key, and verifies single-shot signatures.
+  Invalid signatures are returned as negative verification results; other
+  backend errors are returned as daemon errors.
+
+  <i>IavPrimulaKemHandler</i>
+  Implements the concrete ML-KEM adapter. It binds a key for decapsulation,
+  validates public-key and ciphertext sizes, and delegates key generation,
+  encapsulation, and decapsulation to the C ABI.
+
+  <i>IavPrimulaKeyFactory</i>
+  Generates or imports IAV_PRIMULA keys for ML-DSA and ML-KEM. It translates
+  textual algorithm IDs into C ABI enums and creates the associated key handler.
+
+  <i>IavPrimulaKeyHandler</i>
+  Owns the opaque native key handle and the cached public-key representation.
+  It provides export and release functions, enforces permissions, and clears
+  cached public-key data on release.
+
+  Provider-specific key-slot integration is still planned.
+
+  <b>Rust Backend / C ABI</b>
+  Forms the stable boundary between C++ and Rust. The header defines the ABI;
+  <i>ffi.rs</i> exports the functions and hides Rust-side handles. The actual
+  Primula backend is intended to be connected below this boundary.
+
+  <i>iav_primula_ffi.h</i>
+  Defines the C/C++ contract: opaque handles, status codes, algorithm values,
+  and function signatures for ML-DSA and ML-KEM.
+
+  <i>ffi.rs</i>
+  Exports C-compatible Rust functions, keeps the Rust handle representation
+  private, and maps backend errors to stable <i>iav_status</i> values.
+
+  <i>Primula Crypto Implementation</i>
+  Is the intended post-quantum cryptography. It is not integrated in the
+  current branch; the FFI functions therefore still return
+  <i>IAV_STATUS_UNSUPPORTED_ALGORITHM</i>.
+
+  <b>Relationship symbols:</b>
+  --> implemented call or ownership path    ..> abstract or prepared connection
+  <color:#b22222>red</color> not currently functional / stub
+endlegend
+
+@enduml
