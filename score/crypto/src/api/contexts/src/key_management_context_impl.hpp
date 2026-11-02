@@ -125,7 +125,18 @@ class KeyManagementContextImpl final : public IKeyManagementContext
     score::Result<KeySlotInfo> GetKeySlotInfo(const CryptoResourceId& slot) override;
 
   private:
-    score::Result<daemon::control_plane::protocol::SingleOperationResponse> ExchangeKeyOperation(
+    /// @brief Sends a key-management request and returns the unvalidated daemon response.
+    /// @param request Built request, or the error encountered during request construction.
+    /// @return Daemon response, or a request-construction, connection, or transport error.
+    /// The caller validates its operation-specific response and maps errors as required.
+    score::Result<daemon::control_plane::protocol::ControlResponse> SendKeyManagementRequest(
+        const Expected<daemon::control_plane::protocol::ControlRequest, CryptoErrorCode>& request);
+
+    /// @brief Sends a key-management request and validates its single-operation response.
+    /// @param request Built request, or the error encountered during request construction.
+    /// @param response_parameter_count Exact number of parameters required in the response.
+    /// @return Successful response with matching actor, action, and parameter count, or an error.
+    score::Result<daemon::control_plane::protocol::SingleOperationResponse> ExecuteKeyManagementRequest(
         const Expected<daemon::control_plane::protocol::ControlRequest, CryptoErrorCode>& request,
         std::size_t response_parameter_count);
     score::Result<CryptoResourceGuard> MakeKeyGuard(const daemon::common::ResponseParameters& parameters,

@@ -178,23 +178,33 @@ KeyManagementContextImpl::~KeyManagementContextImpl() = default;
 // Internal IPC helpers
 // ---------------------------------------------------------------------------
 
-score::Result<proto::SingleOperationResponse> KeyManagementContextImpl::ExchangeKeyOperation(
-    const Expected<proto::ControlRequest, CryptoErrorCode>& request,
-    std::size_t response_parameter_count)
+score::Result<proto::ControlResponse> KeyManagementContextImpl::SendKeyManagementRequest(
+    const Expected<proto::ControlRequest, CryptoErrorCode>& request)
 {
     if (!request.has_value())
     {
-        return score::Result<proto::SingleOperationResponse>{score::unexpect, MakeError(request.error())};
+        return score::Result<proto::ControlResponse>{score::unexpect, MakeError(request.error())};
     }
     if (!m_connection)
     {
-        return score::Result<proto::SingleOperationResponse>{score::unexpect,
-                                                             MakeError(CryptoErrorCode::kConnectionFailed)};
+        return score::Result<proto::ControlResponse>{score::unexpect, MakeError(CryptoErrorCode::kConnectionFailed)};
     }
     auto response = m_connection->SendRequest(request.value());
     if (!response.has_value())
     {
-        return score::Result<proto::SingleOperationResponse>{score::unexpect, MakeError(response.error())};
+        return score::Result<proto::ControlResponse>{score::unexpect, MakeError(response.error())};
+    }
+    return std::move(response.value());
+}
+
+score::Result<proto::SingleOperationResponse> KeyManagementContextImpl::ExecuteKeyManagementRequest(
+    const Expected<proto::ControlRequest, CryptoErrorCode>& request,
+    std::size_t response_parameter_count)
+{
+    auto response = SendKeyManagementRequest(request);
+    if (!response.has_value())
+    {
+        return score::Result<proto::SingleOperationResponse>{score::unexpect, response.error()};
     }
     auto& operations = response.value().operation.operations;
     if (operations.size() != 1U || operations[0].operationId.operationActor != actors::OP_ACTOR_KEY_MANAGEMENT ||
@@ -265,7 +275,7 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::GenerateKey(const G
             score::unexpect, MakeError(CryptoErrorCode::kKeyGenerationFailed, "Failed to build KEY_GENERATE request")};
     }
 
-    auto control_response_res = m_connection->SendRequest(control_req_result.value());
+    auto control_response_res = SendKeyManagementRequest(control_req_result);
 
     auto validator = proto::ControlResponseValidator::FromResult(control_response_res);
     validator.expectOperation({actors::OP_ACTOR_KEY_MANAGEMENT, keymgmt_ops::KEY_GENERATE}).expectSuccess();
@@ -377,15 +387,16 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::ImportKey(const Imp
     {
         return score::Result<CryptoResourceGuard>{score::unexpect, MakeError(CryptoErrorCode::kInvalidArgument)};
     }
-    auto reply = ExchangeKeyOperation(proto::ControlRequestBuilder()
-                                          .forDataNodeId(m_context_id)
-                                          .operation({actors::OP_ACTOR_KEY_MANAGEMENT, keymgmt_ops::KEY_IMPORT})
-                                          .with_in_string(params.algorithm)
-                                          .with_in_data_buffer(params.key_data)
-                                          .with_in_val_uint8(static_cast<std::uint8_t>(params.format))
-                                          .with_in_val_uint32(static_cast<std::uint32_t>(params.permissions))
-                                          .build(),
-                                      2U);
+    auto reply = ExecuteKeyManagementRequest(
+        proto::ControlRequestBuilder()
+            .forDataNodeId(m_context_id)
+            .operation({actors::OP_ACTOR_KEY_MANAGEMENT, keymgmt_ops::KEY_IMPORT})
+            .with_in_string(params.algorithm)
+            .with_in_data_buffer(params.key_data)
+            .with_in_val_uint8(static_cast<std::uint8_t>(params.format))
+            .with_in_val_uint32(static_cast<std::uint32_t>(params.permissions))
+            .build(),
+        2U);
     if (!reply.has_value())
     {
         return score::Result<CryptoResourceGuard>{score::unexpect, reply.error()};
@@ -400,13 +411,14 @@ score::Result<std::size_t> KeyManagementContextImpl::GetExportKeySize(const Cryp
     {
         return score::Result<std::size_t>{score::unexpect, MakeError(CryptoErrorCode::kInvalidArgument)};
     }
-    auto reply = ExchangeKeyOperation(proto::ControlRequestBuilder()
-                                          .forDataNodeId(m_context_id)
-                                          .operation({actors::OP_ACTOR_KEY_MANAGEMENT, keymgmt_ops::KEY_GET_EXPORT_SIZE})
-                                          .with_in_val_uint64(key.id)
-                                          .with_in_val_uint8(static_cast<std::uint8_t>(format))
-                                          .build(),
-                                      1U);
+    auto reply = ExecuteKeyManagementRequest(
+        proto::ControlRequestBuilder()
+            .forDataNodeId(m_context_id)
+            .operation({actors::OP_ACTOR_KEY_MANAGEMENT, keymgmt_ops::KEY_GET_EXPORT_SIZE})
+            .with_in_val_uint64(key.id)
+            .with_in_val_uint8(static_cast<std::uint8_t>(format))
+            .build(),
+        1U);
     if (!reply.has_value())
     {
         return score::Result<std::size_t>{score::unexpect, reply.error()};
@@ -428,13 +440,14 @@ score::Result<std::size_t> KeyManagementContextImpl::ExportKey(const CryptoResou
     {
         return score::Result<std::size_t>{score::unexpect, MakeError(CryptoErrorCode::kInvalidArgument)};
     }
-    auto reply = ExchangeKeyOperation(proto::ControlRequestBuilder()
-                                          .forDataNodeId(m_context_id)
-                                          .operation({actors::OP_ACTOR_KEY_MANAGEMENT, keymgmt_ops::KEY_EXPORT})
-                                          .with_in_val_uint64(key.id)
-                                          .with_in_val_uint8(static_cast<std::uint8_t>(format))
-                                          .build(),
-                                      1U);
+    auto reply = ExecuteKeyManagementRequest(
+        proto::ControlRequestBuilder()
+            .forDataNodeId(m_context_id)
+            .operation({actors::OP_ACTOR_KEY_MANAGEMENT, keymgmt_ops::KEY_EXPORT})
+            .with_in_val_uint64(key.id)
+            .with_in_val_uint8(static_cast<std::uint8_t>(format))
+            .build(),
+        1U);
     if (!reply.has_value())
     {
         return score::Result<std::size_t>{score::unexpect, reply.error()};
@@ -564,13 +577,14 @@ score::Result<std::size_t> KeyManagementContextImpl::GetEncapsulationCiphertextS
     {
         return score::Result<std::size_t>{score::unexpect, valid.error()};
     }
-    auto reply = ExchangeKeyOperation(proto::ControlRequestBuilder()
-                                          .forDataNodeId(m_context_id)
-                                          .operation({actors::OP_ACTOR_KEY_MANAGEMENT, keymgmt_ops::KEY_GET_ENCAPSULATION_SIZE})
-                                          .with_in_string(params.algorithm)
-                                          .with_in_val_uint64(params.peer_public_key.id)
-                                          .build(),
-                                      1U);
+    auto reply = ExecuteKeyManagementRequest(
+        proto::ControlRequestBuilder()
+            .forDataNodeId(m_context_id)
+            .operation({actors::OP_ACTOR_KEY_MANAGEMENT, keymgmt_ops::KEY_GET_ENCAPSULATION_SIZE})
+            .with_in_string(params.algorithm)
+            .with_in_val_uint64(params.peer_public_key.id)
+            .build(),
+        1U);
     if (!reply.has_value())
     {
         return score::Result<std::size_t>{score::unexpect, reply.error()};
@@ -595,14 +609,15 @@ score::Result<EncapsulationResult> KeyManagementContextImpl::EncapsulateKey(cons
     {
         return score::Result<EncapsulationResult>{score::unexpect, MakeError(CryptoErrorCode::kInsufficientBufferSize)};
     }
-    auto reply = ExchangeKeyOperation(proto::ControlRequestBuilder()
-                                          .forDataNodeId(m_context_id)
-                                          .operation({actors::OP_ACTOR_KEY_MANAGEMENT, keymgmt_ops::KEY_ENCAPSULATE})
-                                          .with_in_string(params.algorithm)
-                                          .with_in_val_uint64(params.peer_public_key.id)
-                                          .with_in_val_uint64(ciphertext_out.size())
-                                          .build(),
-                                      3U);
+    auto reply = ExecuteKeyManagementRequest(
+        proto::ControlRequestBuilder()
+            .forDataNodeId(m_context_id)
+            .operation({actors::OP_ACTOR_KEY_MANAGEMENT, keymgmt_ops::KEY_ENCAPSULATE})
+            .with_in_string(params.algorithm)
+            .with_in_val_uint64(params.peer_public_key.id)
+            .with_in_val_uint64(ciphertext_out.size())
+            .build(),
+        3U);
     if (!reply.has_value())
     {
         return score::Result<EncapsulationResult>{score::unexpect, reply.error()};
@@ -629,14 +644,15 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::DecapsulateKey(cons
     {
         return score::Result<CryptoResourceGuard>{score::unexpect, valid.error()};
     }
-    auto reply = ExchangeKeyOperation(proto::ControlRequestBuilder()
-                                          .forDataNodeId(m_context_id)
-                                          .operation({actors::OP_ACTOR_KEY_MANAGEMENT, keymgmt_ops::KEY_DECAPSULATE})
-                                          .with_in_string(params.algorithm)
-                                          .with_in_val_uint64(params.private_key.id)
-                                          .with_in_data_buffer(params.ciphertext)
-                                          .build(),
-                                      2U);
+    auto reply = ExecuteKeyManagementRequest(
+        proto::ControlRequestBuilder()
+            .forDataNodeId(m_context_id)
+            .operation({actors::OP_ACTOR_KEY_MANAGEMENT, keymgmt_ops::KEY_DECAPSULATE})
+            .with_in_string(params.algorithm)
+            .with_in_val_uint64(params.private_key.id)
+            .with_in_data_buffer(params.ciphertext)
+            .build(),
+        2U);
     if (!reply.has_value())
     {
         return score::Result<CryptoResourceGuard>{score::unexpect, reply.error()};

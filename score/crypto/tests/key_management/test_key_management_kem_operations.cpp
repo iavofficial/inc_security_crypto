@@ -478,7 +478,7 @@ class RecordingConnection final : public api::IConnection
 {
   public:
     std::vector<control::ControlRequest> requests;
-    std::vector<control::ControlResponse> replies;
+    std::vector<score::crypto::Expected<control::ControlResponse, score::crypto::CryptoErrorCode>> replies;
 
     score::crypto::Expected<control::ControlResponse, score::crypto::CryptoErrorCode> SendRequest(
         const control::ControlRequest& request) override
@@ -510,6 +510,185 @@ class RecordingConnection final : public api::IConnection
 score::crypto::CryptoResourceId KeyId(std::uint64_t id)
 {
     return {id, score::crypto::ResourceType::kKey, score::crypto::ResourcePersistence::kEphemeral, kProviderId};
+}
+
+// ---------------------------------------------------------------------------
+// Key generation API IPC compatibility
+// ---------------------------------------------------------------------------
+
+TEST(KeyManagementContextTest, GenerateKeySendsItsParametersAndReturnsAnEphemeralGuard)
+{
+    auto connection = std::make_shared<RecordingConnection>();
+    score::crypto::KeyManagementContextImpl context{connection, 44U};
+    connection->replies.push_back(RecordingConnection::Success(
+        {score::crypto::daemon::common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_GENERATE},
+        {std::uint64_t{81U}, kProviderId}));
+    score::crypto::GenerateKeyParams params{};
+    params.SetAlgorithm("ML-KEM-768").SetPermissions(Permission::kAgree);
+
+    auto result = context.GenerateKey(params);
+
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(result->Id().id, 81U);
+    EXPECT_EQ(result->Id().type, score::crypto::ResourceType::kKey);
+    EXPECT_EQ(result->Id().persistence, score::crypto::ResourcePersistence::kEphemeral);
+    EXPECT_EQ(result->Id().primary_provider, kProviderId);
+    ASSERT_EQ(connection->requests.size(), 1U);
+    const auto& request = connection->requests.front();
+    EXPECT_EQ(request.data_node_id, 44U);
+    ASSERT_EQ(request.operation.operations.size(), 1U);
+    const auto& operation = request.operation.operations.front();
+    EXPECT_EQ(operation.operationId.operationActor, score::crypto::daemon::common::actors::OP_ACTOR_KEY_MANAGEMENT);
+    EXPECT_EQ(operation.operationId.operationAction, operations::KEY_GENERATE);
+    ASSERT_EQ(operation.parameters.size(), 2U);
+    EXPECT_EQ(std::get<std::string_view>(operation.parameters[0]), kAlgorithm);
+    EXPECT_EQ(std::get<std::uint32_t>(operation.parameters[1]), static_cast<std::uint32_t>(Permission::kAgree));
+
+    ASSERT_TRUE(result->Release().has_value());
+    ASSERT_EQ(connection->requests.size(), 2U);
+    const auto& release = connection->requests.back().operation.operations.front();
+    EXPECT_EQ(release.operationId.operationAction, operations::KEY_RELEASE);
+    EXPECT_EQ(std::get<std::uint64_t>(release.parameters.front()), 81U);
+}
+
+TEST(KeyManagementContextTest, GenerateKeySendsPublicKeyPermissionsOnlyWhenSpecified)
+{
+    auto connection = std::make_shared<RecordingConnection>();
+    score::crypto::KeyManagementContextImpl context{connection, 44U};
+    connection->replies.push_back(RecordingConnection::Success(
+        {score::crypto::daemon::common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_GENERATE},
+        {std::uint64_t{81U}}));
+    score::crypto::GenerateKeyParams params{};
+    params.SetAlgorithm("ML-KEM-768").SetPublicKeyPermissions(Permission::kAgree);
+
+    auto result = context.GenerateKey(params);
+
+    ASSERT_TRUE(result.has_value());
+    ASSERT_EQ(connection->requests.size(), 1U);
+    const auto& parameters = connection->requests.front().operation.operations.front().parameters;
+    ASSERT_EQ(parameters.size(), 3U);
+    EXPECT_EQ(std::get<std::uint32_t>(parameters[2]), static_cast<std::uint32_t>(Permission::kAgree));
+}
+
+TEST(KeyManagementContextTest, GenerateKeyKeepsTheProviderIdOptional)
+{
+    const std::vector<common::ResponseParameters> replies{{std::uint64_t{81U}},
+                                                         {std::uint64_t{81U}, std::uint32_t{3U}}};
+    for (const auto& parameters : replies)
+    {
+        auto connection = std::make_shared<RecordingConnection>();
+        score::crypto::KeyManagementContextImpl context{connection, 44U};
+        connection->replies.push_back(RecordingConnection::Success(
+            {score::crypto::daemon::common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_GENERATE}, parameters));
+        score::crypto::GenerateKeyParams params{};
+        params.SetAlgorithm("ML-KEM-768");
+
+        auto result = context.GenerateKey(params);
+
+        ASSERT_TRUE(result.has_value());
+        EXPECT_EQ(result->Id().id, 81U);
+        EXPECT_EQ(result->Id().primary_provider, score::crypto::CryptoResourceId{}.primary_provider);
+    }
+}
+
+TEST(KeyManagementContextTest, GenerateKeyPreservesItsExistingResponseLayoutHandling)
+{
+    auto connection = std::make_shared<RecordingConnection>();
+    score::crypto::KeyManagementContextImpl context{connection, 44U};
+    auto response = RecordingConnection::Success(
+        {score::crypto::daemon::common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_GENERATE},
+        {std::uint64_t{81U}, kProviderId, std::uint32_t{7U}});
+    response.operation.operations.push_back(control::SingleOperationResponse{
+        {score::crypto::daemon::common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_LOAD},
+        control::OPERATION_RESULT_SUCCESS,
+        {}});
+    connection->replies.push_back(std::move(response));
+    score::crypto::GenerateKeyParams params{};
+    params.SetAlgorithm("ML-KEM-768");
+
+    auto result = context.GenerateKey(params);
+
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(result->Id().id, 81U);
+    EXPECT_EQ(result->Id().primary_provider, kProviderId);
+}
+
+TEST(KeyManagementContextTest, GenerateKeyMapsTransportFailureToKeyGenerationFailed)
+{
+    auto connection = std::make_shared<RecordingConnection>();
+    score::crypto::KeyManagementContextImpl context{connection, 44U};
+    connection->replies.push_back(score::crypto::make_unexpected(score::crypto::CryptoErrorCode::kConnectionFailed));
+    score::crypto::GenerateKeyParams params{};
+    params.SetAlgorithm("ML-KEM-768");
+
+    auto result = context.GenerateKey(params);
+
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), score::crypto::MakeError(score::crypto::CryptoErrorCode::kKeyGenerationFailed));
+}
+
+TEST(KeyManagementContextTest, GenerateKeyMapsDaemonFailureToKeyGenerationFailed)
+{
+    auto connection = std::make_shared<RecordingConnection>();
+    score::crypto::KeyManagementContextImpl context{connection, 44U};
+    auto response = RecordingConnection::Success(
+        {score::crypto::daemon::common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_GENERATE}, {});
+    response.operation.operations.front().result =
+        static_cast<control::OperationResult>(score::crypto::CryptoErrorCode::kUnsupportedAlgorithm);
+    connection->replies.push_back(std::move(response));
+    score::crypto::GenerateKeyParams params{};
+    params.SetAlgorithm("ML-KEM-768");
+
+    auto result = context.GenerateKey(params);
+
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), score::crypto::MakeError(score::crypto::CryptoErrorCode::kKeyGenerationFailed));
+}
+
+TEST(KeyManagementContextTest, GenerateKeyRejectsMissingOrMistypedResourceIds)
+{
+    const std::vector<common::ResponseParameters> replies{{}, {std::uint32_t{81U}}};
+    for (const auto& parameters : replies)
+    {
+        auto connection = std::make_shared<RecordingConnection>();
+        score::crypto::KeyManagementContextImpl context{connection, 44U};
+        connection->replies.push_back(RecordingConnection::Success(
+            {score::crypto::daemon::common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_GENERATE}, parameters));
+        score::crypto::GenerateKeyParams params{};
+        params.SetAlgorithm("ML-KEM-768");
+
+        auto result = context.GenerateKey(params);
+
+        ASSERT_FALSE(result.has_value());
+        EXPECT_EQ(result.error(), score::crypto::MakeError(score::crypto::CryptoErrorCode::kKeyGenerationFailed));
+    }
+}
+
+TEST(KeyManagementContextTest, GenerateKeyRejectsWrongOperationResponses)
+{
+    auto connection = std::make_shared<RecordingConnection>();
+    score::crypto::KeyManagementContextImpl context{connection, 44U};
+    connection->replies.push_back(RecordingConnection::Success(
+        {score::crypto::daemon::common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_LOAD}, {std::uint64_t{81U}}));
+    score::crypto::GenerateKeyParams params{};
+    params.SetAlgorithm("ML-KEM-768");
+
+    auto result = context.GenerateKey(params);
+
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), score::crypto::MakeError(score::crypto::CryptoErrorCode::kKeyGenerationFailed));
+}
+
+TEST(KeyManagementContextTest, GenerateKeyHandlesAMissingConnection)
+{
+    score::crypto::KeyManagementContextImpl context{nullptr, 44U};
+    score::crypto::GenerateKeyParams params{};
+    params.SetAlgorithm("ML-KEM-768");
+
+    auto result = context.GenerateKey(params);
+
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), score::crypto::MakeError(score::crypto::CryptoErrorCode::kKeyGenerationFailed));
 }
 
 // ---------------------------------------------------------------------------
