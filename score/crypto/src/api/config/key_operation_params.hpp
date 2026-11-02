@@ -259,8 +259,18 @@ struct EncapsulateKeyParams
 /// Ciphertext is borrowed until the call returns. Only a secret guard is returned.
 struct DecapsulateKeyParams
 {
+    /// @brief Handle to the private key used for decapsulation (required).
+    /// Must reference a key resource (ResourceType::kKey) belonging to this
+    /// context's provider and permitting KeyOperationPermission::kAgree.
     CryptoResourceId private_key{};
+
+    /// @brief Ciphertext produced by the peer during encapsulation (required).
+    /// Non-owning view. The underlying buffer must remain valid until
+    /// IKeyManagementContext::DecapsulateKey() returns.
     score::cpp::span<const uint8_t> ciphertext{};
+
+    /// @brief KEM algorithm identifier for decapsulation (required).
+    /// Example: "ML-KEM-768".
     AlgorithmId algorithm{};
 
     DecapsulateKeyParams& SetPrivateKey(const CryptoResourceId& key) noexcept
