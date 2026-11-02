@@ -22,6 +22,7 @@
 #include "score/crypto/src/api/types/key.hpp"
 
 #include "score/crypto/src/api/control_plane/i_connection.hpp"
+#include "score/crypto/src/api/data_plane/i_buffer_transcoder.hpp"
 #include "score/crypto/src/daemon/control_plane/control_protocol.h"
 
 #include "score/result/result.h"
@@ -59,8 +60,10 @@ class KeyManagementContextImpl final : public IKeyManagementContext
     /// @brief Constructs a key management context bound to an existing daemon-side context.
     /// @param connection Shared connection for IPC communication
     /// @param context_id Daemon-assigned context identifier (from CTX_CREATE response)
+    /// @param transcoder Stack-shared buffer-routing abstraction for binary data.
     KeyManagementContextImpl(std::shared_ptr<score::crypto::api::control_plane::IConnection> connection,
-                             uint64_t context_id);
+                             uint64_t context_id,
+                             std::shared_ptr<IBufferTranscoder> transcoder = nullptr);
 
     ~KeyManagementContextImpl() override;
 
@@ -143,6 +146,7 @@ class KeyManagementContextImpl final : public IKeyManagementContext
                                                     std::size_t offset);
     std::shared_ptr<score::crypto::api::control_plane::IConnection> m_connection;
     score::crypto::daemon::control_plane::protocol::DataNodeId m_context_id;
+    std::shared_ptr<IBufferTranscoder> m_transcoder;
 
     /// @brief IReleaseCallback whose destructor sends CTX_CLOSE to the daemon.
     /// Held by the context *and* transitively by every CryptoResourceGuard (via

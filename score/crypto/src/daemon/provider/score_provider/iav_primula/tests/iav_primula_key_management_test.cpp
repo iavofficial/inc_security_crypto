@@ -240,6 +240,10 @@ class IavPrimulaKeyExportTest : public ::testing::Test
     {
         common::RequestParameters request{
             static_cast<std::uint64_t>(key_id), static_cast<std::uint8_t>(score::crypto::FormatType::kRaw)};
+        if (action == key_management::operations::KEY_EXPORT)
+        {
+            request.emplace_back(score::cpp::span<std::uint8_t>{export_output.data(), export_output.size()});
+        }
         return key_executor->Execute(context, {common::actors::OP_ACTOR_KEY_MANAGEMENT, action}, request);
     }
 
@@ -256,6 +260,7 @@ class IavPrimulaKeyExportTest : public ::testing::Test
     provider::crypto_executor::KeyMgmtExecutionContext context{};
     std::shared_ptr<key_management::KeyManagementService> service;
     std::unique_ptr<provider::crypto_executor::KeyManagementExecutor> key_executor;
+    std::vector<std::uint8_t> export_output = std::vector<std::uint8_t>(1312U);
 };
 
 TEST_F(IavPrimulaKeyExportTest, ImportedPublicPermissionsGovernExportAndExportSize)
@@ -280,6 +285,7 @@ TEST_F(IavPrimulaKeyExportTest, ImportedPublicPermissionsGovernExportAndExportSi
             EXPECT_EQ(handler.value()->GetHandle().public_key_permissions.value(), permissions);
 
             auto size = ExecuteExport(key_management::operations::KEY_GET_EXPORT_SIZE, key_id);
+            export_output.assign(public_key.size(), 0U);
             auto exported = ExecuteExport(key_management::operations::KEY_EXPORT, key_id);
             if (score::crypto::HasPermission(permissions, Permission::kExport))
             {
@@ -288,7 +294,8 @@ TEST_F(IavPrimulaKeyExportTest, ImportedPublicPermissionsGovernExportAndExportSi
                 EXPECT_EQ(std::get<std::uint64_t>(size.value()[0]), public_key.size());
                 ASSERT_TRUE(exported.has_value());
                 ASSERT_EQ(exported.value().size(), 1U);
-                EXPECT_EQ(std::get<common::OwnedBuffer>(exported.value()[0]), public_key);
+                EXPECT_EQ(std::get<std::uint64_t>(exported.value()[0]), public_key.size());
+                EXPECT_EQ(export_output, public_key);
             }
             else
             {
@@ -333,10 +340,12 @@ TEST_F(IavPrimulaKeyExportTest, UnspecifiedPublicPermissionsAllowExportAndExport
     ASSERT_TRUE(size.has_value());
     ASSERT_EQ(size.value().size(), 1U);
     EXPECT_EQ(std::get<std::uint64_t>(size.value()[0]), public_key.size());
+    export_output.assign(public_key.size(), 0U);
     auto exported = ExecuteExport(key_management::operations::KEY_EXPORT, key_id);
     ASSERT_TRUE(exported.has_value());
     ASSERT_EQ(exported.value().size(), 1U);
-    EXPECT_EQ(std::get<common::OwnedBuffer>(exported.value()[0]), public_key);
+    EXPECT_EQ(std::get<std::uint64_t>(exported.value()[0]), public_key.size());
+    EXPECT_EQ(export_output, public_key);
 }
 
 TEST_F(IavPrimulaKeyExportTest, NonPublicKeyRolesCannotUsePublicExportPermissions)

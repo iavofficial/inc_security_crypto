@@ -9,6 +9,8 @@
 
 #include "score/crypto/src/api/contexts/src/key_management_context_impl.hpp"
 #include "score/crypto/src/api/control_plane/i_connection.hpp"
+#include "score/crypto/src/api/data_plane/src/buffer_shm_transcoder.hpp"
+#include "score/crypto/src/api/data_plane/src/shm_region_registry.hpp"
 #include "score/crypto/src/daemon/common/actors.hpp"
 #include "score/crypto/src/daemon/data_manager/data_manager.hpp"
 #include "score/crypto/src/daemon/key_management/core/key_management_service.hpp"
@@ -18,7 +20,9 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <array>
+#include <functional>
 #include <memory>
 #include <string_view>
 #include <utility>
@@ -216,19 +220,21 @@ class KeyManagementExecutorKemVariantTest : public KeyManagementExecutorKemTest,
 // KEM encapsulation result registration
 // ---------------------------------------------------------------------------
 
-TEST_F(KeyManagementExecutorKemTest, EncapsulationRegistersADeriveOnlySecretAndReturnsOnlyCiphertext)
+TEST_F(KeyManagementExecutorKemTest, EncapsulationRegistersADeriveOnlySecretAndWritesCiphertext)
 {
     const auto public_key = RegisterSource(key_management::KeyMaterialKind::kPublicKey, Permission::kAgree);
-    common::RequestParameters request{std::string_view{kAlgorithm}, static_cast<std::uint64_t>(public_key),
-                                      static_cast<std::uint64_t>(KemTestFactory::kCiphertext.size())};
+    std::array<std::uint8_t, KemTestFactory::kCiphertext.size()> ciphertext{};
+    common::RequestParameters request{std::string_view{kAlgorithm},
+                                      static_cast<std::uint64_t>(public_key),
+                                      score::cpp::span<std::uint8_t>{ciphertext.data(), ciphertext.size()}};
 
     auto result = key_executor->Execute(
         context, {score::crypto::daemon::common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_ENCAPSULATE}, request);
 
     ASSERT_TRUE(result.has_value());
     ASSERT_EQ(result.value().size(), 3U);
-    EXPECT_EQ(std::get<common::OwnedBuffer>(result.value()[0]),
-              common::OwnedBuffer(KemTestFactory::kCiphertext.begin(), KemTestFactory::kCiphertext.end()));
+    EXPECT_EQ(std::get<std::uint64_t>(result.value()[0]), ciphertext.size());
+    EXPECT_EQ(ciphertext, KemTestFactory::kCiphertext);
     const auto secret_id = std::get<std::uint64_t>(result.value()[1]);
     EXPECT_NE(secret_id, 0U);
     EXPECT_EQ(std::get<std::uint16_t>(result.value()[2]), kProviderId);
@@ -264,8 +270,11 @@ TEST_F(KeyManagementExecutorKemTest, ImportedPublicKeyPermissionsGovernEncapsula
         common::RequestParameters size_request{std::string_view{kAlgorithm}, public_key_id};
         auto size = key_executor->Execute(
             context, {common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_GET_ENCAPSULATION_SIZE}, size_request);
+        std::array<std::uint8_t, KemTestFactory::kCiphertext.size()> ciphertext_out{};
         common::RequestParameters encapsulate_request{
-            std::string_view{kAlgorithm}, public_key_id, static_cast<std::uint64_t>(ciphertext.size())};
+            std::string_view{kAlgorithm},
+            public_key_id,
+            score::cpp::span<std::uint8_t>{ciphertext_out.data(), ciphertext_out.size()}};
         auto encapsulated = key_executor->Execute(
             context, {common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_ENCAPSULATE}, encapsulate_request);
 
@@ -358,8 +367,11 @@ TEST_P(KeyManagementExecutorKemVariantTest, RoutesAllStandardKemParameterSets)
     ASSERT_TRUE(size.has_value());
     EXPECT_EQ(std::get<std::uint64_t>(size.value().front()), KemTestFactory::kCiphertext.size());
 
-    common::RequestParameters encapsulate_request{algorithm, static_cast<std::uint64_t>(public_key),
-                                                   static_cast<std::uint64_t>(KemTestFactory::kCiphertext.size())};
+    std::array<std::uint8_t, KemTestFactory::kCiphertext.size()> ciphertext_out{};
+    common::RequestParameters encapsulate_request{
+        algorithm,
+        static_cast<std::uint64_t>(public_key),
+        score::cpp::span<std::uint8_t>{ciphertext_out.data(), ciphertext_out.size()}};
     auto encapsulated = key_executor->Execute(
         context,
         {score::crypto::daemon::common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_ENCAPSULATE},
@@ -418,7 +430,11 @@ TEST_F(KeyManagementExecutorKemTest, KEMValidationRejectsWrongRoleMissingPermiss
     EXPECT_EQ(missing_permission_result.error(), Error::kKeyOperationNotPermitted);
 
     const auto public_key = RegisterSource(key_management::KeyMaterialKind::kPublicKey, Permission::kAgree);
-    common::RequestParameters small_output{std::string_view{kAlgorithm}, static_cast<std::uint64_t>(public_key), static_cast<std::uint64_t>(3U)};
+    std::array<std::uint8_t, 3U> ciphertext_out{};
+    common::RequestParameters small_output{
+        std::string_view{kAlgorithm},
+        static_cast<std::uint64_t>(public_key),
+        score::cpp::span<std::uint8_t>{ciphertext_out.data(), ciphertext_out.size()}};
     auto small_output_result = key_executor->Execute(
         context, {score::crypto::daemon::common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_ENCAPSULATE}, small_output);
     ASSERT_FALSE(small_output_result.has_value());
@@ -479,11 +495,16 @@ class RecordingConnection final : public api::IConnection
   public:
     std::vector<control::ControlRequest> requests;
     std::vector<score::crypto::Expected<control::ControlResponse, score::crypto::CryptoErrorCode>> replies;
+    std::function<void(const control::ControlRequest&)> on_request;
 
     score::crypto::Expected<control::ControlResponse, score::crypto::CryptoErrorCode> SendRequest(
         const control::ControlRequest& request) override
     {
         requests.push_back(request);
+        if (on_request)
+        {
+            on_request(request);
+        }
         if (!replies.empty())
         {
             auto response = std::move(replies.front());
@@ -716,8 +737,11 @@ TEST(KeyManagementContextKemTest, ValidatesTypedParamsBeforeSendingARequest)
 TEST(KeyManagementContextKemTest, MaterialOperationsUseTheirKeyManagementIpcContracts)
 {
     auto connection = std::make_shared<RecordingConnection>();
-    score::crypto::KeyManagementContextImpl context{connection, 44U};
+    auto registry = std::make_shared<score::crypto::ShmRegionRegistry>(1024U);
+    auto transcoder = std::make_shared<score::crypto::BufferShmTranscoder>(nullptr, registry);
+    score::crypto::KeyManagementContextImpl context{connection, 44U, transcoder};
     const std::array<std::uint8_t, 3U> raw_key{{0x21U, 0x22U, 0x23U}};
+    registry->Register({89U, reinterpret_cast<std::uintptr_t>(raw_key.data()), raw_key.size(), false});
     score::crypto::ImportKeyParams import{};
     import.algorithm = "ML-KEM-768";
     import.key_data = {raw_key.data(), raw_key.size()};
@@ -741,17 +765,30 @@ TEST(KeyManagementContextKemTest, MaterialOperationsUseTheirKeyManagementIpcCont
 
     connection->replies.push_back(RecordingConnection::Success(
         {score::crypto::daemon::common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_EXPORT},
-        {common::OwnedBuffer{0x21U, 0x22U, 0x23U}}));
+        {static_cast<std::uint64_t>(raw_key.size())}));
     std::array<std::uint8_t, 3U> exported{};
+    registry->Register({90U, reinterpret_cast<std::uintptr_t>(exported.data()), exported.size(), false});
+    connection->on_request = [&](const control::ControlRequest& request) {
+        const auto& operation = request.operation.operations[0];
+        if (operation.operationId.operationAction == operations::KEY_EXPORT)
+        {
+            std::copy(raw_key.begin(), raw_key.end(), exported.begin());
+        }
+    };
     auto export_size = context.ExportKey(KeyId(81U), {exported.data(), exported.size()}, score::crypto::FormatType::kRaw);
     ASSERT_TRUE(export_size.has_value());
     EXPECT_EQ(export_size.value(), exported.size());
     EXPECT_EQ(exported, raw_key);
+    connection->on_request = {};
 
     ASSERT_GE(connection->requests.size(), 4U);
     EXPECT_EQ(connection->requests[0].operation.operations[0].operationId.operationAction, operations::KEY_IMPORT);
+    EXPECT_EQ(std::get<common::DataShm>(connection->requests[0].operation.operations[0].parameters[1]).direction,
+              common::ShmDirection::In);
     EXPECT_EQ(connection->requests[2].operation.operations[0].operationId.operationAction, operations::KEY_GET_EXPORT_SIZE);
     EXPECT_EQ(connection->requests[3].operation.operations[0].operationId.operationAction, operations::KEY_EXPORT);
+    EXPECT_EQ(std::get<common::DataShm>(connection->requests[3].operation.operations[0].parameters[2]).direction,
+              common::ShmDirection::InOut);
 }
 
 // ---------------------------------------------------------------------------
@@ -761,10 +798,13 @@ TEST(KeyManagementContextKemTest, MaterialOperationsUseTheirKeyManagementIpcCont
 TEST(KeyManagementContextKemTest, UsesDedicatedOperationsAndReturnsOnlyGuardsForSecrets)
 {
     auto connection = std::make_shared<RecordingConnection>();
-    score::crypto::KeyManagementContextImpl context{connection, 44U};
+    auto registry = std::make_shared<score::crypto::ShmRegionRegistry>(1024U);
+    auto transcoder = std::make_shared<score::crypto::BufferShmTranscoder>(nullptr, registry);
+    score::crypto::KeyManagementContextImpl context{connection, 44U, transcoder};
     score::crypto::EncapsulateKeyParams encapsulate{};
     encapsulate.SetPeerPublicKey(KeyId(20U)).SetAlgorithm(score::crypto::AlgorithmId{kAlgorithm});
     const std::array<std::uint8_t, 4U> ciphertext{{0U, 0U, 0U, 0U}};
+    registry->Register({89U, reinterpret_cast<std::uintptr_t>(ciphertext.data()), ciphertext.size(), false});
     score::crypto::DecapsulateKeyParams decapsulate{};
     decapsulate.SetPrivateKey(KeyId(21U))
         .SetAlgorithm(score::crypto::AlgorithmId{kAlgorithm})
@@ -778,12 +818,20 @@ TEST(KeyManagementContextKemTest, UsesDedicatedOperationsAndReturnsOnlyGuardsFor
 
     connection->replies.push_back(RecordingConnection::Success(
         {score::crypto::daemon::common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_ENCAPSULATE},
-        {common::OwnedBuffer{0x10U, 0x11U, 0x12U, 0x13U}, static_cast<std::uint64_t>(71U), kProviderId}));
+        {static_cast<std::uint64_t>(4U), static_cast<std::uint64_t>(71U), kProviderId}));
     std::array<std::uint8_t, 4U> output{};
+    registry->Register({90U, reinterpret_cast<std::uintptr_t>(output.data()), output.size(), false});
+    connection->on_request = [&](const control::ControlRequest& request) {
+        if (request.operation.operations[0].operationId.operationAction == operations::KEY_ENCAPSULATE)
+        {
+            output = {{0x10U, 0x11U, 0x12U, 0x13U}};
+        }
+    };
     auto encapsulated = context.EncapsulateKey(encapsulate, {output.data(), output.size()});
     ASSERT_TRUE(encapsulated.has_value());
     EXPECT_EQ(encapsulated->ciphertext_size, output.size());
     EXPECT_EQ(output, (std::array<std::uint8_t, 4U>{{0x10U, 0x11U, 0x12U, 0x13U}}));
+    connection->on_request = {};
     EXPECT_EQ(encapsulated->shared_secret.Id().id, 71U);
     ASSERT_TRUE(encapsulated->shared_secret.Release().has_value());
 
@@ -801,6 +849,10 @@ TEST(KeyManagementContextKemTest, UsesDedicatedOperationsAndReturnsOnlyGuardsFor
     EXPECT_EQ(connection->requests[3].operation.operations[0].operationId.operationAction, operations::KEY_DECAPSULATE);
     EXPECT_EQ(connection->requests[1].operation.operations[0].parameters.size(), 3U);
     EXPECT_EQ(connection->requests[3].operation.operations[0].parameters.size(), 3U);
+    EXPECT_EQ(std::get<common::DataShm>(connection->requests[1].operation.operations[0].parameters[2]).direction,
+              common::ShmDirection::InOut);
+    EXPECT_EQ(std::get<common::DataShm>(connection->requests[3].operation.operations[0].parameters[2]).direction,
+              common::ShmDirection::In);
 }
 
 // ---------------------------------------------------------------------------

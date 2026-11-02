@@ -20,6 +20,7 @@
 #include "score/crypto/src/daemon/common/daemon_error.hpp"
 #include "score/mw/log/logging.h"
 
+#include <algorithm>
 #include <string_view>
 #include <utility>
 
@@ -375,7 +376,7 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleGetEnca
 // Parameter layout:
 //   request[0] = algorithm (string_view)
 //   request[1] = peer public-key node id (uint64_t)
-//   request[2] = ciphertext capacity (uint64_t)
+//   request[2] = writable ciphertext output (span<uint8_t>)
 // ---------------------------------------------------------------------------
 
 Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleEncapsulateKey(
@@ -388,8 +389,9 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleEncapsu
     }
     const auto* algorithm = Parameter<std::string_view>(request, 0U);
     const auto* key_id = Parameter<std::uint64_t>(request, 1U);
-    const auto* capacity = Parameter<std::uint64_t>(request, 2U);
-    if ((!algorithm) || (!ValidAlgorithm(*algorithm)) || (!key_id) || (*key_id == 0U) || (!capacity))
+    const auto* ciphertext_out = Parameter<score::cpp::span<std::uint8_t>>(request, 2U);
+    if ((!algorithm) || (!ValidAlgorithm(*algorithm)) || (!key_id) || (*key_id == 0U) || (!ciphertext_out) ||
+        (!ciphertext_out->data()))
     {
         return make_unexpected(Error::kInvalidArgument);
     }
@@ -414,7 +416,7 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleEncapsu
     {
         return make_unexpected(Error::kOperationFailed);
     }
-    if (*capacity < size.value())
+    if (ciphertext_out->size() < size.value())
     {
         return make_unexpected(Error::kInsufficientBufferSize);
     }
@@ -436,12 +438,13 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleEncapsu
     }
     common::ResponseParameters output;
     output.reserve(3U);
-    output.emplace_back(std::move(result.value().ciphertext));
+    output.emplace_back(static_cast<std::uint64_t>(result.value().ciphertext.size()));
     auto id = RegisterOutput(ctx, std::move(secret));
     if (!id.has_value())
     {
         return make_unexpected(id.error());
     }
+    std::copy(result.value().ciphertext.begin(), result.value().ciphertext.end(), ciphertext_out->begin());
     output.emplace_back(static_cast<std::uint64_t>(id.value()));
     output.emplace_back(static_cast<std::uint16_t>(ctx.provider_id));
     return output;
@@ -618,22 +621,28 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleGetExpo
 // Parameter layout:
 //   request[0] = key node id (uint64_t)
 //   request[1] = format (uint8_t)
+//   request[2] = output buffer (mutable span, resolved by the data plane)
 // ---------------------------------------------------------------------------
 
 Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleExportKey(
     const KeyMgmtExecutionContext& ctx,
     const common::RequestParameters& request)
 {
-    if (request.size() != 2U)
+    if (request.size() != 3U)
     {
         return make_unexpected(Error::kInvalidArgument);
     }
     const auto* key_id = Parameter<std::uint64_t>(request, 0U);
     const auto* format = Parameter<std::uint8_t>(request, 1U);
-    if ((!key_id) || (*key_id == 0U) || (!format) ||
+    const auto* output = Parameter<score::cpp::span<std::uint8_t>>(request, 2U);
+    if ((!key_id) || (*key_id == 0U) || (!format) || (!output) ||
         (*format > static_cast<std::uint8_t>(score::crypto::FormatType::kRaw)))
     {
         return make_unexpected(Error::kInvalidArgument);
+    }
+    if (output->empty() || output->data() == nullptr)
+    {
+        return make_unexpected(Error::kInsufficientBufferSize);
     }
     auto lease = m_service->AcquireKeyForOperation(ctx.client_id, *key_id, ctx.provider_id, Permission::kExport);
     if (!lease.has_value())
@@ -650,7 +659,13 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleExportK
     {
         return make_unexpected(exported.error());
     }
-    return common::ResponseParameters{common::OwnedBuffer{std::move(exported.value().bytes)}};
+    const auto& bytes = exported.value().bytes;
+    if (bytes.size() > output->size())
+    {
+        return make_unexpected(Error::kInsufficientBufferSize);
+    }
+    std::copy(bytes.begin(), bytes.end(), output->begin());
+    return common::ResponseParameters{static_cast<std::uint64_t>(bytes.size())};
 }
 
 }  // namespace score::crypto::daemon::provider::crypto_executor
