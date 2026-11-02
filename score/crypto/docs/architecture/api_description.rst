@@ -172,18 +172,9 @@ to detect that the resource is still referenced by an active context — call
 Key Encapsulation Mechanism
 ---------------------------
 
-ML-KEM is a Key Management operation. ``GetEncapsulationCiphertextSize()``
-queries the required ciphertext capacity for a managed public key.
-``EncapsulateKey()`` uses that public key and writes public ciphertext to a
-caller-owned buffer; it returns an ``EncapsulationResult`` containing the
-ciphertext length and a guard for the provider-held shared secret.
-``DecapsulateKey()`` takes a managed private key and ciphertext, and returns
-only the shared-secret guard.
-
-The shared secret is an ephemeral, derive-only, non-exportable key registered
-through the normal Key Management lifecycle. Its bytes never appear in an IPC
-response. KEM therefore has no separate operation context, daemon actor, or
-handler family.
+ML-KEM encapsulation and decapsulation are provided through the Key Management
+API. See :ref:`crypto_key_management_kem_operations` for API behavior and
+shared-secret lifecycle details.
 
 Memory and Data Plane Model
 ---------------------------
