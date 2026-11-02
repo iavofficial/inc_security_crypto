@@ -225,7 +225,12 @@ struct GenerateKeyParams
 /// The resulting shared secret is ephemeral, derive-only and non-exportable.
 struct EncapsulateKeyParams
 {
+    /// @brief Handle to the peer's imported public key (required).
+    /// Must reference a key resource (ResourceType::kKey).
     CryptoResourceId peer_public_key{};
+
+    /// @brief KEM algorithm identifier for encapsulation (required).
+    /// Example: "ML-KEM-768".
     AlgorithmId algorithm{};
 
     EncapsulateKeyParams& SetPeerPublicKey(const CryptoResourceId& key) noexcept
