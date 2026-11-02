@@ -379,13 +379,10 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::LoadKey(const Crypt
 
 score::Result<CryptoResourceGuard> KeyManagementContextImpl::ImportKey(const ImportKeyParams& params)
 {
-    if (params.algorithm.empty() || params.algorithm.truncated() || params.key_data.empty() ||
-        !params.key_data.data() ||
-        static_cast<std::uint8_t>(params.format) > static_cast<std::uint8_t>(FormatType::kRaw) ||
-        (static_cast<std::uint32_t>(params.permissions) & ~static_cast<std::uint32_t>(KeyOperationPermission::kAll)) !=
-            0U)
+    const score::Result<std::monostate> valid = params.Validate();
+    if (!valid.has_value())
     {
-        return score::Result<CryptoResourceGuard>{score::unexpect, MakeError(CryptoErrorCode::kInvalidArgument)};
+        return score::Result<CryptoResourceGuard>{score::unexpect, valid.error()};
     }
     auto reply = ExecuteKeyManagementRequest(
         proto::ControlRequestBuilder()

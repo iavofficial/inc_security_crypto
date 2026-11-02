@@ -658,6 +658,23 @@ struct ImportKeyParams
         permissions = perms;
         return *this;
     }
+
+    /// @brief Validates the provider-independent key-import parameters.
+    /// @return Success, or kInvalidArgument for an empty or truncated algorithm,
+    /// empty or null key data, an invalid format, or unknown permission bits.
+    /// @note Algorithm support and key encoding are validated by the daemon/provider.
+    score::Result<std::monostate> Validate() const noexcept
+    {
+        if (algorithm.empty() || algorithm.truncated() || key_data.empty() ||
+            !key_data.data() ||
+            static_cast<std::uint8_t>(format) > static_cast<std::uint8_t>(FormatType::kRaw) ||
+            (static_cast<std::uint32_t>(permissions) & ~static_cast<std::uint32_t>(KeyOperationPermission::kAll)) !=
+                0U)
+        {
+            return score::Result<std::monostate>{score::unexpect, MakeError(CryptoErrorCode::kInvalidArgument)};
+        }
+        return std::monostate{};
+    }
 };
 
 }  // namespace crypto
