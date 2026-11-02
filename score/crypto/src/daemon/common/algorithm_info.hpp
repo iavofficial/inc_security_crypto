@@ -133,6 +133,44 @@ struct KeyAlgorithmInfo
     std::size_t key_size;  ///< Default key size in bytes
 };
 
+/// Ed25519 key size in bytes (RFC 8032).
+inline constexpr std::size_t kEd25519KeySize{32U};
+
+inline constexpr std::array<KeyAlgorithmInfo, 18UL> kKeyAlgorithms = {{
+    {"HMAC-SHA256", 32U},
+    {"HMAC-SHA384", 48U},
+    {"HMAC-SHA512", 64U},
+    {"AES-128-CBC", 16U},
+    {"AES-192-CBC", 24U},
+    {"AES-256-CBC", 32U},
+    {"AES-128-GCM", 16U},
+    {"AES-192-GCM", 24U},
+    {"AES-256-GCM", 32U},
+    {"AES-128-CMAC", 16U},
+    {"AES-256-CMAC", 32U},
+    {"ECDSA-P256", 32U},
+    {"ECDSA-P384", 48U},
+    {"ECDSA-P521", 66U},
+    {"RSA-2048", 256U},
+    {"RSA-3072", 384U},
+    {"RSA-4096", 512U},
+    {"Ed25519", kEd25519KeySize},
+}};
+
+/// @brief Look up default key size by algorithm name.
+/// @return key size in bytes, or std::nullopt if unknown.
+[[nodiscard]] inline constexpr std::optional<std::size_t> LookupKeySize(std::string_view algorithm) noexcept
+{
+    for (const auto& entry : kKeyAlgorithms)
+    {
+        if (entry.name == algorithm)
+        {
+            return entry.key_size;
+        }
+    }
+    return std::nullopt;
+}
+
 // ---------------------------------------------------------------------------
 // Post-quantum algorithm properties
 // ---------------------------------------------------------------------------
@@ -196,44 +234,6 @@ inline constexpr std::array<PqcAlgorithmInfo, 6UL> kPqcAlgorithms = {{
 {
     const auto info = LookupPqcAlgorithm(algorithm);
     return info.has_value() && info->kind == PqcAlgorithmKind::kKem;
-}
-
-/// Ed25519 key size in bytes (RFC 8032).
-inline constexpr std::size_t kEd25519KeySize{32U};
-
-inline constexpr std::array<KeyAlgorithmInfo, 18UL> kKeyAlgorithms = {{
-    {"HMAC-SHA256", 32U},
-    {"HMAC-SHA384", 48U},
-    {"HMAC-SHA512", 64U},
-    {"AES-128-CBC", 16U},
-    {"AES-192-CBC", 24U},
-    {"AES-256-CBC", 32U},
-    {"AES-128-GCM", 16U},
-    {"AES-192-GCM", 24U},
-    {"AES-256-GCM", 32U},
-    {"AES-128-CMAC", 16U},
-    {"AES-256-CMAC", 32U},
-    {"ECDSA-P256", 32U},
-    {"ECDSA-P384", 48U},
-    {"ECDSA-P521", 66U},
-    {"RSA-2048", 256U},
-    {"RSA-3072", 384U},
-    {"RSA-4096", 512U},
-    {"Ed25519", kEd25519KeySize},
-}};
-
-/// @brief Look up default key size by algorithm name.
-/// @return key size in bytes, or std::nullopt if unknown.
-[[nodiscard]] inline constexpr std::optional<std::size_t> LookupKeySize(std::string_view algorithm) noexcept
-{
-    for (const auto& entry : kKeyAlgorithms)
-    {
-        if (entry.name == algorithm)
-        {
-            return entry.key_size;
-        }
-    }
-    return std::nullopt;
 }
 
 // ---------------------------------------------------------------------------
