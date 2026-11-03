@@ -142,8 +142,15 @@ class KeyManagementContextImpl final : public IKeyManagementContext
     score::Result<daemon::control_plane::protocol::SingleOperationResponse> ExecuteKeyManagementRequest(
         const Expected<daemon::control_plane::protocol::ControlRequest, CryptoErrorCode>& request,
         std::size_t response_parameter_count);
-    score::Result<CryptoResourceGuard> MakeKeyGuard(const daemon::common::ResponseParameters& parameters,
-                                                    std::size_t offset);
+
+    /// @brief Creates an ephemeral guard for returned key-management material.
+    /// @param parameters Daemon response containing the resource id and provider id.
+    /// @param offset Index of the resource id; the provider id follows immediately.
+    /// @param type kKey for keys, or kSharedSecret for KEM output.
+    /// @return Guard that releases the resource through KEY_RELEASE, or a response error.
+    score::Result<CryptoResourceGuard> MakeResourceGuard(const daemon::common::ResponseParameters& parameters,
+                                                       std::size_t offset,
+                                                       ResourceType type);
     std::shared_ptr<score::crypto::api::control_plane::IConnection> m_connection;
     score::crypto::daemon::control_plane::protocol::DataNodeId m_context_id;
     std::shared_ptr<IBufferTranscoder> m_transcoder;

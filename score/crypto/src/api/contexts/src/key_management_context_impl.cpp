@@ -112,7 +112,7 @@ class KeyManagementContextImpl::ContextReleaseCallbackImpl final : public IRelea
 };
 
 // ---------------------------------------------------------------------------
-// IReleaseCallback implementation — sends KEY_RELEASE to daemon
+// IReleaseCallback implementation — sends KEY_RELEASE for keys and shared secrets
 // ---------------------------------------------------------------------------
 class KeyManagementContextImpl::ReleaseCallbackImpl final : public IReleaseCallback
 {
@@ -228,9 +228,10 @@ score::Result<proto::SingleOperationResponse> KeyManagementContextImpl::ExecuteK
     return std::move(operations[0]);
 }
 
-score::Result<CryptoResourceGuard> KeyManagementContextImpl::MakeKeyGuard(
+score::Result<CryptoResourceGuard> KeyManagementContextImpl::MakeResourceGuard(
     const daemon::common::ResponseParameters& parameters,
-    std::size_t offset)
+    std::size_t offset,
+    ResourceType type)
 {
     if (parameters.size() < offset + 2U)
     {
@@ -238,12 +239,12 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::MakeKeyGuard(
     }
     const auto* id = std::get_if<std::uint64_t>(&parameters[offset]);
     const auto* provider = std::get_if<std::uint16_t>(&parameters[offset + 1U]);
-    if (!id || *id == 0U || !provider || *provider == daemon::common::kInvalidProviderId)
+    if (!id || *id == kInvalidCryptoResourceId || !provider || *provider == daemon::common::kInvalidProviderId)
     {
         return score::Result<CryptoResourceGuard>{score::unexpect, MakeError(CryptoErrorCode::kOperationFailed)};
     }
     return CryptoResourceGuardFactory::Make(
-        m_release_callback, CryptoResourceId{*id, ResourceType::kKey, ResourcePersistence::kEphemeral, *provider});
+        m_release_callback, CryptoResourceId{*id, type, ResourcePersistence::kEphemeral, *provider});
 }
 
 // ---------------------------------------------------------------------------
@@ -412,12 +413,12 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::ImportKey(const Imp
     {
         return score::Result<CryptoResourceGuard>{score::unexpect, reply.error()};
     }
-    return MakeKeyGuard(reply.value().parameters, 0U);
+    return MakeResourceGuard(reply.value().parameters, 0U, ResourceType::kKey);
 }
 
 score::Result<std::size_t> KeyManagementContextImpl::GetExportKeySize(const CryptoResourceId& key, FormatType format)
 {
-    if (key.id == 0U || key.type != ResourceType::kKey ||
+    if (key.id == kInvalidCryptoResourceId || key.type != ResourceType::kKey ||
         static_cast<std::uint8_t>(format) > static_cast<std::uint8_t>(FormatType::kRaw))
     {
         return score::Result<std::size_t>{score::unexpect, MakeError(CryptoErrorCode::kInvalidArgument)};
@@ -446,7 +447,7 @@ score::Result<std::size_t> KeyManagementContextImpl::ExportKey(const CryptoResou
                                                                 score::cpp::span<uint8_t> output,
                                                                 FormatType format)
 {
-    if (key.id == 0U || key.type != ResourceType::kKey || output.data() == nullptr ||
+    if (key.id == kInvalidCryptoResourceId || key.type != ResourceType::kKey || output.data() == nullptr ||
         static_cast<std::uint8_t>(format) > static_cast<std::uint8_t>(FormatType::kRaw))
     {
         return score::Result<std::size_t>{score::unexpect, MakeError(CryptoErrorCode::kInvalidArgument)};
@@ -659,10 +660,11 @@ score::Result<EncapsulationResult> KeyManagementContextImpl::EncapsulateKey(cons
         return score::Result<EncapsulationResult>{score::unexpect, reply.error()};
     }
     // Construct the guard first so malformed ciphertext responses release a valid returned resource.
-    auto guard = MakeKeyGuard(reply.value().parameters, 1U);
-    if (!guard.has_value())
+    score::Result<CryptoResourceGuard> shared_secret =
+        MakeResourceGuard(reply.value().parameters, 1U, ResourceType::kSharedSecret);
+    if (!shared_secret.has_value())
     {
-        return score::Result<EncapsulationResult>{score::unexpect, guard.error()};
+        return score::Result<EncapsulationResult>{score::unexpect, shared_secret.error()};
     }
     proto::OperationResponse response{{std::move(reply.value())}};
     proto::ControlResponseValidator validator{response};
@@ -675,7 +677,7 @@ score::Result<EncapsulationResult> KeyManagementContextImpl::EncapsulateKey(cons
     {
         return score::Result<EncapsulationResult>{score::unexpect, MakeError(CryptoErrorCode::kOperationFailed)};
     }
-    return EncapsulationResult{std::move(guard.value()), written.value()};
+    return EncapsulationResult{std::move(shared_secret.value()), written.value()};
 }
 
 score::Result<CryptoResourceGuard> KeyManagementContextImpl::DecapsulateKey(const DecapsulateKeyParams& params)
@@ -712,7 +714,7 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::DecapsulateKey(cons
     {
         return score::Result<CryptoResourceGuard>{score::unexpect, reply.error()};
     }
-    return MakeKeyGuard(reply.value().parameters, 0U);
+    return MakeResourceGuard(reply.value().parameters, 0U, ResourceType::kSharedSecret);
 }
 
 }  // namespace crypto

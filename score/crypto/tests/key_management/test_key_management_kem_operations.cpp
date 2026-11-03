@@ -754,6 +754,7 @@ TEST(KeyManagementContextKemTest, MaterialOperationsUseTheirKeyManagementIpcCont
     auto imported = context.ImportKey(import);
     ASSERT_TRUE(imported.has_value());
     EXPECT_EQ(imported->Id().id, 81U);
+    EXPECT_EQ(imported->Id().type, score::crypto::ResourceType::kKey);
     ASSERT_TRUE(imported->Release().has_value());
 
     connection->replies.push_back(RecordingConnection::Success(
@@ -833,6 +834,15 @@ TEST(KeyManagementContextKemTest, UsesDedicatedOperationsAndReturnsOnlyGuardsFor
     EXPECT_EQ(output, (std::array<std::uint8_t, 4U>{{0x10U, 0x11U, 0x12U, 0x13U}}));
     connection->on_request = {};
     EXPECT_EQ(encapsulated->shared_secret.Id().id, 71U);
+    EXPECT_EQ(encapsulated->shared_secret.Id().type, score::crypto::ResourceType::kSharedSecret);
+    EXPECT_EQ(encapsulated->shared_secret.Id().persistence, score::crypto::ResourcePersistence::kEphemeral);
+    EXPECT_EQ(encapsulated->shared_secret.Id().primary_provider, kProviderId);
+
+    score::crypto::DeriveKeyParams derive{};
+    derive.SetSourceKey(encapsulated->shared_secret)
+        .SetDerivedKeyAlgorithm("AES-256")
+        .SetKdf(score::crypto::KdfParameters{}.SetKdfAlgorithm("HKDF-SHA256"));
+    EXPECT_TRUE(derive.Validate().has_value());
     ASSERT_TRUE(encapsulated->shared_secret.Release().has_value());
 
     connection->replies.push_back(RecordingConnection::Success(
@@ -840,6 +850,11 @@ TEST(KeyManagementContextKemTest, UsesDedicatedOperationsAndReturnsOnlyGuardsFor
     auto decapsulated = context.DecapsulateKey(decapsulate);
     ASSERT_TRUE(decapsulated.has_value());
     EXPECT_EQ(decapsulated->Id().id, 72U);
+    EXPECT_EQ(decapsulated->Id().type, score::crypto::ResourceType::kSharedSecret);
+    EXPECT_EQ(decapsulated->Id().persistence, score::crypto::ResourcePersistence::kEphemeral);
+    EXPECT_EQ(decapsulated->Id().primary_provider, kProviderId);
+    derive.SetSourceKey(decapsulated.value());
+    EXPECT_TRUE(derive.Validate().has_value());
     ASSERT_TRUE(decapsulated->Release().has_value());
 
     ASSERT_GE(connection->requests.size(), 5U);
@@ -853,6 +868,171 @@ TEST(KeyManagementContextKemTest, UsesDedicatedOperationsAndReturnsOnlyGuardsFor
               common::ShmDirection::InOut);
     EXPECT_EQ(std::get<common::DataShm>(connection->requests[3].operation.operations[0].parameters[2]).direction,
               common::ShmDirection::In);
+    for (const std::size_t index : {2U, 4U})
+    {
+        const control::ControlRequest& release_request = connection->requests[index];
+        EXPECT_EQ(release_request.data_node_id, 44U);
+        const control::SingleOperationRequest& release = release_request.operation.operations.front();
+        EXPECT_EQ(release.operationId.operationActor, score::crypto::daemon::common::actors::OP_ACTOR_KEY_MANAGEMENT);
+        EXPECT_EQ(release.operationId.operationAction, operations::KEY_RELEASE);
+        ASSERT_EQ(release.parameters.size(), 1U);
+        EXPECT_EQ(std::get<std::uint64_t>(release.parameters.front()), index == 2U ? 71U : 72U);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Shared-secret resource classification and permitted API uses
+// ---------------------------------------------------------------------------
+
+TEST(CryptoResourceIdTest, DefaultsToUnassignedResourceId)
+{
+    const score::crypto::CryptoResourceId resource{};
+    EXPECT_EQ(resource.id, score::crypto::kInvalidCryptoResourceId);
+    EXPECT_EQ(score::crypto::kInvalidCryptoResourceId, std::uint64_t{0U});
+}
+
+TEST(CryptoResourceTypeTest, SharedSecretPreservesExistingResourceTypeValues)
+{
+    using Type = score::crypto::ResourceType;
+    EXPECT_EQ(static_cast<std::uint8_t>(Type::kProvider), 0U);
+    EXPECT_EQ(static_cast<std::uint8_t>(Type::kKeySlot), 1U);
+    EXPECT_EQ(static_cast<std::uint8_t>(Type::kCertSlot), 2U);
+    EXPECT_EQ(static_cast<std::uint8_t>(Type::kCertificateTrustStore), 3U);
+    EXPECT_EQ(static_cast<std::uint8_t>(Type::kKey), 4U);
+    EXPECT_EQ(static_cast<std::uint8_t>(Type::kCertificate), 5U);
+    EXPECT_EQ(static_cast<std::uint8_t>(Type::kSecureObject), 6U);
+    EXPECT_EQ(static_cast<std::uint8_t>(Type::kDataObject), 7U);
+    EXPECT_EQ(static_cast<std::uint8_t>(Type::kSharedSecret), 8U);
+}
+
+TEST(KeyDerivationParamsTest, AcceptsKeysAndSharedSecretsAsSources)
+{
+    for (const score::crypto::ResourceType type :
+         {score::crypto::ResourceType::kKey, score::crypto::ResourceType::kSharedSecret})
+    {
+        score::crypto::CryptoResourceId source = KeyId(71U);
+        source.type = type;
+        score::crypto::DeriveKeyParams params{};
+        params.SetSourceKey(source)
+            .SetDerivedKeyAlgorithm("AES-256")
+            .SetKdf(score::crypto::KdfParameters{}.SetKdfAlgorithm("HKDF-SHA256"));
+
+        const score::Result<std::monostate> valid = params.Validate();
+        EXPECT_TRUE(valid.has_value());
+
+        source.id = score::crypto::kInvalidCryptoResourceId;
+        params.SetSourceKey(source);
+        const score::Result<std::monostate> missing_source = params.Validate();
+        ASSERT_FALSE(missing_source.has_value());
+        EXPECT_EQ(missing_source.error(), score::crypto::MakeError(score::crypto::CryptoErrorCode::kInvalidArgument));
+    }
+}
+
+TEST(KeyDerivationParamsTest, RejectsOtherResourceTypes)
+{
+    using Type = score::crypto::ResourceType;
+    for (const Type type : {Type::kProvider, Type::kKeySlot, Type::kCertSlot, Type::kCertificateTrustStore,
+                            Type::kCertificate, Type::kSecureObject, Type::kDataObject})
+    {
+        score::crypto::CryptoResourceId source = KeyId(71U);
+        source.type = type;
+        score::crypto::DeriveKeyParams params{};
+        params.SetSourceKey(source).SetKdf(score::crypto::KdfParameters{}.SetKdfAlgorithm("HKDF-SHA256"));
+
+        const score::Result<std::monostate> valid = params.Validate();
+        ASSERT_FALSE(valid.has_value());
+        EXPECT_EQ(valid.error(), score::crypto::MakeError(score::crypto::CryptoErrorCode::kInvalidArgument));
+    }
+}
+
+TEST(KeyDerivationParamsTest, SharedSecretValidationPreservesKdfErrors)
+{
+    score::crypto::CryptoResourceId source = KeyId(71U);
+    source.type = score::crypto::ResourceType::kSharedSecret;
+    score::crypto::DeriveKeyParams params{};
+    params.SetSourceKey(source);
+    const score::Result<std::monostate> missing_kdf = params.Validate();
+    ASSERT_FALSE(missing_kdf.has_value());
+    EXPECT_EQ(missing_kdf.error(), score::crypto::MakeError(score::crypto::CryptoErrorCode::kInvalidArgument));
+
+    const std::array<std::uint8_t, score::crypto::KdfParameters::kMaxSaltLength + 1U> salt{};
+    score::crypto::KdfParameters kdf{};
+    kdf.SetKdfAlgorithm("HKDF-SHA256").SetSalt(salt.data(), salt.size());
+    params.SetKdf(kdf);
+    const score::Result<std::monostate> truncated_kdf = params.Validate();
+    ASSERT_FALSE(truncated_kdf.has_value());
+    EXPECT_EQ(truncated_kdf.error(), score::crypto::MakeError(score::crypto::CryptoErrorCode::kParamTruncated));
+}
+
+TEST(KeyManagementContextKemTest, RejectsSharedSecretsAsKemInputKeysOrExportableKeys)
+{
+    const std::shared_ptr<RecordingConnection> connection = std::make_shared<RecordingConnection>();
+    score::crypto::KeyManagementContextImpl context{connection, 44U};
+    score::crypto::CryptoResourceId secret = KeyId(71U);
+    secret.type = score::crypto::ResourceType::kSharedSecret;
+    score::crypto::EncapsulateKeyParams encapsulate{};
+    encapsulate.SetPeerPublicKey(secret).SetAlgorithm(score::crypto::AlgorithmId{kAlgorithm});
+    std::array<std::uint8_t, 4U> output{};
+    score::crypto::DecapsulateKeyParams decapsulate{};
+    decapsulate.SetPrivateKey(secret)
+        .SetAlgorithm(score::crypto::AlgorithmId{kAlgorithm})
+        .SetCiphertext({output.data(), output.size()});
+
+    const score::Result<std::size_t> size = context.GetEncapsulationCiphertextSize(encapsulate);
+    const score::Result<score::crypto::EncapsulationResult> encapsulated =
+        context.EncapsulateKey(encapsulate, {output.data(), output.size()});
+    const score::Result<score::crypto::CryptoResourceGuard> decapsulated = context.DecapsulateKey(decapsulate);
+    const score::Result<std::size_t> export_size = context.GetExportKeySize(secret, score::crypto::FormatType::kRaw);
+    const score::Result<std::size_t> exported =
+        context.ExportKey(secret, {output.data(), output.size()}, score::crypto::FormatType::kRaw);
+
+    ASSERT_FALSE(size.has_value());
+    ASSERT_FALSE(encapsulated.has_value());
+    ASSERT_FALSE(decapsulated.has_value());
+    ASSERT_FALSE(export_size.has_value());
+    ASSERT_FALSE(exported.has_value());
+    const score::result::Error invalid_argument =
+        score::crypto::MakeError(score::crypto::CryptoErrorCode::kInvalidArgument);
+    EXPECT_EQ(size.error(), invalid_argument);
+    EXPECT_EQ(encapsulated.error(), invalid_argument);
+    EXPECT_EQ(decapsulated.error(), invalid_argument);
+    EXPECT_EQ(export_size.error(), invalid_argument);
+    EXPECT_EQ(exported.error(), invalid_argument);
+    EXPECT_TRUE(connection->requests.empty());
+}
+
+TEST(KeyManagementContextKemTest, SharedSecretGuardDestructionSendsKeyRelease)
+{
+    const std::shared_ptr<RecordingConnection> connection = std::make_shared<RecordingConnection>();
+    const std::shared_ptr<score::crypto::ShmRegionRegistry> registry =
+        std::make_shared<score::crypto::ShmRegionRegistry>(1024U);
+    const std::shared_ptr<score::crypto::BufferShmTranscoder> transcoder =
+        std::make_shared<score::crypto::BufferShmTranscoder>(nullptr, registry);
+    score::crypto::KeyManagementContextImpl context{connection, 44U, transcoder};
+    const std::array<std::uint8_t, 4U> ciphertext{};
+    registry->Register({89U, reinterpret_cast<std::uintptr_t>(ciphertext.data()), ciphertext.size(), false});
+    score::crypto::DecapsulateKeyParams params{};
+    params.SetPrivateKey(KeyId(21U))
+        .SetAlgorithm(score::crypto::AlgorithmId{kAlgorithm})
+        .SetCiphertext({ciphertext.data(), ciphertext.size()});
+    connection->replies.push_back(RecordingConnection::Success(
+        {score::crypto::daemon::common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_DECAPSULATE},
+        {std::uint64_t{72U}, kProviderId}));
+    {
+        const score::Result<score::crypto::CryptoResourceGuard> secret = context.DecapsulateKey(params);
+        ASSERT_TRUE(secret.has_value());
+        EXPECT_EQ(secret->Id().type, score::crypto::ResourceType::kSharedSecret);
+        ASSERT_EQ(connection->requests.size(), 1U);
+    }
+
+    ASSERT_EQ(connection->requests.size(), 2U);
+    const control::ControlRequest& request = connection->requests.back();
+    EXPECT_EQ(request.data_node_id, 44U);
+    const control::SingleOperationRequest& release = request.operation.operations.front();
+    EXPECT_EQ(release.operationId.operationActor, score::crypto::daemon::common::actors::OP_ACTOR_KEY_MANAGEMENT);
+    EXPECT_EQ(release.operationId.operationAction, operations::KEY_RELEASE);
+    ASSERT_EQ(release.parameters.size(), 1U);
+    EXPECT_EQ(std::get<std::uint64_t>(release.parameters.front()), 72U);
 }
 
 // ---------------------------------------------------------------------------

@@ -245,8 +245,8 @@ struct EncapsulateKeyParams
     }
     score::Result<std::monostate> Validate() const noexcept
     {
-        if (peer_public_key.id == 0U || peer_public_key.type != ResourceType::kKey || algorithm.empty() ||
-            algorithm.truncated())
+        if (peer_public_key.id == kInvalidCryptoResourceId || peer_public_key.type != ResourceType::kKey ||
+            algorithm.empty() || algorithm.truncated())
         {
             return score::Result<std::monostate>{
                 score::unexpect, MakeError(CryptoErrorCode::kInvalidArgument, "Invalid encapsulation parameters")};
@@ -290,8 +290,8 @@ struct DecapsulateKeyParams
     }
     score::Result<std::monostate> Validate() const noexcept
     {
-        if (private_key.id == 0U || private_key.type != ResourceType::kKey || algorithm.empty() ||
-            algorithm.truncated() || ciphertext.empty() || ciphertext.data() == nullptr)
+        if (private_key.id == kInvalidCryptoResourceId || private_key.type != ResourceType::kKey ||
+            algorithm.empty() || algorithm.truncated() || ciphertext.empty() || ciphertext.data() == nullptr)
         {
             return score::Result<std::monostate>{
                 score::unexpect, MakeError(CryptoErrorCode::kInvalidArgument, "Invalid decapsulation parameters")};
@@ -306,7 +306,9 @@ struct DecapsulateKeyParams
 /// via the structured KdfParameters field.
 struct DeriveKeyParams
 {
-    /// @brief Handle to the source key (required). CryptoResourceId with type = kKey.
+    /// @brief Handle to the source key material (required).
+    /// Must reference ResourceType::kKey or ResourceType::kSharedSecret.
+    /// The provider must permit KeyOperationPermission::kDerive for this resource.
     CryptoResourceId source_key{};
 
     /// @brief Algorithm identifier for the derived key (required).
@@ -347,10 +349,18 @@ struct DeriveKeyParams
 
     /// @brief Validates these parameters.
     ///
-    /// Propagates KdfParameters::Validate() — in particular, catches truncation
-    /// that occurred in SetSalt() or SetSeed().
+    /// Requires an assigned source id (not kInvalidCryptoResourceId) of type
+    /// kKey or kSharedSecret; otherwise returns kInvalidArgument.
+    /// Propagates KdfParameters::Validate(), including truncation detected
+    /// by SetSalt() or SetSeed().
     score::Result<std::monostate> Validate() const noexcept
     {
+        if (source_key.id == kInvalidCryptoResourceId ||
+            (source_key.type != ResourceType::kKey && source_key.type != ResourceType::kSharedSecret))
+        {
+            return score::Result<std::monostate>{
+                score::unexpect, MakeError(CryptoErrorCode::kInvalidArgument, "Invalid derivation source")};
+        }
         return kdf.Validate();
     }
 };

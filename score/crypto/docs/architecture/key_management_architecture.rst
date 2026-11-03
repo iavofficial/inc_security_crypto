@@ -213,11 +213,19 @@ supplies managed public or private key resources:
   only the shared-secret guard.
 
 The source key is retained and locked for the full provider call. The resulting
-shared secret is a new ephemeral, derive-only, non-exportable key registered
-through the normal ``KeyRegistry`` and released through the same ``KeyDataNode``
-lifecycle as every other ephemeral key. Ciphertext is public operation output,
-while shared-secret bytes never appear in IPC responses. KEM therefore has no
-separate daemon actor, handler family, or operation context.
+shared secret is a new ephemeral ``ResourceType::kSharedSecret`` resource,
+distinct from a usable ``kKey``. It permits only ``kDerive`` and is
+non-exportable. ``DeriveKeyParams::source_key`` accepts this resource as KDF
+input; the derived output is a ``kKey``.
+
+Internally, the material remains registered through the normal ``KeyRegistry``
+with ``KeyMaterialKind::kSharedSecret`` and is released via ``KEY_RELEASE``
+through the same ``KeyDataNode`` lifecycle as ephemeral keys. This preserves
+the existing provider, permission, and zeroization handling without treating
+the shared secret as a directly usable key in the client API. Ciphertext is
+public operation output, while shared-secret bytes never appear in IPC
+responses. KEM therefore has no separate daemon actor, handler family, or
+operation context.
 
 MAC Operation Example
 ---------------------
