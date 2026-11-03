@@ -39,21 +39,14 @@ namespace score
 
 namespace crypto
 {
-/// @brief Concrete IKeyManagementContext implementation that delegates to the crypto daemon via IPC.
+/// @brief Concrete IKeyManagementContext implementation for communication with the crypto daemon.
 ///
-/// Each instance is bound to a daemon-side key management context (identified by
-/// context_id) created during construction. Key-producing operations (GenerateKey,
-/// etc.) return CryptoResourceGuard instances that auto-release through an
-/// IReleaseCallback bound to the daemon connection.
+/// Each instance is bound to a daemon-side key management context identified
+/// by the context_id supplied to the constructor.
+/// Returned CryptoResourceGuard instances manage resource lifetime through
+/// an IReleaseCallback bound to the daemon connection.
 ///
-/// Currently implements:
-///   - GenerateKey, ImportKey, ExportKey (ephemeral overloads)
-///   - GetEncapsulationCiphertextSize, EncapsulateKey, DecapsulateKey
-///   - LoadKey
-///   - Key release via CryptoResourceGuard RAII / explicit Release()
-///
-/// Provider support is required for each operation; the IAV KEM backend is
-/// still incomplete. Slot-writing operations, DeriveKey, and AgreeKey are stubs.
+/// Operation support depends on the selected provider's capabilities.
 class KeyManagementContextImpl final : public IKeyManagementContext
 {
   public:
@@ -85,25 +78,25 @@ class KeyManagementContextImpl final : public IKeyManagementContext
                                                       score::cpp::span<uint8_t> ciphertext_out) override;
     score::Result<CryptoResourceGuard> DecapsulateKey(const DecapsulateKeyParams& params) override;
 
-    // -- Key Derivation (stubs) --
+    // -- Key Derivation --
     score::Result<CryptoResourceGuard> DeriveKey(const DeriveKeyParams& params) override;
     score::Result<std::monostate> DeriveKey(const CryptoResourceId& target_slot,
                                             const DeriveKeyParams& params) override;
 
-    // -- Key Agreement (stubs) --
+    // -- Key Agreement --
     score::Result<CryptoResourceGuard> AgreeKey(const AgreeKeyParams& params) override;
     score::Result<std::monostate> AgreeKey(const CryptoResourceId& target_slot, const AgreeKeyParams& params) override;
 
-    // -- Persistence (stub) --
+    // -- Persistence --
     score::Result<std::monostate> PersistKey(const CryptoResourceId& target_slot,
                                              const CryptoResourceId& ephemeral_key) override;
 
-    // -- Key Unwrapping (stubs) --
+    // -- Key Unwrapping --
     score::Result<CryptoResourceGuard> UnwrapKey(const UnwrapKeyParams& params) override;
     score::Result<std::monostate> UnwrapKey(const CryptoResourceId& target_slot,
                                             const UnwrapKeyParams& params) override;
 
-    // -- Key Import (ephemeral implemented; slot overload is a stub) --
+    // -- Key Import --
     score::Result<CryptoResourceGuard> ImportKey(const ImportKeyParams& params) override;
     score::Result<std::monostate> ImportKey(const CryptoResourceId& target_slot,
                                             const ImportKeyParams& params) override;
@@ -111,7 +104,7 @@ class KeyManagementContextImpl final : public IKeyManagementContext
     // -- Key Loading --
     score::Result<CryptoResourceGuard> LoadKey(const CryptoResourceId& slot) override;
 
-    // -- Key Wrapping (stubs) --
+    // -- Key Wrapping --
     score::Result<std::size_t> WrapKey(const WrapKeyParams& params, score::cpp::span<uint8_t> output) override;
     score::Result<std::size_t> GetWrapKeySize(const WrapKeyParams& params) override;
 
@@ -121,10 +114,10 @@ class KeyManagementContextImpl final : public IKeyManagementContext
                                          FormatType format) override;
     score::Result<std::size_t> GetExportKeySize(const CryptoResourceId& key, FormatType format) override;
 
-    // -- Key Clearing (stub) --
+    // -- Key Clearing --
     score::Result<std::monostate> ClearKey(const CryptoResourceId& key) override;
 
-    // -- Slot Queries (stub) --
+    // -- Slot Queries --
     score::Result<KeySlotInfo> GetKeySlotInfo(const CryptoResourceId& slot) override;
 
   private:
