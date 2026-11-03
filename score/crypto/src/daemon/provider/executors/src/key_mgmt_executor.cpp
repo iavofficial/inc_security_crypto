@@ -340,19 +340,20 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleGetEnca
     {
         return make_unexpected(Error::kInvalidArgument);
     }
-    const auto* algorithm = Parameter<std::string_view>(request, 0U);
-    const auto* key_id = Parameter<std::uint64_t>(request, 1U);
-    if ((!algorithm) || (!ValidAlgorithm(*algorithm)) || (!key_id) || (*key_id == 0U))
+    const auto algorithm = km_parse::ExtractAlgorithm(request, 0U);
+    const auto key_id = km_parse::ExtractUint64(request, 1U);
+    if ((!algorithm.has_value()) || (!ValidAlgorithm(algorithm.value())) || (!key_id.has_value()) ||
+        (key_id.value() == 0U))
     {
         return make_unexpected(Error::kInvalidArgument);
     }
-    auto lease = m_service->AcquireKeyForOperation(ctx.client_id, *key_id, ctx.provider_id, Permission::kAgree);
+    auto lease = m_service->AcquireKeyForOperation(ctx.client_id, key_id.value(), ctx.provider_id, Permission::kAgree);
     if (!lease.has_value())
     {
         return make_unexpected(lease.error());
     }
     const auto& key = lease.value().Handler();
-    if (key.GetHandle().algorithm != *algorithm)
+    if (key.GetHandle().algorithm != algorithm.value())
     {
         return make_unexpected(Error::kInvalidArgument);
     }
@@ -361,7 +362,7 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleGetEnca
     {
         return make_unexpected(Error::kInvalidArgument);
     }
-    const km::KeyEncapsulationRequest params{key, std::string{*algorithm}};
+    const km::KeyEncapsulationRequest params{key, std::string{algorithm.value()}};
     auto size = m_factory->GetEncapsulationCiphertextSize(params);
     if (!size.has_value())
     {
@@ -391,26 +392,26 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleEncapsu
     {
         return make_unexpected(Error::kInvalidArgument);
     }
-    const auto* algorithm = Parameter<std::string_view>(request, 0U);
-    const auto* key_id = Parameter<std::uint64_t>(request, 1U);
+    const auto algorithm = km_parse::ExtractAlgorithm(request, 0U);
+    const auto key_id = km_parse::ExtractUint64(request, 1U);
     const auto* ciphertext_out = Parameter<score::cpp::span<std::uint8_t>>(request, 2U);
-    if ((!algorithm) || (!ValidAlgorithm(*algorithm)) || (!key_id) || (*key_id == 0U) || (!ciphertext_out) ||
-        (!ciphertext_out->data()))
+    if ((!algorithm.has_value()) || (!ValidAlgorithm(algorithm.value())) || (!key_id.has_value()) ||
+        (key_id.value() == 0U) || (!ciphertext_out) || (!ciphertext_out->data()))
     {
         return make_unexpected(Error::kInvalidArgument);
     }
-    auto lease = m_service->AcquireKeyForOperation(ctx.client_id, *key_id, ctx.provider_id, Permission::kAgree);
+    auto lease = m_service->AcquireKeyForOperation(ctx.client_id, key_id.value(), ctx.provider_id, Permission::kAgree);
     if (!lease.has_value())
     {
         return make_unexpected(lease.error());
     }
     const auto& key = lease.value().Handler();
-    if ((key.GetHandle().algorithm != *algorithm) ||
+    if ((key.GetHandle().algorithm != algorithm.value()) ||
         (key.GetHandle().material_kind != km::KeyMaterialKind::kPublicKey))
     {
         return make_unexpected(Error::kInvalidArgument);
     }
-    const km::KeyEncapsulationRequest params{key, std::string{*algorithm}};
+    const km::KeyEncapsulationRequest params{key, std::string{algorithm.value()}};
     auto size = m_factory->GetEncapsulationCiphertextSize(params);
     if (!size.has_value())
     {
@@ -471,26 +472,26 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleDecapsu
     {
         return make_unexpected(Error::kInvalidArgument);
     }
-    const auto* algorithm = Parameter<std::string_view>(request, 0U);
-    const auto* key_id = Parameter<std::uint64_t>(request, 1U);
+    const auto algorithm = km_parse::ExtractAlgorithm(request, 0U);
+    const auto key_id = km_parse::ExtractUint64(request, 1U);
     const auto* ciphertext = Parameter<InputBytes>(request, 2U);
-    if ((!algorithm) || (!ValidAlgorithm(*algorithm)) || (!key_id) || (*key_id == 0U) || (!ciphertext) ||
-        (ciphertext->empty()) || (ciphertext->data() == nullptr))
+    if ((!algorithm.has_value()) || (!ValidAlgorithm(algorithm.value())) || (!key_id.has_value()) ||
+        (key_id.value() == 0U) || (!ciphertext) || (ciphertext->empty()) || (ciphertext->data() == nullptr))
     {
         return make_unexpected(Error::kInvalidArgument);
     }
-    auto lease = m_service->AcquireKeyForOperation(ctx.client_id, *key_id, ctx.provider_id, Permission::kAgree);
+    auto lease = m_service->AcquireKeyForOperation(ctx.client_id, key_id.value(), ctx.provider_id, Permission::kAgree);
     if (!lease.has_value())
     {
         return make_unexpected(lease.error());
     }
     const auto& key = lease.value().Handler();
-    if ((key.GetHandle().algorithm != *algorithm) ||
+    if ((key.GetHandle().algorithm != algorithm.value()) ||
         (key.GetHandle().material_kind != km::KeyMaterialKind::kPrivateKey))
     {
         return make_unexpected(Error::kInvalidArgument);
     }
-    auto result = m_factory->DecapsulateKey({key, std::string{*algorithm}, *ciphertext});
+    auto result = m_factory->DecapsulateKey({key, std::string{algorithm.value()}, *ciphertext});
     if (!result.has_value())
     {
         return make_unexpected(result.error());
