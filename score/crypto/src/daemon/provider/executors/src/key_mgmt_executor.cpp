@@ -77,6 +77,10 @@ Expected<common::ResponseParameters, score::crypto::daemon::common::DaemonErrorC
     common::RequestParameters& request)
 {
     const auto action = operationId.operationAction;
+    if (((action == km_ops::KEY_LOAD) || (action == km_ops::KEY_SLOT_INFO)) && (!m_slot_handler))
+    {
+        return make_unexpected(Error::kUnsupportedOperation);
+    }
     if (action == km_ops::KEY_GET_ENCAPSULATION_SIZE)
     {
         return HandleGetEncapsulationCiphertextSize(ctx, request);
