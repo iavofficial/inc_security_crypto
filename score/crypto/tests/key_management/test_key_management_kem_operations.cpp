@@ -443,6 +443,117 @@ TEST_F(KeyManagementExecutorKemTest, KEMValidationRejectsWrongRoleMissingPermiss
 }
 
 // ---------------------------------------------------------------------------
+// Key operation permissions
+// ---------------------------------------------------------------------------
+
+TEST_F(KeyManagementExecutorKemTest, PublicKeyPermissionsGovernEveryRequestedOperation)
+{
+    const Permission granted = Permission::kAgree | Permission::kExport | Permission::kVerify;
+    const data_manager::DataNodeId key_id = RegisterSource(key_management::KeyMaterialKind::kPublicKey, granted);
+
+    for (const Permission required :
+         {Permission::kAgree, Permission::kExport, Permission::kVerify, Permission::kVerify | Permission::kExport})
+    {
+        const score::crypto::Expected<key_management::KeyOperationLease, Error> lease =
+            service->AcquireKeyForOperation(kClientId, key_id, kProviderId, required);
+        EXPECT_TRUE(lease.has_value());
+    }
+    for (const Permission required : {Permission::kEncrypt, Permission::kAgree | Permission::kEncrypt})
+    {
+        const score::crypto::Expected<key_management::KeyOperationLease, Error> lease =
+            service->AcquireKeyForOperation(kClientId, key_id, kProviderId, required);
+        ASSERT_FALSE(lease.has_value());
+        EXPECT_EQ(lease.error(), Error::kKeyOperationNotPermitted);
+    }
+}
+
+TEST_F(KeyManagementExecutorKemTest, UnspecifiedPublicKeyPermissionsRemainUnrestricted)
+{
+    key_management::ProviderKeyHandle handle{};
+    handle.provider_id = kProviderId;
+    handle.algorithm = std::string{kAlgorithm};
+    handle.material_kind = key_management::KeyMaterialKind::kPublicKey;
+    handle.is_asymmetric = true;
+    handle.key_size = 32U;
+    handle.permissions = Permission::kNone;
+    const score::crypto::Expected<key_management::KeyDataNodeResult, Error> registered = service->RegisterKeyMaterial(
+        {kClientId, context.context_node_id, kProviderId},
+        std::make_shared<TestKeyHandler>(handle, std::make_shared<ReleaseState>()));
+    ASSERT_TRUE(registered.has_value());
+
+    for (const Permission required : {Permission::kAgree, Permission::kExport, Permission::kVerify})
+    {
+        const score::crypto::Expected<key_management::KeyOperationLease, Error> lease =
+            service->AcquireKeyForOperation(kClientId, registered.value().node_id, kProviderId, required);
+        EXPECT_TRUE(lease.has_value());
+    }
+}
+
+TEST_F(KeyManagementExecutorKemTest, AsymmetricHandlesKeepPublicAndPrivateOperationPermissionsSeparate)
+{
+    key_management::ProviderKeyHandle handle{};
+    handle.provider_id = kProviderId;
+    handle.algorithm = std::string{kAlgorithm};
+    handle.material_kind = key_management::KeyMaterialKind::kPrivateKey;
+    handle.is_asymmetric = true;
+    handle.key_size = 32U;
+    handle.permissions = Permission::kSign | Permission::kDerive;
+    handle.public_key_permissions =
+        Permission::kVerify | Permission::kEncrypt | Permission::kWrap | Permission::kAgree | Permission::kExport;
+    const score::crypto::Expected<key_management::KeyDataNodeResult, Error> registered = service->RegisterKeyMaterial(
+        {kClientId, context.context_node_id, kProviderId},
+        std::make_shared<TestKeyHandler>(handle, std::make_shared<ReleaseState>()));
+    ASSERT_TRUE(registered.has_value());
+
+    for (const Permission required :
+         {Permission::kSign, Permission::kDerive, Permission::kVerify, Permission::kEncrypt, Permission::kWrap})
+    {
+        const score::crypto::Expected<key_management::KeyOperationLease, Error> lease =
+            service->AcquireKeyForOperation(kClientId, registered.value().node_id, kProviderId, required);
+        EXPECT_TRUE(lease.has_value());
+    }
+    for (const Permission required : {Permission::kAgree, Permission::kExport, Permission::kDecrypt})
+    {
+        const score::crypto::Expected<key_management::KeyOperationLease, Error> lease =
+            service->AcquireKeyForOperation(kClientId, registered.value().node_id, kProviderId, required);
+        ASSERT_FALSE(lease.has_value());
+        EXPECT_EQ(lease.error(), Error::kKeyOperationNotPermitted);
+    }
+}
+
+TEST_F(KeyManagementExecutorKemTest, SymmetricKeysAndSharedSecretsUseTheirOwnPermissions)
+{
+    for (const key_management::KeyMaterialKind kind :
+         {key_management::KeyMaterialKind::kSymmetricKey, key_management::KeyMaterialKind::kSharedSecret})
+    {
+        key_management::ProviderKeyHandle handle{};
+        handle.provider_id = kProviderId;
+        handle.algorithm = std::string{kAlgorithm};
+        handle.material_kind = kind;
+        handle.key_size = 32U;
+        handle.permissions = Permission::kDerive;
+        const score::crypto::Expected<key_management::KeyDataNodeResult, Error> registered =
+            service->RegisterKeyMaterial(
+                {kClientId, context.context_node_id, kProviderId},
+                std::make_shared<TestKeyHandler>(handle, std::make_shared<ReleaseState>()));
+        ASSERT_TRUE(registered.has_value());
+
+        {
+            const score::crypto::Expected<key_management::KeyOperationLease, Error> lease =
+                service->AcquireKeyForOperation(kClientId, registered.value().node_id, kProviderId, Permission::kDerive);
+            EXPECT_TRUE(lease.has_value());
+        }
+        for (const Permission required : {Permission::kAgree, Permission::kExport, Permission::kVerify})
+        {
+            const score::crypto::Expected<key_management::KeyOperationLease, Error> lease =
+                service->AcquireKeyForOperation(kClientId, registered.value().node_id, kProviderId, required);
+            ASSERT_FALSE(lease.has_value());
+            EXPECT_EQ(lease.error(), Error::kKeyOperationNotPermitted);
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // KEM source-key operation lease lifecycle
 // ---------------------------------------------------------------------------
 
