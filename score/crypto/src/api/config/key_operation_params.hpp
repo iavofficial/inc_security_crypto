@@ -626,8 +626,8 @@ struct ImportKeyParams
     /// For public keys: DER/PEM, or algorithm-defined bytes with FormatType::kRaw.
     score::cpp::span<const uint8_t> key_data{};
 
-    /// @brief Encoding of key_data: DER, PEM or provider-supported raw key bytes.
-    /// The IAV provider requires kRaw and accepts public keys only.
+    /// @brief Encoding of key_data: DER, PEM, or algorithm-defined raw key bytes.
+    /// Supported encodings depend on the selected algorithm and provider.
     /// Symmetric keys have no ASN.1 structure and must not be imported via this struct.
     FormatType format{FormatType::kDer};
 
