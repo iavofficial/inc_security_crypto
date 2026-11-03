@@ -19,15 +19,19 @@
 #include "score/crypto/src/api/types/key.hpp"
 #include "score/crypto/src/daemon/common/secure_memory.hpp"
 #include "score/crypto/src/daemon/common/types.hpp"
+#include "score/span.hpp"
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <optional>
 #include <utility>
 #include <vector>
 
 namespace score::crypto::daemon::key_management
 {
+
+class IKeyHandler;
 
 // ---------------------------------------------------------------------------
 // ProviderKeyHandle — opaque per-key runtime reference
@@ -171,6 +175,31 @@ struct KeyAgreeRequest
     score::crypto::KeyOperationPermission permissions{score::crypto::KeyOperationPermission::kAll};
     /// Optional KDF for combined agree-then-derive (e.g., ECIES, TLS key exchange).
     std::optional<score::crypto::KdfParameters> kdf{std::nullopt};
+};
+
+// ---------------------------------------------------------------------------
+// KEM request and result types
+// ---------------------------------------------------------------------------
+
+struct KeyEncapsulationRequest
+{
+    const IKeyHandler& public_key;
+    common::AlgorithmId algorithm;
+};
+
+struct KeyDecapsulationRequest
+{
+    const IKeyHandler& private_key;
+    common::AlgorithmId algorithm;
+    score::cpp::span<const std::uint8_t> ciphertext;
+};
+
+/// Internal provider result. Only ciphertext can be serialized; shared_secret
+/// must first be registered with KeyManagementService.
+struct ProviderEncapsulationResult
+{
+    std::vector<std::uint8_t> ciphertext;
+    std::shared_ptr<IKeyHandler> shared_secret;
 };
 
 // ---------------------------------------------------------------------------
