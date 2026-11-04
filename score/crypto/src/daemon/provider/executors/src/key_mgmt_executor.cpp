@@ -352,12 +352,12 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleGetEnca
     {
         return make_unexpected(Error::kUnsupportedAlgorithm);
     }
-    auto lease = m_service->AcquireKeyForOperation(ctx.client_id, key_id.value(), ctx.provider_id, Permission::kAgree);
-    if (!lease.has_value())
+    auto entry = m_service->AcquireKeyForOperation(ctx.client_id, key_id.value(), ctx.provider_id, Permission::kAgree);
+    if (!entry.has_value())
     {
-        return make_unexpected(lease.error());
+        return make_unexpected(entry.error());
     }
-    const auto& key = lease.value().Handler();
+    const auto& key = *entry.value()->GetKeyHandler();
     if (key.GetHandle().algorithm.name != algorithm.value())
     {
         return make_unexpected(Error::kInvalidArgument);
@@ -410,12 +410,12 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleEncapsu
     {
         return make_unexpected(Error::kUnsupportedAlgorithm);
     }
-    auto lease = m_service->AcquireKeyForOperation(ctx.client_id, key_id.value(), ctx.provider_id, Permission::kAgree);
-    if (!lease.has_value())
+    auto entry = m_service->AcquireKeyForOperation(ctx.client_id, key_id.value(), ctx.provider_id, Permission::kAgree);
+    if (!entry.has_value())
     {
-        return make_unexpected(lease.error());
+        return make_unexpected(entry.error());
     }
-    const auto& key = lease.value().Handler();
+    const auto& key = *entry.value()->GetKeyHandler();
     if ((key.GetHandle().algorithm.name != algorithm.value()) ||
         (key.GetHandle().material_kind != km::KeyMaterialKind::kPublicKey))
     {
@@ -495,12 +495,12 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleDecapsu
     {
         return make_unexpected(Error::kUnsupportedAlgorithm);
     }
-    auto lease = m_service->AcquireKeyForOperation(ctx.client_id, key_id.value(), ctx.provider_id, Permission::kAgree);
-    if (!lease.has_value())
+    auto entry = m_service->AcquireKeyForOperation(ctx.client_id, key_id.value(), ctx.provider_id, Permission::kAgree);
+    if (!entry.has_value())
     {
-        return make_unexpected(lease.error());
+        return make_unexpected(entry.error());
     }
-    const auto& key = lease.value().Handler();
+    const auto& key = *entry.value()->GetKeyHandler();
     if ((key.GetHandle().algorithm.name != algorithm.value()) ||
         (key.GetHandle().material_kind != km::KeyMaterialKind::kPrivateKey))
     {
@@ -623,17 +623,17 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleGetExpo
     {
         return make_unexpected(Error::kInvalidArgument);
     }
-    auto lease = m_service->AcquireKeyForOperation(ctx.client_id, *key_id, ctx.provider_id, Permission::kExport);
-    if (!lease.has_value())
+    auto entry = m_service->AcquireKeyForOperation(ctx.client_id, *key_id, ctx.provider_id, Permission::kExport);
+    if (!entry.has_value())
     {
-        return make_unexpected(lease.error());
+        return make_unexpected(entry.error());
     }
     const auto encoding = static_cast<score::crypto::FormatType>(*format);
     // Raw material is exported by the live key handler. Providers retain
     // ownership of DER/PEM encoding for their asymmetric-key formats.
     auto exported = encoding == score::crypto::FormatType::kRaw
-                        ? lease.value().Handler().Export()
-                        : m_factory->ExportKey(lease.value().Handler().GetHandle(), encoding);
+                        ? entry.value()->GetKeyHandler()->Export()
+                        : m_factory->ExportKey(entry.value()->GetHandle(), encoding);
     if (!exported.has_value())
     {
         return make_unexpected(exported.error());
@@ -670,17 +670,17 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleExportK
     {
         return make_unexpected(Error::kInsufficientBufferSize);
     }
-    auto lease = m_service->AcquireKeyForOperation(ctx.client_id, *key_id, ctx.provider_id, Permission::kExport);
-    if (!lease.has_value())
+    auto entry = m_service->AcquireKeyForOperation(ctx.client_id, *key_id, ctx.provider_id, Permission::kExport);
+    if (!entry.has_value())
     {
-        return make_unexpected(lease.error());
+        return make_unexpected(entry.error());
     }
     const auto encoding = static_cast<score::crypto::FormatType>(*format);
     // Raw material is exported by the live key handler. Providers retain
     // ownership of DER/PEM encoding for their asymmetric-key formats.
     auto exported = encoding == score::crypto::FormatType::kRaw
-                        ? lease.value().Handler().Export()
-                        : m_factory->ExportKey(lease.value().Handler().GetHandle(), encoding);
+                        ? entry.value()->GetKeyHandler()->Export()
+                        : m_factory->ExportKey(entry.value()->GetHandle(), encoding);
     if (!exported.has_value())
     {
         return make_unexpected(exported.error());

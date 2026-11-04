@@ -22,7 +22,9 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <functional>
+#include <future>
 #include <memory>
 #include <string_view>
 #include <utility>
@@ -242,9 +244,9 @@ TEST_F(KeyManagementExecutorKemTest, EncapsulationRegistersADeriveOnlySecretAndW
 
     auto secret = service->AcquireKeyForOperation(kClientId, secret_id, kProviderId, Permission::kDerive);
     ASSERT_TRUE(secret.has_value());
-    EXPECT_EQ(secret.value().Handler().GetHandle().material_kind, key_management::KeyMaterialKind::kSharedSecret);
-    EXPECT_EQ(secret.value().Handler().GetHandle().permissions, Permission::kDerive);
-    EXPECT_FALSE(secret.value().Handler().GetHandle().is_asymmetric);
+    EXPECT_EQ(secret.value()->GetHandle().material_kind, key_management::KeyMaterialKind::kSharedSecret);
+    EXPECT_EQ(secret.value()->GetHandle().permissions, Permission::kDerive);
+    EXPECT_FALSE(secret.value()->GetHandle().is_asymmetric);
 }
 
 TEST_F(KeyManagementExecutorKemTest, ImportedPublicKeyPermissionsGovernEncapsulation)
@@ -346,8 +348,8 @@ TEST_F(KeyManagementExecutorKemTest, DecapsulationRegistersADeriveOnlySecret)
 
     auto secret = service->AcquireKeyForOperation(kClientId, secret_id, kProviderId, Permission::kDerive);
     ASSERT_TRUE(secret.has_value());
-    EXPECT_EQ(secret.value().Handler().GetHandle().material_kind, key_management::KeyMaterialKind::kSharedSecret);
-    EXPECT_EQ(secret.value().Handler().GetHandle().permissions, Permission::kDerive);
+    EXPECT_EQ(secret.value()->GetHandle().material_kind, key_management::KeyMaterialKind::kSharedSecret);
+    EXPECT_EQ(secret.value()->GetHandle().permissions, Permission::kDerive);
 }
 
 // ---------------------------------------------------------------------------
@@ -381,7 +383,7 @@ TEST_P(KeyManagementExecutorKemVariantTest, RoutesAllStandardKemParameterSets)
     auto encapsulated_secret =
         service->AcquireKeyForOperation(kClientId, encapsulated_secret_id, kProviderId, Permission::kDerive);
     ASSERT_TRUE(encapsulated_secret.has_value());
-    EXPECT_EQ(encapsulated_secret.value().Handler().GetHandle().algorithm.name, algorithm);
+    EXPECT_EQ(encapsulated_secret.value()->GetHandle().algorithm.name, algorithm);
 
     const auto private_key = RegisterSource(key_management::KeyMaterialKind::kPrivateKey, Permission::kAgree, algorithm);
     const auto ciphertext = KemTestFactory::kCiphertext;
@@ -398,7 +400,7 @@ TEST_P(KeyManagementExecutorKemVariantTest, RoutesAllStandardKemParameterSets)
     auto decapsulated_secret =
         service->AcquireKeyForOperation(kClientId, decapsulated_secret_id, kProviderId, Permission::kDerive);
     ASSERT_TRUE(decapsulated_secret.has_value());
-    EXPECT_EQ(decapsulated_secret.value().Handler().GetHandle().algorithm.name, algorithm);
+    EXPECT_EQ(decapsulated_secret.value()->GetHandle().algorithm.name, algorithm);
     EXPECT_EQ(factory->get_size_calls, 2U);
     EXPECT_EQ(factory->encapsulate_calls, 1U);
     EXPECT_EQ(factory->decapsulate_calls, 1U);
@@ -454,13 +456,13 @@ TEST_F(KeyManagementExecutorKemTest, PublicKeyPermissionsGovernEveryRequestedOpe
     for (const Permission required :
          {Permission::kAgree, Permission::kExport, Permission::kVerify, Permission::kVerify | Permission::kExport})
     {
-        const score::crypto::Expected<key_management::KeyOperationLease, Error> lease =
+        const score::crypto::Expected<std::shared_ptr<key_management::KeyEntry>, Error> lease =
             service->AcquireKeyForOperation(kClientId, key_id, kProviderId, required);
         EXPECT_TRUE(lease.has_value());
     }
     for (const Permission required : {Permission::kEncrypt, Permission::kAgree | Permission::kEncrypt})
     {
-        const score::crypto::Expected<key_management::KeyOperationLease, Error> lease =
+        const score::crypto::Expected<std::shared_ptr<key_management::KeyEntry>, Error> lease =
             service->AcquireKeyForOperation(kClientId, key_id, kProviderId, required);
         ASSERT_FALSE(lease.has_value());
         EXPECT_EQ(lease.error(), Error::kKeyOperationNotPermitted);
@@ -483,7 +485,7 @@ TEST_F(KeyManagementExecutorKemTest, UnspecifiedPublicKeyPermissionsRemainUnrest
 
     for (const Permission required : {Permission::kAgree, Permission::kExport, Permission::kVerify})
     {
-        const score::crypto::Expected<key_management::KeyOperationLease, Error> lease =
+        const score::crypto::Expected<std::shared_ptr<key_management::KeyEntry>, Error> lease =
             service->AcquireKeyForOperation(kClientId, registered.value().node_id, kProviderId, required);
         EXPECT_TRUE(lease.has_value());
     }
@@ -508,13 +510,13 @@ TEST_F(KeyManagementExecutorKemTest, AsymmetricHandlesKeepPublicAndPrivateOperat
     for (const Permission required :
          {Permission::kSign, Permission::kDerive, Permission::kVerify, Permission::kEncrypt, Permission::kWrap})
     {
-        const score::crypto::Expected<key_management::KeyOperationLease, Error> lease =
+        const score::crypto::Expected<std::shared_ptr<key_management::KeyEntry>, Error> lease =
             service->AcquireKeyForOperation(kClientId, registered.value().node_id, kProviderId, required);
         EXPECT_TRUE(lease.has_value());
     }
     for (const Permission required : {Permission::kAgree, Permission::kExport, Permission::kDecrypt})
     {
-        const score::crypto::Expected<key_management::KeyOperationLease, Error> lease =
+        const score::crypto::Expected<std::shared_ptr<key_management::KeyEntry>, Error> lease =
             service->AcquireKeyForOperation(kClientId, registered.value().node_id, kProviderId, required);
         ASSERT_FALSE(lease.has_value());
         EXPECT_EQ(lease.error(), Error::kKeyOperationNotPermitted);
@@ -539,13 +541,14 @@ TEST_F(KeyManagementExecutorKemTest, SymmetricKeysAndSharedSecretsUseTheirOwnPer
         ASSERT_TRUE(registered.has_value());
 
         {
-            const score::crypto::Expected<key_management::KeyOperationLease, Error> lease =
-                service->AcquireKeyForOperation(kClientId, registered.value().node_id, kProviderId, Permission::kDerive);
+            const score::crypto::Expected<std::shared_ptr<key_management::KeyEntry>, Error> lease =
+                service->AcquireKeyForOperation(
+                    kClientId, registered.value().node_id, kProviderId, Permission::kDerive);
             EXPECT_TRUE(lease.has_value());
         }
         for (const Permission required : {Permission::kAgree, Permission::kExport, Permission::kVerify})
         {
-            const score::crypto::Expected<key_management::KeyOperationLease, Error> lease =
+            const score::crypto::Expected<std::shared_ptr<key_management::KeyEntry>, Error> lease =
                 service->AcquireKeyForOperation(kClientId, registered.value().node_id, kProviderId, required);
             ASSERT_FALSE(lease.has_value());
             EXPECT_EQ(lease.error(), Error::kKeyOperationNotPermitted);
@@ -554,10 +557,10 @@ TEST_F(KeyManagementExecutorKemTest, SymmetricKeysAndSharedSecretsUseTheirOwnPer
 }
 
 // ---------------------------------------------------------------------------
-// KEM source-key operation lease lifecycle
+// KEM source-key operation lifetime
 // ---------------------------------------------------------------------------
 
-TEST_F(KeyManagementExecutorKemTest, OperationLeaseKeepsSourceAliveAfterItsNodeIsReleased)
+TEST_F(KeyManagementExecutorKemTest, ResolvedEntryKeepsSourceAliveAfterItsNodeIsReleased)
 {
     auto released = std::make_shared<ReleaseState>();
     auto registered = service->RegisterKeyMaterial(
@@ -568,13 +571,29 @@ TEST_F(KeyManagementExecutorKemTest, OperationLeaseKeepsSourceAliveAfterItsNodeI
     const auto source_id = registered.value().node_id;
     registered.value().key_node.reset();
     {
-        auto lease = service->AcquireKeyForOperation(kClientId, source_id, kProviderId, Permission::kAgree);
-        ASSERT_TRUE(lease.has_value());
+        auto entry = service->ResolveKeyForOperation(kClientId, source_id);
+        ASSERT_TRUE(entry.has_value());
         ASSERT_TRUE(service->ReleaseKeyMaterial(kClientId, source_id).has_value());
         EXPECT_FALSE(released->released);
-        EXPECT_EQ(lease.value().Handler().GetHandle().material_kind, key_management::KeyMaterialKind::kPublicKey);
+        EXPECT_EQ(entry.value()->GetHandle().material_kind, key_management::KeyMaterialKind::kPublicKey);
     }
     EXPECT_TRUE(released->released);
+}
+
+TEST_F(KeyManagementExecutorKemTest, AcquiringAnEntryDoesNotBlockAnotherAcquisition)
+{
+    const auto source_id = RegisterSource(key_management::KeyMaterialKind::kPublicKey, Permission::kAgree);
+    auto entry = service->AcquireKeyForOperation(kClientId, source_id, kProviderId, Permission::kAgree);
+    ASSERT_TRUE(entry.has_value());
+
+    auto another_entry = std::async(std::launch::async, [&]() {
+        return service->AcquireKeyForOperation(kClientId, source_id, kProviderId, Permission::kAgree);
+    });
+    const auto status = another_entry.wait_for(std::chrono::seconds{1});
+    entry.value().reset();
+
+    ASSERT_EQ(status, std::future_status::ready);
+    ASSERT_TRUE(another_entry.get().has_value());
 }
 
 // ---------------------------------------------------------------------------
