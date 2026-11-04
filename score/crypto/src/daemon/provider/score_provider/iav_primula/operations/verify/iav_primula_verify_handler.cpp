@@ -52,6 +52,7 @@ Expected<std::monostate, common::DaemonErrorCode> IavPrimulaVerifyHandler::Valid
 Expected<std::monostate, common::DaemonErrorCode> IavPrimulaVerifyHandler::InitializeContext(
     const handler::InitializationParams& init_params)
 {
+    m_key = nullptr;
     // Validate the algorithm and bind the non-owning native key handle required
     // for signature verification.
     auto algorithm = ValidateAlgorithm();
@@ -72,6 +73,12 @@ Expected<std::monostate, common::DaemonErrorCode> IavPrimulaVerifyHandler::Initi
     if (bound_key->GetProviderId() != init_params.provider_id)
     {
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
+    }
+    const auto& handle = bound_key->GetHandle();
+    if (handle.algorithm.id != m_algorithm.id || (handle.material_kind != key_management::KeyMaterialKind::kPublicKey &&
+                                                  handle.material_kind != key_management::KeyMaterialKind::kPrivateKey))
+    {
+        return make_unexpected(common::DaemonErrorCode::kIncompatibleKeyType);
     }
     // The Primula key factory creates IavPrimulaKeyHandler instances for this provider.
     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast) -- provider identity checked above

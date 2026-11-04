@@ -65,6 +65,7 @@ Expected<std::monostate, DaemonErrorCode> IavPrimulaSignHandler::InitializeConte
 {
     score::mw::log::LogDebug() << "DEBUG: IavPrimulaSignHandler::InitializeContext called with algorithm:"
                                << m_algorithm.name;
+    m_key = nullptr;
 
     // Validate the algorithm and bind the non-owning native key handle required
     // for signing.
@@ -91,6 +92,12 @@ Expected<std::monostate, DaemonErrorCode> IavPrimulaSignHandler::InitializeConte
         init_params.bound_key_handler->GetProviderId() != init_params.provider_id)
     {
         return make_unexpected(DaemonErrorCode::kInvalidArgument);
+    }
+
+    const auto& handle = init_params.bound_key_handler->GetHandle();
+    if (handle.algorithm.id != m_algorithm.id || handle.material_kind != key_management::KeyMaterialKind::kPrivateKey)
+    {
+        return make_unexpected(DaemonErrorCode::kIncompatibleKeyType);
     }
 
     // The Primula key factory creates IavPrimulaKeyHandler instances for this provider.

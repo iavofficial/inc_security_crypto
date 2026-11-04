@@ -49,7 +49,8 @@ class IavPrimulaSignHandler final : public operations::sign::ScoreSignHandler
 
     /// @brief Validate the algorithm and bind the signing key.
     ///
-    /// The bound key must be an IAV-Primula key with a valid native handle.
+    /// The bound key must contain private signature material for the configured
+    /// algorithm and have a valid native handle.
     [[nodiscard]] Expected<std::monostate, common::DaemonErrorCode> InitializeContext(
         const ::score::crypto::daemon::provider::handler::InitializationParams& init_params) override;
     /// @brief Sign a complete message in a single operation.
