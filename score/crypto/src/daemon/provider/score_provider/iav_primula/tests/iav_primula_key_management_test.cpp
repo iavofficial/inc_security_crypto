@@ -233,9 +233,9 @@ class IavPrimulaKeyExportTest : public ::testing::Test
     {
         common::RequestParameters request{
             algorithm,
-            score::cpp::span<const std::uint8_t>{public_key.data(), public_key.size()},
-            static_cast<std::uint8_t>(score::crypto::FormatType::kRaw),
-            static_cast<std::uint32_t>(permissions)};
+            static_cast<std::uint32_t>(permissions),
+            static_cast<std::uint32_t>(score::crypto::FormatType::kRaw),
+            score::cpp::span<const std::uint8_t>{public_key.data(), public_key.size()}};
         return key_executor->Execute(
             context, {common::actors::OP_ACTOR_KEY_MANAGEMENT, key_management::operations::KEY_IMPORT}, request);
     }
@@ -244,7 +244,7 @@ class IavPrimulaKeyExportTest : public ::testing::Test
         common::OperationAction action, data_manager::DataNodeId key_id)
     {
         common::RequestParameters request{
-            static_cast<std::uint64_t>(key_id), static_cast<std::uint8_t>(score::crypto::FormatType::kRaw)};
+            static_cast<std::uint64_t>(key_id), static_cast<std::uint32_t>(score::crypto::FormatType::kRaw)};
         if (action == key_management::operations::KEY_EXPORT)
         {
             request.emplace_back(score::cpp::span<std::uint8_t>{export_output.data(), export_output.size()});

@@ -13,6 +13,7 @@
 
 #include "score/crypto/src/daemon/provider/executors/key_mgmt_executor.hpp"
 
+#include "score/crypto/src/daemon/key_management/core/key_entry.hpp"
 #include "score/crypto/src/daemon/key_management/interfaces/key_management_operations.hpp"
 #include "score/crypto/src/daemon/key_management/interfaces/key_types.hpp"
 #include "score/crypto/src/daemon/provider/executors/key_mgmt_request_parser.hpp"
@@ -23,6 +24,7 @@
 #include <algorithm>
 #include <string_view>
 #include <utility>
+#include <variant>
 
 namespace score::crypto::daemon::provider::crypto_executor
 {
@@ -532,9 +534,9 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleDecapsu
 //
 // Parameter layout:
 //   request[0] = algorithm (string_view)
-//   request[1] = key material (InputBytes)
-//   request[2] = format (uint8_t)
-//   request[3] = permissions (uint32_t)
+//   request[1] = permissions (uint32_t)
+//   request[2] = format (uint32_t)
+//   request[3] = key material (InputBytes)
 // ---------------------------------------------------------------------------
 
 Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleImport(
@@ -545,27 +547,22 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleImport(
     {
         return make_unexpected(Error::kInvalidArgument);
     }
-    const auto algorithm = km_parse::ExtractAlgorithm(request, 0U);
-    const auto* data = Parameter<InputBytes>(request, 1U);
-    const auto* format = Parameter<std::uint8_t>(request, 2U);
-    const auto permissions = km_parse::ExtractOptionalPermissions(request, 3U);
-    if ((!algorithm.has_value()) || (!ValidAlgorithm(algorithm.value())) || (!data) || (data->empty()) ||
-        (!data->data()) || (!format) || (*format > static_cast<std::uint8_t>(score::crypto::FormatType::kRaw)) ||
-        (!permissions.has_value()))
+    // Reject malformed permissions before the parser applies its optional default.
+    const auto permissions = km_parse::ExtractOptionalPermissions(request, 1U);
+    if (!permissions.has_value())
     {
         return make_unexpected(Error::kInvalidArgument);
     }
-    const auto descriptor = GetAlgorithmDescriptor(algorithm.value());
-    if (!descriptor.has_value())
+    const auto import_request = km_parse::BuildImportRequest(request);
+    if (!import_request.has_value())
     {
-        return make_unexpected(Error::kUnsupportedAlgorithm);
+        return make_unexpected(import_request.error());
     }
-    km::KeyImportRequest params;
-    params.algorithm = *descriptor;
-    params.key_data = data->data();
-    params.key_data_size = data->size();
-    params.format = static_cast<score::crypto::FormatType>(*format);
-    params.permissions = permissions.value();
+    const auto& params = import_request.value();
+    if (!ValidAlgorithm(params.algorithm.name))
+    {
+        return make_unexpected(Error::kInvalidArgument);
+    }
     common::ResponseParameters output;
     output.reserve(2U);
     auto result = m_factory->ImportKey(params);
@@ -605,7 +602,7 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleImport(
 //
 // Parameter layout:
 //   request[0] = key node id (uint64_t)
-//   request[1] = format (uint8_t)
+//   request[1] = format (uint32_t)
 // ---------------------------------------------------------------------------
 
 Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleGetExportKeySize(
@@ -617,28 +614,36 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleGetExpo
         return make_unexpected(Error::kInvalidArgument);
     }
     const auto* key_id = Parameter<std::uint64_t>(request, 0U);
-    const auto* format = Parameter<std::uint8_t>(request, 1U);
-    if ((!key_id) || (*key_id == 0U) || (!format) ||
-        (*format > static_cast<std::uint8_t>(score::crypto::FormatType::kRaw)))
+    const auto format = km_parse::ExtractFormatOrDefault(request, 1U);
+    if ((!key_id) || (*key_id == 0U) || (!format.has_value()))
     {
         return make_unexpected(Error::kInvalidArgument);
     }
-    auto entry = m_service->AcquireKeyForOperation(ctx.client_id, *key_id, ctx.provider_id, Permission::kExport);
+    auto entry =
+        m_service->AcquireKeyForOperation(ctx.client_id, *key_id, ctx.provider_id, Permission::kExport, format.value());
     if (!entry.has_value())
     {
         return make_unexpected(entry.error());
     }
-    const auto encoding = static_cast<score::crypto::FormatType>(*format);
-    // Raw material is exported by the live key handler. Providers retain
-    // ownership of DER/PEM encoding for their asymmetric-key formats.
-    auto exported = encoding == score::crypto::FormatType::kRaw
-                        ? entry.value()->GetKeyHandler()->Export()
-                        : m_factory->ExportKey(entry.value()->GetHandle(), encoding);
-    if (!exported.has_value())
+    const auto encoding = format.value();
+    const auto& handle = entry.value()->GetHandle();
+    // EC raw export is the provider-formatted public point. Other raw material,
+    // including Primula public keys, is exported by the live key handler.
+    if (encoding == score::crypto::FormatType::kRaw && handle.algorithm.key_type != score::crypto::KeyType::kEcc)
     {
-        return make_unexpected(exported.error());
+        auto exported = entry.value()->GetKeyHandler()->Export();
+        if (!exported.has_value())
+        {
+            return make_unexpected(exported.error());
+        }
+        return common::ResponseParameters{static_cast<std::uint64_t>(exported.value().bytes.size())};
     }
-    return common::ResponseParameters{static_cast<std::uint64_t>(exported.value().bytes.size())};
+    auto size = m_factory->GetExportKeySize(handle, encoding);
+    if (!size.has_value())
+    {
+        return make_unexpected(size.error());
+    }
+    return common::ResponseParameters{static_cast<std::uint64_t>(size.value())};
 }
 
 // ---------------------------------------------------------------------------
@@ -646,7 +651,7 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleGetExpo
 //
 // Parameter layout:
 //   request[0] = key node id (uint64_t)
-//   request[1] = format (uint8_t)
+//   request[1] = format (uint32_t)
 //   request[2] = output buffer (mutable span, resolved by the data plane)
 // ---------------------------------------------------------------------------
 
@@ -659,10 +664,9 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleExportK
         return make_unexpected(Error::kInvalidArgument);
     }
     const auto* key_id = Parameter<std::uint64_t>(request, 0U);
-    const auto* format = Parameter<std::uint8_t>(request, 1U);
+    const auto format = km_parse::ExtractFormatOrDefault(request, 1U);
     const auto* output = Parameter<score::cpp::span<std::uint8_t>>(request, 2U);
-    if ((!key_id) || (*key_id == 0U) || (!format) || (!output) ||
-        (*format > static_cast<std::uint8_t>(score::crypto::FormatType::kRaw)))
+    if ((!key_id) || (*key_id == 0U) || (!format.has_value()) || (!output))
     {
         return make_unexpected(Error::kInvalidArgument);
     }
@@ -670,17 +674,20 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleExportK
     {
         return make_unexpected(Error::kInsufficientBufferSize);
     }
-    auto entry = m_service->AcquireKeyForOperation(ctx.client_id, *key_id, ctx.provider_id, Permission::kExport);
+    auto entry =
+        m_service->AcquireKeyForOperation(ctx.client_id, *key_id, ctx.provider_id, Permission::kExport, format.value());
     if (!entry.has_value())
     {
         return make_unexpected(entry.error());
     }
-    const auto encoding = static_cast<score::crypto::FormatType>(*format);
-    // Raw material is exported by the live key handler. Providers retain
-    // ownership of DER/PEM encoding for their asymmetric-key formats.
-    auto exported = encoding == score::crypto::FormatType::kRaw
-                        ? entry.value()->GetKeyHandler()->Export()
-                        : m_factory->ExportKey(entry.value()->GetHandle(), encoding);
+    const auto encoding = format.value();
+    const auto& handle = entry.value()->GetHandle();
+    // EC raw export uses the provider's uncompressed public-point encoding;
+    // Primula public keys and raw symmetric bytes use their live handler.
+    const bool use_raw_handler =
+        encoding == score::crypto::FormatType::kRaw && handle.algorithm.key_type != score::crypto::KeyType::kEcc;
+    auto exported = use_raw_handler ? entry.value()->GetKeyHandler()->Export()
+                                    : m_factory->ExportKey(handle, encoding);
     if (!exported.has_value())
     {
         return make_unexpected(exported.error());

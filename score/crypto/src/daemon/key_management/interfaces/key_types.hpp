@@ -15,9 +15,9 @@
 #define SCORE_CRYPTO_SRC_DAEMON_KEY_MANAGEMENT_INTERFACES_KEY_TYPES_HPP
 
 #include "score/crypto/src/api/config/key_operation_params.hpp"
-#include "score/crypto/src/api/types/algorithm.hpp"
 #include "score/crypto/src/api/types/common.hpp"
 #include "score/crypto/src/api/types/key.hpp"
+#include "score/crypto/src/daemon/common/algorithm_catalog.hpp"
 #include "score/crypto/src/daemon/common/secure_memory.hpp"
 #include "score/crypto/src/daemon/common/types.hpp"
 #include "score/span.hpp"
@@ -88,15 +88,19 @@ struct ProviderKeyHandle
 ///
 /// For other asymmetric handles, the requested operation selects the half:
 /// verify, encrypt and wrap use public_key_permissions; other operations use
-/// permissions. Symmetric keys and shared secrets use permissions.
+/// permissions. Raw EC export emits only the public point, so it uses
+/// public_key_permissions when export_format is kRaw. Symmetric keys and
+/// shared secrets use permissions.
 /// The caller separately checks whether the algorithm and key material
 /// support the requested operation.
 ///
 /// @param handle   The key whose permissions are being consulted.
 /// @param required The single permission bit the caller intends to exercise.
+/// @param export_format Encoding of an export operation; absent for other operations.
 [[nodiscard]] inline score::crypto::KeyOperationPermission GrantedPermissionsFor(
     const ProviderKeyHandle& handle,
-    score::crypto::KeyOperationPermission required) noexcept
+    score::crypto::KeyOperationPermission required,
+    std::optional<score::crypto::FormatType> export_format = std::nullopt) noexcept
 {
     using Permission = score::crypto::KeyOperationPermission;
 
@@ -110,7 +114,11 @@ struct ProviderKeyHandle
 
     // HasPermission(kPublicHalfOperations, required) asks whether `required` is
     // a subset of the public-half operations, i.e. "is this a public-half use?".
-    if (handle.is_asymmetric && score::crypto::HasPermission(kPublicHalfOperations, required))
+    const bool exports_ec_public_point =
+        required == Permission::kExport && export_format == score::crypto::FormatType::kRaw &&
+        handle.algorithm.key_type == score::crypto::KeyType::kEcc;
+    if (handle.is_asymmetric &&
+        (score::crypto::HasPermission(kPublicHalfOperations, required) || exports_ec_public_point))
     {
         return handle.public_key_permissions.value_or(Permission::kAll);
     }

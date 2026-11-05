@@ -256,9 +256,9 @@ TEST_F(KeyManagementExecutorKemTest, ImportedPublicKeyPermissionsGovernEncapsula
     {
         common::RequestParameters import_request{
             std::string_view{kAlgorithm},
-            score::cpp::span<const std::uint8_t>{ciphertext.data(), ciphertext.size()},
-            static_cast<std::uint8_t>(score::crypto::FormatType::kRaw),
-            static_cast<std::uint32_t>(permissions)};
+            static_cast<std::uint32_t>(permissions),
+            static_cast<std::uint32_t>(score::crypto::FormatType::kRaw),
+            score::cpp::span<const std::uint8_t>{ciphertext.data(), ciphertext.size()}};
         auto imported = key_executor->Execute(
             context, {common::actors::OP_ACTOR_KEY_MANAGEMENT, operations::KEY_IMPORT}, import_request);
         ASSERT_TRUE(imported.has_value());
@@ -914,7 +914,7 @@ TEST(KeyManagementContextKemTest, MaterialOperationsUseTheirKeyManagementIpcCont
 
     ASSERT_GE(connection->requests.size(), 4U);
     EXPECT_EQ(connection->requests[0].operation.operations[0].operationId.operationAction, operations::KEY_IMPORT);
-    EXPECT_EQ(std::get<common::DataShm>(connection->requests[0].operation.operations[0].parameters[1]).direction,
+    EXPECT_EQ(std::get<common::DataShm>(connection->requests[0].operation.operations[0].parameters[3]).direction,
               common::ShmDirection::In);
     EXPECT_EQ(connection->requests[2].operation.operations[0].operationId.operationAction, operations::KEY_GET_EXPORT_SIZE);
     EXPECT_EQ(connection->requests[3].operation.operations[0].operationId.operationAction, operations::KEY_EXPORT);

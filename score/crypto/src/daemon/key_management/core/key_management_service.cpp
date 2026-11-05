@@ -13,7 +13,7 @@
 
 #include "score/crypto/src/daemon/key_management/core/key_management_service.hpp"
 
-#include "score/crypto/src/api/types/algorithm.hpp"
+#include "score/crypto/src/daemon/common/algorithm_catalog.hpp"
 #include "score/crypto/src/daemon/data_manager/data_node_accessor.hpp"
 #include "score/crypto/src/daemon/key_management/core/key_entry.hpp"
 #include "score/crypto/src/daemon/key_management/nodes/key_data_node.hpp"
@@ -296,7 +296,8 @@ Expected<std::shared_ptr<KeyEntry>, common::DaemonErrorCode> KeyManagementServic
     data_manager::ClientId client_id,
     data_manager::DataNodeId key_node_id,
     common::ProviderId provider_id,
-    score::crypto::KeyOperationPermission permission) const
+    score::crypto::KeyOperationPermission permission,
+    std::optional<score::crypto::FormatType> export_format) const
 {
     if (provider_id == common::kInvalidProviderId)
     {
@@ -321,7 +322,7 @@ Expected<std::shared_ptr<KeyEntry>, common::DaemonErrorCode> KeyManagementServic
     }
 
     const score::crypto::KeyOperationPermission granted_permissions =
-        GrantedPermissionsFor(handler.GetHandle(), permission);
+        GrantedPermissionsFor(handler.GetHandle(), permission, export_format);
 
     if (!score::crypto::HasPermission(granted_permissions, permission))
     {
@@ -362,6 +363,10 @@ KeyManagementService::ResolveKeyForOperation(data_manager::ClientId client_id,
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInternalError);
     }
 
+    // Return the owning KeyEntry (not just the IKeyHandler). The caller keeps it
+    // alive for the duration of the operation so a concurrent release from
+    // another context cannot run ~KeyEntry -> IKeyHandler::Release() and free the
+    // key material mid-use.
     return key_node;
 }
 

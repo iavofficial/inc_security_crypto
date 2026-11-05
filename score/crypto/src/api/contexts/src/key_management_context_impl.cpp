@@ -396,10 +396,11 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::ImportKey(const Imp
         return score::Result<CryptoResourceGuard>{score::unexpect, acquired.error()};
     }
     proto::OperationRequestBuilder builder;
-    builder.operation({actors::OP_ACTOR_KEY_MANAGEMENT, keymgmt_ops::KEY_IMPORT}).with_in_string(params.algorithm);
+    builder.operation({actors::OP_ACTOR_KEY_MANAGEMENT, keymgmt_ops::KEY_IMPORT})
+        .with_in_string(params.algorithm)
+        .with_in_val_uint32(static_cast<std::uint32_t>(params.permissions))
+        .with_in_val_uint32(static_cast<std::uint32_t>(params.format));
     m_transcoder->AppendInputBuffer(builder, acquired.value());
-    builder.with_in_val_uint8(static_cast<std::uint8_t>(params.format))
-        .with_in_val_uint32(static_cast<std::uint32_t>(params.permissions));
     auto operation = builder.build();
     if (!operation.has_value())
     {
@@ -428,7 +429,7 @@ score::Result<std::size_t> KeyManagementContextImpl::GetExportKeySize(const Cryp
             .forDataNodeId(m_context_id)
             .operation({actors::OP_ACTOR_KEY_MANAGEMENT, keymgmt_ops::KEY_GET_EXPORT_SIZE})
             .with_in_val_uint64(key.id)
-            .with_in_val_uint8(static_cast<std::uint8_t>(format))
+            .with_in_val_uint32(static_cast<std::uint32_t>(format))
             .build(),
         1U);
     if (!reply.has_value())
@@ -464,7 +465,7 @@ score::Result<std::size_t> KeyManagementContextImpl::ExportKey(const CryptoResou
     proto::OperationRequestBuilder builder;
     builder.operation({actors::OP_ACTOR_KEY_MANAGEMENT, keymgmt_ops::KEY_EXPORT})
         .with_in_val_uint64(key.id)
-        .with_in_val_uint8(static_cast<std::uint8_t>(format));
+        .with_in_val_uint32(static_cast<std::uint32_t>(format));
     m_transcoder->AppendOutputBuffer(builder, acquired.value());
     auto operation = builder.build();
     if (!operation.has_value())
