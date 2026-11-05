@@ -237,12 +237,14 @@ class KeyManagementService final
     /// Resolve a client-owned key and retain its entry without serializing provider use.
     /// Both registry and handler provider identities must match the context.
     /// Checks the requested permission using GrantedPermissionsFor().
+    /// export_format selects the public-half permission for raw EC public-point export.
     /// The caller validates the algorithm and key material for its operation.
     [[nodiscard]] Expected<std::shared_ptr<KeyEntry>, common::DaemonErrorCode> AcquireKeyForOperation(
         data_manager::ClientId client_id,
         data_manager::DataNodeId key_node_id,
         common::ProviderId provider_id,
-        score::crypto::KeyOperationPermission permission) const;
+        score::crypto::KeyOperationPermission permission,
+        std::optional<score::crypto::FormatType> export_format = std::nullopt) const;
 
     // ------------------------------------------------------------------
     // Accessors

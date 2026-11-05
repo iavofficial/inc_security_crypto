@@ -54,6 +54,9 @@ TEST(IavPrimulaApplicationIntegrationTest, CreatesSignHandlerFromProviderToAlgor
     // creating a real backend key.
     key_management::ProviderKeyHandle key_handle{};
     key_handle.provider_id = provider.GetProviderId();
+    key_handle.algorithm = primula_handler->GetAlgorithm();
+    key_handle.is_asymmetric = true;
+    key_handle.material_kind = key_management::KeyMaterialKind::kPrivateKey;
     IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, key_handle};
     handler::InitializationParams params{};
     params.provider_id = provider.GetProviderId();
@@ -90,6 +93,9 @@ TEST(IavPrimulaApplicationIntegrationTest, CreatesVerifyHandlerAndReachesAlgorit
     // A non-null sentinel represents a bound native key handle for initialization.
     key_management::ProviderKeyHandle key_handle{};
     key_handle.provider_id = provider.GetProviderId();
+    key_handle.algorithm = primula_handler->GetAlgorithm();
+    key_handle.is_asymmetric = true;
+    key_handle.material_kind = key_management::KeyMaterialKind::kPrivateKey;
     IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, key_handle};
     handler::InitializationParams params{};
     params.provider_id = provider.GetProviderId();
