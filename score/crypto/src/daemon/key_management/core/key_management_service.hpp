@@ -73,9 +73,8 @@ struct KeyDataNodeResult
 /// are NOT part of this service. Executors call IKeyFactory and IKeySlotHandler
 /// directly for those, then use the service for bookkeeping integration.
 ///
-/// Thread safety: methods are serialized by the underlying DataManager and
-/// SlotRegistry mutexes. The service itself holds no mutable state beyond
-/// the injected shared pointers.
+/// Thread safety: DataManager and registries synchronize their bookkeeping.
+/// Provider key handlers are responsible for synchronizing key usage.
 class KeyManagementService final
 {
   public:
@@ -226,19 +225,20 @@ class KeyManagementService final
         data_manager::ClientId client_id,
         data_manager::DataNodeId slot_node_id);
 
-    /// Resolve a key DataNode ID (a KeyDataNode) back to its IKeyHandler.
+    /// Resolve a key DataNode ID (a KeyDataNode) back to its owning KeyEntry.
     ///
     /// Used by executor handlers that need a ProviderKeyHandle or the raw
     /// IKeyHandler to build provider-level request structs (WrapKey, ExportKey, ...).
-    [[nodiscard]] Expected<IKeyHandler::Sptr, score::crypto::daemon::common::DaemonErrorCode> ResolveKeyForOperation(
-        data_manager::ClientId client_id,
-        data_manager::DataNodeId key_node_id) const;
+    /// The caller retains the entry for the whole operation to prevent its
+    /// destructor from releasing key material when the client node is removed.
+    [[nodiscard]] Expected<std::shared_ptr<KeyEntry>, score::crypto::daemon::common::DaemonErrorCode>
+    ResolveKeyForOperation(data_manager::ClientId client_id, data_manager::DataNodeId key_node_id) const;
 
-    /// Resolve a client-owned key, pin its entry, and serialize provider use.
+    /// Resolve a client-owned key and retain its entry without serializing provider use.
     /// Both registry and handler provider identities must match the context.
     /// Checks the requested permission using GrantedPermissionsFor().
     /// The caller validates the algorithm and key material for its operation.
-    [[nodiscard]] Expected<KeyOperationLease, common::DaemonErrorCode> AcquireKeyForOperation(
+    [[nodiscard]] Expected<std::shared_ptr<KeyEntry>, common::DaemonErrorCode> AcquireKeyForOperation(
         data_manager::ClientId client_id,
         data_manager::DataNodeId key_node_id,
         common::ProviderId provider_id,

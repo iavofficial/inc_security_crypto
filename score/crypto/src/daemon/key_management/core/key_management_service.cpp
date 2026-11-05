@@ -292,7 +292,7 @@ Expected<SlotResolution, score::crypto::daemon::common::DaemonErrorCode> KeyMana
 // AcquireKeyForOperation
 // ---------------------------------------------------------------------------
 
-Expected<KeyOperationLease, common::DaemonErrorCode> KeyManagementService::AcquireKeyForOperation(
+Expected<std::shared_ptr<KeyEntry>, common::DaemonErrorCode> KeyManagementService::AcquireKeyForOperation(
     data_manager::ClientId client_id,
     data_manager::DataNodeId key_node_id,
     common::ProviderId provider_id,
@@ -312,9 +312,9 @@ Expected<KeyOperationLease, common::DaemonErrorCode> KeyManagementService::Acqui
     {
         return make_unexpected(common::DaemonErrorCode::kInvalidResourceId);
     }
-    KeyOperationLease lease{node.value()->GetKeyEntry()};
-    const auto& handler = lease.Handler();
-    if (lease.ProviderId() != provider_id || handler.GetProviderId() != provider_id ||
+    auto entry = node.value()->GetKeyEntry();
+    const auto& handler = *entry->GetKeyHandler();
+    if (entry->GetProviderId() != provider_id || handler.GetProviderId() != provider_id ||
         handler.GetHandle().provider_id != provider_id)
     {
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
@@ -327,14 +327,14 @@ Expected<KeyOperationLease, common::DaemonErrorCode> KeyManagementService::Acqui
     {
         return make_unexpected(common::DaemonErrorCode::kKeyOperationNotPermitted);
     }
-    return lease;
+    return entry;
 }
 
 // ---------------------------------------------------------------------------
 // ResolveKeyForOperation
 // ---------------------------------------------------------------------------
 
-Expected<IKeyHandler::Sptr, score::crypto::daemon::common::DaemonErrorCode>
+Expected<std::shared_ptr<KeyEntry>, score::crypto::daemon::common::DaemonErrorCode>
 KeyManagementService::ResolveKeyForOperation(data_manager::ClientId client_id,
                                              data_manager::DataNodeId key_node_id) const
 {
@@ -362,7 +362,7 @@ KeyManagementService::ResolveKeyForOperation(data_manager::ClientId client_id,
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInternalError);
     }
 
-    return handler;
+    return key_node;
 }
 
 // ---------------------------------------------------------------------------

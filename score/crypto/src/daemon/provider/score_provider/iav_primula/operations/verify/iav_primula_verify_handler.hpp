@@ -49,7 +49,8 @@ class IavPrimulaVerifyHandler final : public operations::verify::ScoreVerifyHand
 
     /// @brief Validate the algorithm and bind the verification key.
     ///
-    /// The bound key must be an IAV-Primula key with a valid native handle.
+    /// The bound key must contain public or private signature material for the
+    /// configured algorithm and have a valid IAV-Primula native handle.
     ///
     /// @param init_params Context initialization parameters containing the
     ///                    bound verification key.

@@ -38,7 +38,7 @@ class IKeyHandler;
 // ProviderKeyHandle — opaque per-key runtime reference
 // ---------------------------------------------------------------------------
 
-/// Distinguishes KEM input roles and shared-secret output from other key material.
+/// Identifies the kind of key material held by a provider.
 enum class KeyMaterialKind : std::uint8_t
 {
     kUnspecified,
