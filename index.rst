@@ -62,7 +62,7 @@ For documentation of individual components within this module:
    :maxdepth: 1
 
    score/crypto/docs/index
-   score/iav_primula/docs/index
+   score/pqc_provider/docs/index
 
 Architecture Modeling Reference
 --------------------------------
