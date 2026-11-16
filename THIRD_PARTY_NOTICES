@@ -18,3 +18,8 @@ This product includes gRPC (https://github.com/grpc/grpc),
 Copyright (c) 2015 gRPC authors.
 Licensed under the Apache License, Version 2.0
 (https://www.apache.org/licenses/LICENSE-2.0).
+
+This product includes liboqs (https://github.com/open-quantum-safe/liboqs),
+Copyright (c) 2016-2024 The Open Quantum Safe project authors.
+Licensed under the The MIT license with respect to 3rd party licenses
+(https://github.com/open-quantum-safe/liboqs/blob/main/LICENSE.txt)

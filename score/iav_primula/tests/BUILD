@@ -11,11 +11,13 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@rules_rust//rust:defs.bzl", "rust_test")
+load("@rules_cc//cc:defs.bzl", "cc_test")
 
-rust_test(
+cc_test(
     name = "ffi_test",
-    srcs = ["ffi_test.rs"],
-    edition = "2021",
-    deps = ["//score/iav_primula"],
+    srcs = ["ffi_test.cpp"],
+    deps = [
+        "//score/iav_primula",
+        "@googletest//:gtest_main",
+    ],
 )

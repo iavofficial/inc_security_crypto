@@ -194,3 +194,13 @@ Component Detail Information
    safety_analysis/fmea
    safety_analysis/aou_requirements_template
    component_classification
+
+Test and Source Provenance
+==========================
+
+.. toctree::
+   :maxdepth: 1
+
+   ../liboqs/UPSTREAM
+   ../tests/upstream/UPSTREAM
+   ../tests/upstream/vectors/acvp/NOTICE

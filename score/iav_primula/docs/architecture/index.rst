@@ -18,6 +18,9 @@ Component Architecture
 ======================
 
 .. toctree::
+   :maxdepth: 2
+   :caption: Architecture Details
 
    component_architecture
    chklst_arc_inspection
+   design_decisions

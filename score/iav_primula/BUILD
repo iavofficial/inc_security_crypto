@@ -11,32 +11,31 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@rules_rust//rust:defs.bzl", "rust_library", "rust_static_library")
-
-rust_library(
-    name = "iav_primula",
-    srcs = [
-        "src/ffi.rs",
-    ],
-    crate_name = "iav_primula",
-    crate_root = "src/ffi.rs",
-    edition = "2021",
-    visibility = ["//visibility:public"],
-)
-
-rust_static_library(
-    name = "iav_primula_staticlib",
-    srcs = [
-        "src/ffi.rs",
-    ],
-    crate_name = "iav_primula",
-    crate_root = "src/ffi.rs",
-    edition = "2021",
-    visibility = ["//visibility:public"],
-)
+load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
     name = "iav_primula_ffi_headers",
     hdrs = ["include/iav_primula_ffi.h"],
+    includes = ["include"],
     visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "liboqs_config_header",
+    hdrs = ["include/oqs/oqsconfig.h"],
+    includes = ["include"],
+    visibility = [
+        "//score/iav_primula:__pkg__",
+        "//score/iav_primula/liboqs:__pkg__",
+    ],
+)
+
+cc_library(
+    name = "iav_primula",
+    srcs = ["src/ffi.cpp"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":iav_primula_ffi_headers",
+        "//score/iav_primula/liboqs:liboqs_partial",
+    ],
 )
