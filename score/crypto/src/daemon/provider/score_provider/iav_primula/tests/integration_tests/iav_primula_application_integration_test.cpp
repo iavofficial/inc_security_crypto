@@ -15,6 +15,7 @@
 #include "score/crypto/src/daemon/provider/handler/operations/sign_handler_operations.hpp"
 #include "score/crypto/src/daemon/provider/handler/operations/verify_handler_operations.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/iav_primula_provider.hpp"
+#include "score/crypto/src/daemon/provider/score_provider/iav_primula/key_management/iav_primula_key_factory.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/key_management/iav_primula_key_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/operations/sign/iav_primula_sign_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/operations/verify/iav_primula_verify_handler.hpp"
@@ -50,17 +51,14 @@ TEST(IavPrimulaApplicationIntegrationTest, CreatesSignHandlerFromProviderToAlgor
     ASSERT_NE(primula_handler, nullptr);
     EXPECT_EQ(primula_handler->GetAlgorithm().name, "ML-DSA-44");
 
-    // Use a non-null sentinel to simulate a bound native key handle without
-    // creating a real backend key.
-    key_management::ProviderKeyHandle key_handle{};
-    key_handle.provider_id = provider.GetProviderId();
-    key_handle.algorithm = primula_handler->GetAlgorithm();
-    key_handle.is_asymmetric = true;
-    key_handle.material_kind = key_management::KeyMaterialKind::kPrivateKey;
-    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, key_handle};
+    IavPrimulaKeyFactory key_factory{provider.GetProviderId()};
+    key_management::KeyGenerationRequest key_request{};
+    key_request.algorithm = primula_handler->GetAlgorithm();
+    auto generated = key_factory.GenerateKey(key_request);
+    ASSERT_TRUE(generated.has_value());
     handler::InitializationParams params{};
     params.provider_id = provider.GetProviderId();
-    params.bound_key_handler = &key;
+    params.bound_key_handler = generated.value().get();
     ASSERT_TRUE(handler->InitializeContext(params).has_value());
     EXPECT_EQ(primula_handler->GetOperationState(), common::StreamOperationState::IDLE);
 
@@ -82,7 +80,8 @@ TEST(IavPrimulaApplicationIntegrationTest, CreatesVerifyHandlerAndReachesAlgorit
     ASSERT_TRUE(provider.Initialize(ProviderInitContext{common::ProviderId{7U}, "iavPrimula"}));
 
     // Create a VERIFY handler for the ML-DSA-44 algorithm.
-    auto created = provider.GetCryptoHandlerFactory()->CreateHandler("VERIFY", *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44"));
+    auto created = provider.GetCryptoHandlerFactory()->CreateHandler(
+        "VERIFY", *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44"));
     ASSERT_TRUE(created.has_value());
     auto handler = created.value();
     ASSERT_NE(handler, nullptr);
@@ -90,23 +89,21 @@ TEST(IavPrimulaApplicationIntegrationTest, CreatesVerifyHandlerAndReachesAlgorit
     ASSERT_NE(primula_handler, nullptr);
     EXPECT_EQ(primula_handler->GetAlgorithm().name, "ML-DSA-44");
 
-    // A non-null sentinel represents a bound native key handle for initialization.
-    key_management::ProviderKeyHandle key_handle{};
-    key_handle.provider_id = provider.GetProviderId();
-    key_handle.algorithm = primula_handler->GetAlgorithm();
-    key_handle.is_asymmetric = true;
-    key_handle.material_kind = key_management::KeyMaterialKind::kPrivateKey;
-    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, key_handle};
+    IavPrimulaKeyFactory key_factory{provider.GetProviderId()};
+    key_management::KeyGenerationRequest key_request{};
+    key_request.algorithm = primula_handler->GetAlgorithm();
+    auto generated = key_factory.GenerateKey(key_request);
+    ASSERT_TRUE(generated.has_value());
     handler::InitializationParams params{};
     params.provider_id = provider.GetProviderId();
-    params.bound_key_handler = &key;
+    params.bound_key_handler = generated.value().get();
     ASSERT_TRUE(handler->InitializeContext(params).has_value());
     EXPECT_EQ(primula_handler->GetOperationState(), common::StreamOperationState::IDLE);
 
-    // Public-only key material has no native handle and is incompatible with
-    // the native-key-based verification implementation.
-    IavPrimulaKeyHandler public_only_key{nullptr, std::vector<std::uint8_t>(1312U), key_handle};
-    params.bound_key_handler = &public_only_key;
+    // A private-key descriptor without its native handle is incompatible.
+    const auto key_handle = generated.value()->GetHandle();
+    IavPrimulaKeyHandler key_without_native_handle{nullptr, std::vector<std::uint8_t>(1312U), key_handle};
+    params.bound_key_handler = &key_without_native_handle;
     auto incompatible_key_initialization = handler->InitializeContext(params);
     ASSERT_FALSE(incompatible_key_initialization.has_value());
     EXPECT_EQ(incompatible_key_initialization.error(), common::DaemonErrorCode::kIncompatibleKeyType);

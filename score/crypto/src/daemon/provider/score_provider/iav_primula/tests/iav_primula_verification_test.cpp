@@ -11,16 +11,19 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "score/crypto/src/daemon/provider/handler/handler_init_params.hpp"
 #include "score/crypto/src/daemon/common/actors.hpp"
+#include "score/crypto/src/daemon/provider/handler/handler_init_params.hpp"
 #include "score/crypto/src/daemon/provider/handler/operations/verify_handler_operations.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/key_management/iav_primula_key_factory.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/key_management/iav_primula_key_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/iav_primula/operations/verify/iav_primula_verify_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/operations/verify/verify_executor.hpp"
+#include "score/iav_primula/include/iav_primula_ffi.h"
 
 #include <gtest/gtest.h>
 
+#include <memory>
+#include <utility>
 #include <vector>
 
 namespace
@@ -66,9 +69,10 @@ TEST(IavPrimulaVerificationTest, RejectsUnsupportedAndMissingKeys)
 
 TEST(IavPrimulaVerificationTest, RejectsUnassignedProviderId)
 {
-    IavPrimulaVerifyHandler handler{std::make_unique<Executor>(), *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44")};
+    IavPrimulaVerifyHandler handler{std::make_unique<Executor>(),
+                                    *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44")};
     // Both IDs default to invalid; matching invalid IDs must not authorize a cast.
-    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, {}};
+    IavPrimulaKeyHandler key{nullptr, {}, {}};
     ::score::crypto::daemon::provider::handler::InitializationParams params{};
     params.bound_key_handler = &key;
 
@@ -79,9 +83,10 @@ TEST(IavPrimulaVerificationTest, RejectsUnassignedProviderId)
 
 TEST(IavPrimulaVerificationTest, RejectsKeyFromAnotherProvider)
 {
-    IavPrimulaVerifyHandler handler{std::make_unique<Executor>(), *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44")};
+    IavPrimulaVerifyHandler handler{std::make_unique<Executor>(),
+                                    *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44")};
     const auto handle = SignatureHandle();
-    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, handle};
+    IavPrimulaKeyHandler key{nullptr, {}, handle};
     ::score::crypto::daemon::provider::handler::InitializationParams params{};
     params.provider_id = common::ProviderId{8U};
     params.bound_key_handler = &key;
@@ -97,8 +102,8 @@ TEST(IavPrimulaVerificationTest, RejectsKeyFromAnotherProvider)
 
 TEST(IavPrimulaVerificationTest, ValidatesKeyTypeAndSignatureSize)
 {
-    IavPrimulaVerifyHandler handler{std::make_unique<Executor>(), *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44")};
-    const auto handle = SignatureHandle();
+    IavPrimulaVerifyHandler handler{std::make_unique<Executor>(),
+                                    *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44")};
     // A public-only key must contain the expected number of public-key bytes.
     IavPrimulaKeyHandler public_key{nullptr,
                                     std::vector<std::uint8_t>(1311U),
@@ -110,9 +115,12 @@ TEST(IavPrimulaVerificationTest, ValidatesKeyTypeAndSignatureSize)
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), common::DaemonErrorCode::kIncompatibleKeyType);
 
-    // Use a non-null sentinel to simulate a bound native key handle.
-    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, handle};
-    params.bound_key_handler = &key;
+    IavPrimulaKeyFactory factory{kProviderId};
+    key_management::KeyGenerationRequest request{};
+    request.algorithm = *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44");
+    auto generated = factory.GenerateKey(request);
+    ASSERT_TRUE(generated.has_value());
+    params.bound_key_handler = generated.value().get();
     ASSERT_TRUE(handler.InitializeContext(params).has_value());
     const std::uint8_t message[] = {1U, 2U};
     // ML-DSA-44 signatures are 2420 bytes; ten bytes are intentionally invalid.
@@ -124,36 +132,76 @@ TEST(IavPrimulaVerificationTest, ValidatesKeyTypeAndSignatureSize)
     EXPECT_EQ(verify.error(), common::DaemonErrorCode::kInvalidArgument);
 }
 
-TEST(IavPrimulaVerificationTest, InitializesWithImportedPublicKeyAndReachesBackend)
+// AC: AC-003
+// Behavior: Use an ML-DSA-44 key generated through IAV and its iav_sign
+// operation to produce a valid signature; provider verification succeeds with
+// both its generated handle and an imported copy of its exported public bytes,
+// while a modified signature returns false rather than an execution error.
+// @lane: integration
+// @dependency: IavPrimulaKeyFactory, public-key import, and
+// IavPrimulaVerifyHandler.
+// @real-dependency: Native IAV ABI and liboqs ML-DSA-44 implementation.
+// Primary failure mode: Provider verification fails for a valid generated or
+// imported key, or maps an invalid signature to an execution error.
+// Proof obligation: Replace dummy key/signature bytes with a generated key and
+// valid signature; assert true for generated-handle and imported-key
+// verification, then false for an invalid signature. Keep this as one
+// representative provider variant; the ABI test owns six-variant coverage.
+TEST(IavPrimulaVerificationTest, VerifiesGeneratedAndImportedKeysAndRejectsInvalidSignature)
 {
+    using Permission = score::crypto::KeyOperationPermission;
     IavPrimulaKeyFactory factory{kProviderId};
-    for (const auto* algorithm : {"ML-DSA-44", "ML-DSA-65", "ML-DSA-87"})
-    {
-        SCOPED_TRACE(algorithm);
-        const auto descriptor = *::score::crypto::GetAlgorithmDescriptor(algorithm);
-        const std::vector<std::uint8_t> public_key(descriptor.public_key_size, 0xA5U);
-        key_management::KeyImportRequest request{};
-        request.algorithm = descriptor;
-        request.format = score::crypto::FormatType::kRaw;
-        request.permissions = score::crypto::KeyOperationPermission::kVerify;
-        request.key_data = public_key.data();
-        request.key_data_size = public_key.size();
-        const auto imported = factory.ImportKey(request);
-        ASSERT_TRUE(imported.has_value());
+    const auto descriptor = *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44");
+    key_management::KeyGenerationRequest generation_request{};
+    generation_request.algorithm = descriptor;
+    generation_request.permissions = Permission::kSign;
+    generation_request.public_key_permissions = Permission::kExport;
+    auto generated = factory.GenerateKey(generation_request);
+    ASSERT_TRUE(generated.has_value());
 
-        IavPrimulaVerifyHandler handler{std::make_unique<Executor>(), descriptor};
-        provider::handler::InitializationParams params{};
-        params.provider_id = kProviderId;
-        params.bound_key_handler = imported.value().get();
-        ASSERT_TRUE(handler.InitializeContext(params).has_value());
+    auto* const generated_key = static_cast<IavPrimulaKeyHandler*>(generated.value().get());
+    const auto exported_public_key = generated_key->Export();
+    ASSERT_TRUE(exported_public_key.has_value());
+    ASSERT_EQ(exported_public_key->bytes.size(), descriptor.public_key_size);
 
-        const std::uint8_t message[] = {1U, 2U};
-        const std::vector<std::uint8_t> signature(handler.GetSignatureSize());
-        const auto result = handler.SingleShotVerify(
-            {message, 2U}, {signature.data(), signature.size()});
-        ASSERT_FALSE(result.has_value());
-        EXPECT_EQ(result.error(), common::DaemonErrorCode::kAlgorithmExecutionFailed);
-    }
+    const std::uint8_t message[] = {1U, 2U};
+    std::vector<std::uint8_t> signature(2420U);
+    std::size_t signature_length = signature.size();
+    ASSERT_EQ(iav_sign(generated_key->GetNativeHandle(), message, sizeof(message), signature.data(), &signature_length),
+              IavStatusOk);
+    ASSERT_EQ(signature_length, signature.size());
+
+    IavPrimulaVerifyHandler handler{std::make_unique<Executor>(), descriptor};
+    provider::handler::InitializationParams params{};
+    params.provider_id = kProviderId;
+    params.bound_key_handler = generated.value().get();
+    ASSERT_TRUE(handler.InitializeContext(params).has_value());
+    const auto generated_result =
+        handler.SingleShotVerify({message, sizeof(message)}, {signature.data(), signature.size()});
+    ASSERT_TRUE(generated_result.has_value());
+    EXPECT_TRUE(generated_result.value());
+
+    key_management::KeyImportRequest import_request{};
+    import_request.algorithm = descriptor;
+    import_request.format = score::crypto::FormatType::kRaw;
+    import_request.permissions = Permission::kVerify;
+    import_request.key_data = exported_public_key->bytes.data();
+    import_request.key_data_size = exported_public_key->bytes.size();
+    auto imported = factory.ImportKey(import_request);
+    ASSERT_TRUE(imported.has_value());
+
+    params.bound_key_handler = imported.value().get();
+    ASSERT_TRUE(handler.InitializeContext(params).has_value());
+    const auto imported_result =
+        handler.SingleShotVerify({message, sizeof(message)}, {signature.data(), signature.size()});
+    ASSERT_TRUE(imported_result.has_value());
+    EXPECT_TRUE(imported_result.value());
+
+    signature.front() ^= 0x01U;
+    const auto invalid_result =
+        handler.SingleShotVerify({message, sizeof(message)}, {signature.data(), signature.size()});
+    ASSERT_TRUE(invalid_result.has_value());
+    EXPECT_FALSE(invalid_result.value());
 }
 
 TEST(IavPrimulaVerificationTest, RejectsReleasedPublicKey)
@@ -181,9 +229,11 @@ TEST(IavPrimulaVerificationTest, RejectsReleasedPublicKey)
 
 TEST(IavPrimulaVerificationTest, RejectsSingleShotRequestWithoutSignature)
 {
-    IavPrimulaVerifyHandler handler{std::make_unique<Executor>(), *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44")};
-    const auto handle = SignatureHandle();
-    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, handle};
+    IavPrimulaVerifyHandler handler{std::make_unique<Executor>(),
+                                    *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44")};
+    IavPrimulaKeyHandler key{nullptr,
+                             std::vector<std::uint8_t>(1312U),
+                             SignatureHandle("ML-DSA-44", key_management::KeyMaterialKind::kPublicKey)};
     ::score::crypto::daemon::provider::handler::InitializationParams params{};
     params.provider_id = kProviderId;
     params.bound_key_handler = &key;
@@ -195,8 +245,7 @@ TEST(IavPrimulaVerificationTest, RejectsSingleShotRequestWithoutSignature)
     };
     common::OperationIdentifier operation{};
     operation.operationActor = common::actors::OP_ACTOR_VERIFY_HANDLER;
-    operation.operationAction =
-        ::score::crypto::daemon::provider::handler::verify_handler_operations::VERIFY_SS;
+    operation.operationAction = ::score::crypto::daemon::provider::handler::verify_handler_operations::VERIFY_SS;
 
     auto result = handler.Execute(operation, request);
     ASSERT_FALSE(result.has_value());
@@ -228,26 +277,25 @@ TEST(IavPrimulaVerificationTest, ReportsPqcSizesAndResetsUsingUpstreamActions)
     EXPECT_EQ(unsupported.GetSignatureSize(), 0U);
 }
 
-TEST(IavPrimulaVerificationTest, PropagatesBackendFailureAndRejectsWrongActor)
+TEST(IavPrimulaVerificationTest, RejectsWrongActor)
 {
     namespace ops = provider::handler::verify_handler_operations;
-    IavPrimulaVerifyHandler handler{std::make_unique<Executor>(), *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44")};
-    // The current FFI is a placeholder and never dereferences this sentinel.
-    const auto key_handle = SignatureHandle();
-    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, key_handle};
+    IavPrimulaKeyFactory factory{kProviderId};
+    key_management::KeyGenerationRequest key_request{};
+    key_request.algorithm = *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44");
+    auto generated = factory.GenerateKey(key_request);
+    ASSERT_TRUE(generated.has_value());
+
+    IavPrimulaVerifyHandler handler{std::make_unique<Executor>(),
+                                    *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44")};
     provider::handler::InitializationParams params{};
     params.provider_id = kProviderId;
-    params.bound_key_handler = &key;
+    params.bound_key_handler = generated.value().get();
     ASSERT_TRUE(handler.InitializeContext(params).has_value());
     const std::uint8_t message[] = {1U, 2U};
     const std::vector<std::uint8_t> signature(handler.GetSignatureSize());
-    common::RequestParameters request{
-        score::cpp::span<const std::uint8_t>{message, 2U},
-        score::cpp::span<const std::uint8_t>{signature.data(), signature.size()}};
-    auto result = handler.Execute({common::actors::OP_ACTOR_VERIFY_HANDLER, ops::VERIFY_SS}, request);
-    ASSERT_FALSE(result.has_value());
-    EXPECT_EQ(result.error(), common::DaemonErrorCode::kAlgorithmExecutionFailed);
-    EXPECT_EQ(handler.GetOperationState(), common::StreamOperationState::IDLE);
+    common::RequestParameters request{score::cpp::span<const std::uint8_t>{message, 2U},
+                                      score::cpp::span<const std::uint8_t>{signature.data(), signature.size()}};
     auto wrong_actor = handler.Execute({common::actors::OP_ACTOR_SIGN_HANDLER, ops::VERIFY_SS}, request);
     ASSERT_FALSE(wrong_actor.has_value());
     EXPECT_EQ(wrong_actor.error(), common::DaemonErrorCode::kInvalidOperation);
@@ -255,6 +303,7 @@ TEST(IavPrimulaVerificationTest, PropagatesBackendFailureAndRejectsWrongActor)
 
 TEST(IavPrimulaVerificationTest, RequiresMatchingSignatureAlgorithm)
 {
+    IavPrimulaKeyFactory factory{kProviderId};
     const char* signature_algorithms[] = {"ML-DSA-44", "ML-DSA-65", "ML-DSA-87"};
     const char* key_algorithms[] = {"ML-DSA-44", "ML-DSA-65", "ML-DSA-87", "ML-KEM-512", "ML-KEM-768", "ML-KEM-1024"};
     for (const auto* algorithm : signature_algorithms)
@@ -266,10 +315,22 @@ TEST(IavPrimulaVerificationTest, RequiresMatchingSignatureAlgorithm)
             SCOPED_TRACE(key_algorithm);
             IavPrimulaVerifyHandler handler{std::make_unique<Executor>(), descriptor};
             const auto handle = SignatureHandle(key_algorithm);
-            IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, handle};
+            key_management::IKeyHandler::Sptr key;
+            if (handle.algorithm.id == descriptor.id)
+            {
+                key_management::KeyGenerationRequest request{};
+                request.algorithm = descriptor;
+                auto generated = factory.GenerateKey(request);
+                ASSERT_TRUE(generated.has_value());
+                key = std::move(generated.value());
+            }
+            else
+            {
+                key = std::make_shared<IavPrimulaKeyHandler>(nullptr, std::vector<std::uint8_t>{}, handle);
+            }
             provider::handler::InitializationParams params{};
             params.provider_id = kProviderId;
-            params.bound_key_handler = &key;
+            params.bound_key_handler = key.get();
 
             const auto result = handler.InitializeContext(params);
             if (handle.algorithm.id == descriptor.id)
@@ -288,6 +349,13 @@ TEST(IavPrimulaVerificationTest, RequiresMatchingSignatureAlgorithm)
 TEST(IavPrimulaVerificationTest, RequiresSignatureMaterial)
 {
     using key_management::KeyMaterialKind;
+    IavPrimulaKeyFactory factory{kProviderId};
+    const auto descriptor = *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44");
+    key_management::KeyGenerationRequest request{};
+    request.algorithm = descriptor;
+    auto generated = factory.GenerateKey(request);
+    ASSERT_TRUE(generated.has_value());
+
     const KeyMaterialKind kinds[] = {KeyMaterialKind::kUnspecified,
                                      KeyMaterialKind::kPublicKey,
                                      KeyMaterialKind::kPrivateKey,
@@ -296,13 +364,25 @@ TEST(IavPrimulaVerificationTest, RequiresSignatureMaterial)
     for (const auto kind : kinds)
     {
         SCOPED_TRACE(static_cast<int>(kind));
-        IavPrimulaVerifyHandler handler{std::make_unique<Executor>(),
-                                        *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44")};
-        IavPrimulaKeyHandler key{
-            reinterpret_cast<iav_primula_key_handle*>(0x1), {}, SignatureHandle("ML-DSA-44", kind)};
+        IavPrimulaVerifyHandler handler{std::make_unique<Executor>(), descriptor};
+        key_management::IKeyHandler::Sptr key;
+        if (kind == KeyMaterialKind::kPrivateKey)
+        {
+            key = generated.value();
+        }
+        else
+        {
+            std::vector<std::uint8_t> public_key;
+            if (kind == KeyMaterialKind::kPublicKey)
+            {
+                public_key.resize(descriptor.public_key_size);
+            }
+            key = std::make_shared<IavPrimulaKeyHandler>(
+                nullptr, std::move(public_key), SignatureHandle("ML-DSA-44", kind));
+        }
         provider::handler::InitializationParams params{};
         params.provider_id = kProviderId;
-        params.bound_key_handler = &key;
+        params.bound_key_handler = key.get();
 
         const auto result = handler.InitializeContext(params);
         if (kind == KeyMaterialKind::kPublicKey || kind == KeyMaterialKind::kPrivateKey)
@@ -319,16 +399,20 @@ TEST(IavPrimulaVerificationTest, RequiresSignatureMaterial)
 
 TEST(IavPrimulaVerificationTest, ClearsKeyAfterFailedRebind)
 {
-    IavPrimulaVerifyHandler handler{std::make_unique<Executor>(),
-                                    *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44")};
-    IavPrimulaKeyHandler key{reinterpret_cast<iav_primula_key_handle*>(0x1), {}, SignatureHandle()};
+    IavPrimulaKeyFactory factory{kProviderId};
+    const auto descriptor = *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44");
+    key_management::KeyGenerationRequest request{};
+    request.algorithm = descriptor;
+    auto generated = factory.GenerateKey(request);
+    ASSERT_TRUE(generated.has_value());
+
+    IavPrimulaVerifyHandler handler{std::make_unique<Executor>(), descriptor};
     provider::handler::InitializationParams params{};
     params.provider_id = kProviderId;
-    params.bound_key_handler = &key;
+    params.bound_key_handler = generated.value().get();
     ASSERT_TRUE(handler.InitializeContext(params).has_value());
 
-    IavPrimulaKeyHandler incompatible_key{
-        reinterpret_cast<iav_primula_key_handle*>(0x1), {}, SignatureHandle("ML-DSA-65")};
+    IavPrimulaKeyHandler incompatible_key{nullptr, {}, SignatureHandle("ML-DSA-65")};
     params.bound_key_handler = &incompatible_key;
     const auto result = handler.InitializeContext(params);
     ASSERT_FALSE(result.has_value());

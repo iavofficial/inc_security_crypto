@@ -487,23 +487,74 @@ INSTANTIATE_TEST_SUITE_P(LoadAndSlotInfo,
                                            key_management::operations::KEY_SLOT_INFO));
 
 // ---------------------------------------------------------------------------
-// Key-generation dispatch
-// Key-generation dispatch to backend
+// Key generation, encapsulation, and decapsulation
 // ---------------------------------------------------------------------------
 
-TEST(IavPrimulaKeyManagementTest, RoutesKemKeyGenerationToKemBackendPath)
+// AC: AC-003
+// Behavior: Generate an ML-KEM-768 key through the provider, encapsulate to
+// its public key, and decapsulate the resulting ciphertext with its private
+// handle; both operations return derive-only, non-exportable secret handles.
+// @lane: integration
+// @dependency: IavPrimulaKeyFactory and its generated/shared-secret handlers.
+// @real-dependency: Native IAV ABI and liboqs ML-KEM-768 implementation.
+// Primary failure mode: Provider encapsulation or decapsulation still fails
+// or returns a secret handle with the wrong type, permissions, or exportability.
+// Proof obligation: Assert key generation and both operations succeed; each
+// returned secret is kSharedSecret with kDerive permission and cannot be
+// exported. Leave byte equality to the ABI-buffer assertion in AC-001; do not
+// compare provider-private secret bytes.
+TEST(IavPrimulaKeyManagementTest, EncapsulatesAndDecapsulatesWithDeriveOnlySharedSecrets)
 {
+    using Permission = score::crypto::KeyOperationPermission;
     IavPrimulaKeyFactory factory{common::ProviderId{7U}};
+    const auto descriptor = *::score::crypto::GetAlgorithmDescriptor("ML-KEM-768");
     key_management::KeyGenerationRequest request{};
-    request.algorithm = *::score::crypto::GetAlgorithmDescriptor("ML-KEM-768");
+    request.algorithm = descriptor;
+    request.permissions = Permission::kAgree;
+    request.public_key_permissions = Permission::kExport;
 
-    // The current Rust FFI is a deliberate placeholder and therefore returns
-    // unsupported algorithm. The call still exercises the KEM-specific branch
-    // in the factory; once the FFI is implemented this test should be changed
-    // to assert the generated key metadata and public-key size.
-    auto result = factory.GenerateKey(request);
-    ASSERT_FALSE(result.has_value());
-    EXPECT_EQ(result.error(), common::DaemonErrorCode::kUnsupportedAlgorithm);
+    auto generated = factory.GenerateKey(request);
+    ASSERT_TRUE(generated.has_value());
+    ASSERT_EQ(generated.value()->GetHandle().material_kind, key_management::KeyMaterialKind::kPrivateKey);
+
+    auto* const generated_key = static_cast<IavPrimulaKeyHandler*>(generated.value().get());
+    const auto exported_public_key = generated_key->Export();
+    ASSERT_TRUE(exported_public_key.has_value());
+    ASSERT_EQ(exported_public_key->bytes.size(), descriptor.public_key_size);
+
+    key_management::KeyImportRequest import_request{};
+    import_request.algorithm = descriptor;
+    import_request.format = score::crypto::FormatType::kRaw;
+    import_request.permissions = Permission::kAgree;
+    import_request.key_data = exported_public_key->bytes.data();
+    import_request.key_data_size = exported_public_key->bytes.size();
+    auto imported_public_key = factory.ImportKey(import_request);
+    ASSERT_TRUE(imported_public_key.has_value());
+
+    const key_management::KeyEncapsulationRequest encapsulation_request{*imported_public_key.value(), descriptor};
+    const auto expected_ciphertext_size = factory.GetEncapsulationCiphertextSize(encapsulation_request);
+    ASSERT_TRUE(expected_ciphertext_size.has_value());
+
+    auto encapsulated = factory.EncapsulateKey(encapsulation_request);
+    ASSERT_TRUE(encapsulated.has_value());
+    ASSERT_EQ(encapsulated->ciphertext.size(), expected_ciphertext_size.value());
+    ASSERT_NE(encapsulated->shared_secret, nullptr);
+    const auto& encapsulated_secret = *encapsulated->shared_secret;
+    EXPECT_EQ(encapsulated_secret.GetHandle().material_kind, key_management::KeyMaterialKind::kSharedSecret);
+    EXPECT_EQ(encapsulated_secret.GetHandle().permissions, Permission::kDerive);
+    const auto encapsulated_export = encapsulated_secret.Export();
+    ASSERT_FALSE(encapsulated_export.has_value());
+    EXPECT_EQ(encapsulated_export.error(), common::DaemonErrorCode::kKeyOperationNotPermitted);
+
+    const key_management::KeyDecapsulationRequest decapsulation_request{
+        *generated.value(), descriptor, {encapsulated->ciphertext.data(), encapsulated->ciphertext.size()}};
+    auto decapsulated = factory.DecapsulateKey(decapsulation_request);
+    ASSERT_TRUE(decapsulated.has_value());
+    EXPECT_EQ(decapsulated.value()->GetHandle().material_kind, key_management::KeyMaterialKind::kSharedSecret);
+    EXPECT_EQ(decapsulated.value()->GetHandle().permissions, Permission::kDerive);
+    const auto decapsulated_export = decapsulated.value()->Export();
+    ASSERT_FALSE(decapsulated_export.has_value());
+    EXPECT_EQ(decapsulated_export.error(), common::DaemonErrorCode::kKeyOperationNotPermitted);
 }
 
 // ---------------------------------------------------------------------------
@@ -515,7 +566,8 @@ TEST(IavPrimulaKeyManagementTest, KemOperationsRequireManagedPublicKeyRole)
     IavPrimulaKeyFactory factory{common::ProviderId{7U}};
     IavPrimulaKeyHandler private_key{nullptr, {}, KemHandle(key_management::KeyMaterialKind::kPrivateKey)};
 
-    auto result = factory.GetEncapsulationCiphertextSize({private_key, *::score::crypto::GetAlgorithmDescriptor("ML-KEM-768")});
+    auto result =
+        factory.GetEncapsulationCiphertextSize({private_key, *::score::crypto::GetAlgorithmDescriptor("ML-KEM-768")});
 
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), common::DaemonErrorCode::kInvalidArgument);
