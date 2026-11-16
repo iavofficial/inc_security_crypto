@@ -622,7 +622,7 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleGetExpo
     const auto encoding = format.value();
     const auto& handle = entry.value()->GetHandle();
     // EC raw export is the provider-formatted public point. Other raw material,
-    // including Primula public keys, is exported by the live key handler.
+    // including PqcProvider public keys, is exported by the live key handler.
     if (encoding == score::crypto::FormatType::kRaw && handle.algorithm.key_type != score::crypto::KeyType::kEcc)
     {
         auto exported = entry.value()->GetKeyHandler()->Export();
@@ -677,7 +677,7 @@ Expected<common::ResponseParameters, Error> KeyManagementExecutor::HandleExportK
     const auto encoding = format.value();
     const auto& handle = entry.value()->GetHandle();
     // EC raw export uses the provider's uncompressed public-point encoding;
-    // Primula public keys and raw symmetric bytes use their live handler.
+    // PqcProvider public keys and raw symmetric bytes use their live handler.
     const bool use_raw_handler =
         encoding == score::crypto::FormatType::kRaw && handle.algorithm.key_type != score::crypto::KeyType::kEcc;
     auto exported = use_raw_handler ? entry.value()->GetKeyHandler()->Export()
