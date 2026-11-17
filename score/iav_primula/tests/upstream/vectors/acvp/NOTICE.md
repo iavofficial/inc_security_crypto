@@ -1,10 +1,15 @@
-# NIST ACVP ML-KEM vector provenance and notice
+# NIST ACVP ML-KEM and ML-DSA vector provenance and notice
 
-The two `internalProjection.json` files in this directory were copied unchanged
-from the `usnistgov/ACVP-Server` repository, tag `v1.1.0.41`:
+The `internalProjection.json` files in this directory were copied unchanged
+from the `usnistgov/ACVP-Server` repository, tag `v1.1.0.41`.
 
-- `gen-val/json-files/ML-KEM-keyGen-FIPS203/internalProjection.json`
-- `gen-val/json-files/ML-KEM-encapDecap-FIPS203/internalProjection.json`
+| Local file | Original source path |
+|---|---|
+| `ML-KEM-keyGen-FIPS203-internalProjection.json` | `gen-val/json-files/ML-KEM-keyGen-FIPS203/internalProjection.json` |
+| `ML-KEM-encapDecap-FIPS203-internalProjection.json` | `gen-val/json-files/ML-KEM-encapDecap-FIPS203/internalProjection.json` |
+| `ML-DSA-keyGen-FIPS204-internalProjection.json` | `gen-val/json-files/ML-DSA-keyGen-FIPS204/internalProjection.json` |
+| `ML-DSA-sigGen-FIPS204-internalProjection.json` | `gen-val/json-files/ML-DSA-sigGen-FIPS204/internalProjection.json` |
+| `ML-DSA-sigVer-FIPS204-internalProjection.json` | `gen-val/json-files/ML-DSA-sigVer-FIPS204/internalProjection.json` |
 
 SHA-256:
 
@@ -12,11 +17,16 @@ SHA-256:
 |---|---|
 | `ML-KEM-keyGen-FIPS203-internalProjection.json` | `80a2f859ecdebdba349a55fd3ccb1b8b33ee9c0eab08b171f0ed1a6e3bb45fb9` |
 | `ML-KEM-encapDecap-FIPS203-internalProjection.json` | `e2d53b623c3ff79a52695d72ed10595ee1743ad6260ed0a3ff89d51bb5d474eb` |
+| `ML-DSA-keyGen-FIPS204-internalProjection.json` | `6027a0ad263de2fa4a96a6bc086b17daa494dcadeb4a51e31b1258225c1d382f` |
+| `ML-DSA-sigGen-FIPS204-internalProjection.json` | `9217e65242588b63fb8169cd64d1d92f6611cf41380802d7e043fffc07b0562a` |
+| `ML-DSA-sigVer-FIPS204-internalProjection.json` | `85827fd9f058d617b956301d342f2792d66ff188987ccce87f014f0bdb282457` |
 
 The complete notice from the ACVP-Server README's License section is retained
 below. The vector files are kept as published; this package adds the converter
 and test adaptation, not changes to the vector values. The National Institute
-of Standards and Technology (NIST) is acknowledged as the source.
+of Standards and Technology (NIST) is acknowledged as the source. The original
+repository, tag, source paths, and checksums are recorded here so the fixtures
+remain auditable after the upstream test checkout is unavailable.
 
 > NIST-developed software is provided by NIST as a public service. You may use,
 > copy, and distribute copies of the software in any medium, provided that you

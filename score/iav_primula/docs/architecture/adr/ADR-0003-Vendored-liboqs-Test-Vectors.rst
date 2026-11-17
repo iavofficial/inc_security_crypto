@@ -120,5 +120,6 @@ Related Information
 
 * ``80-integrate-liboqs/liboqs_upstream_test_candidates.md`` (orders 4 and 5)
 * ADR-0004 (order-4 source selection)
+* ADR-0005 (order-5 source selection)
 * ``external/liboqs/tests/test_acvp_vectors.py``
 * ``external/liboqs/tests/test_wycheproof_vectors.py``

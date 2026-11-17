@@ -245,4 +245,204 @@ TEST(IavPrimulaFfiTest, AllMlKemVariantsEncapsulateAndDecapsulateWithinAbiCapaci
     }
 }
 
+TEST(IavPrimulaFfiTest, RejectsInvalidSignatureArgumentsAndSupportsEmptyMessages)
+{
+    std::size_t signature_destructions = 0U;
+    OwnedKey signature_key{nullptr, CountingDeleter{&signature_destructions}};
+    iav_primula_key_handle* generated_signature_key = nullptr;
+    ASSERT_EQ(iav_keypair_generate(IavAlgorithmMlDsa44, &generated_signature_key), IavStatusOk);
+    signature_key.reset(generated_signature_key);
+
+    std::size_t kem_destructions = 0U;
+    OwnedKey kem_key{nullptr, CountingDeleter{&kem_destructions}};
+    iav_primula_key_handle* generated_kem_key = nullptr;
+    ASSERT_EQ(iav_kem_keypair_generate(IavAlgorithmMlKem512, &generated_kem_key), IavStatusOk);
+    kem_key.reset(generated_kem_key);
+
+    iav_primula_key_handle* unsupported_signature_key = signature_key.get();
+    EXPECT_EQ(iav_keypair_generate(static_cast<iav_algorithm>(99), &unsupported_signature_key),
+              IavStatusUnsupportedAlgorithm);
+    EXPECT_EQ(unsupported_signature_key, nullptr);
+    EXPECT_EQ(iav_keypair_generate(IavAlgorithmMlDsa44, nullptr), IavStatusInvalidArgument);
+
+    std::vector<std::uint8_t> public_key(1312U);
+    std::size_t public_key_length = public_key.size();
+    ASSERT_EQ(iav_public_key_export(signature_key.get(), public_key.data(), &public_key_length), IavStatusOk);
+    EXPECT_EQ(iav_public_key_export(nullptr, public_key.data(), &public_key_length), IavStatusInvalidArgument);
+    EXPECT_EQ(iav_public_key_export(kem_key.get(), public_key.data(), &public_key_length), IavStatusInvalidArgument);
+    EXPECT_EQ(iav_public_key_export(signature_key.get(), nullptr, &public_key_length), IavStatusInvalidArgument);
+    EXPECT_EQ(iav_public_key_export(signature_key.get(), public_key.data(), nullptr), IavStatusInvalidArgument);
+
+    const std::uint8_t message[] = {0x42U};
+    std::vector<std::uint8_t> signature(2420U);
+    std::size_t signature_length = signature.size();
+    EXPECT_EQ(iav_sign(nullptr, message, sizeof(message), signature.data(), &signature_length),
+              IavStatusInvalidArgument);
+    EXPECT_EQ(iav_sign(kem_key.get(), message, sizeof(message), signature.data(), &signature_length),
+              IavStatusInvalidArgument);
+    EXPECT_EQ(iav_sign(signature_key.get(), nullptr, sizeof(message), signature.data(), &signature_length),
+              IavStatusInvalidArgument);
+    EXPECT_EQ(iav_sign(signature_key.get(), message, sizeof(message), nullptr, &signature_length),
+              IavStatusInvalidArgument);
+    EXPECT_EQ(iav_sign(signature_key.get(), message, sizeof(message), signature.data(), nullptr),
+              IavStatusInvalidArgument);
+
+    signature_length = signature.size();
+    ASSERT_EQ(iav_sign(signature_key.get(), nullptr, 0U, signature.data(), &signature_length), IavStatusOk);
+    EXPECT_EQ(signature_length, signature.size());
+    EXPECT_EQ(iav_verify(signature_key.get(), nullptr, 0U, signature.data(), signature_length), IavStatusOk);
+    EXPECT_EQ(iav_verify(nullptr, nullptr, 0U, signature.data(), signature_length), IavStatusInvalidArgument);
+    EXPECT_EQ(iav_verify(kem_key.get(), nullptr, 0U, signature.data(), signature_length), IavStatusInvalidArgument);
+    EXPECT_EQ(iav_verify(signature_key.get(), nullptr, sizeof(message), signature.data(), signature_length),
+              IavStatusInvalidArgument);
+    EXPECT_EQ(iav_verify(signature_key.get(), message, sizeof(message), nullptr, 0U), IavStatusInvalidArgument);
+
+    EXPECT_EQ(iav_verify_public_key(static_cast<iav_algorithm>(99), nullptr, 0U, nullptr, sizeof(message), nullptr, 0U),
+              IavStatusUnsupportedAlgorithm);
+    EXPECT_EQ(iav_verify_public_key(
+                  IavAlgorithmMlDsa44, nullptr, public_key_length, nullptr, 0U, signature.data(), signature_length),
+              IavStatusInvalidArgument);
+    EXPECT_EQ(iav_verify_public_key(IavAlgorithmMlDsa44,
+                                    public_key.data(),
+                                    public_key_length,
+                                    nullptr,
+                                    sizeof(message),
+                                    signature.data(),
+                                    signature_length),
+              IavStatusInvalidArgument);
+    EXPECT_EQ(iav_verify_public_key(
+                  IavAlgorithmMlDsa44, public_key.data(), public_key_length, nullptr, 0U, nullptr, signature_length),
+              IavStatusInvalidArgument);
+    EXPECT_EQ(iav_verify_public_key(IavAlgorithmMlDsa44,
+                                    public_key.data(),
+                                    public_key_length - 1U,
+                                    nullptr,
+                                    0U,
+                                    signature.data(),
+                                    signature_length),
+              IavStatusInvalidArgument);
+    EXPECT_EQ(
+        iav_verify_public_key(
+            IavAlgorithmMlDsa44, public_key.data(), public_key_length, nullptr, 0U, signature.data(), signature_length),
+        IavStatusOk);
+}
+
+TEST(IavPrimulaFfiTest, RejectsInvalidKemArgumentsAndUnsupportedAlgorithms)
+{
+    std::size_t signature_destructions = 0U;
+    OwnedKey signature_key{nullptr, CountingDeleter{&signature_destructions}};
+    iav_primula_key_handle* generated_signature_key = nullptr;
+    ASSERT_EQ(iav_keypair_generate(IavAlgorithmMlDsa44, &generated_signature_key), IavStatusOk);
+    signature_key.reset(generated_signature_key);
+
+    std::size_t kem_destructions = 0U;
+    OwnedKey kem_key{nullptr, CountingDeleter{&kem_destructions}};
+    iav_primula_key_handle* generated_kem_key = nullptr;
+    ASSERT_EQ(iav_kem_keypair_generate(IavAlgorithmMlKem512, &generated_kem_key), IavStatusOk);
+    kem_key.reset(generated_kem_key);
+
+    iav_primula_key_handle* unsupported_kem_key = kem_key.get();
+    EXPECT_EQ(iav_kem_keypair_generate(static_cast<iav_algorithm>(99), &unsupported_kem_key),
+              IavStatusUnsupportedAlgorithm);
+    EXPECT_EQ(unsupported_kem_key, nullptr);
+    EXPECT_EQ(iav_kem_keypair_generate(IavAlgorithmMlKem512, nullptr), IavStatusInvalidArgument);
+
+    std::vector<std::uint8_t> public_key(800U);
+    std::size_t public_key_length = public_key.size();
+    ASSERT_EQ(iav_kem_public_key_export(kem_key.get(), public_key.data(), &public_key_length), IavStatusOk);
+    EXPECT_EQ(iav_kem_public_key_export(nullptr, public_key.data(), &public_key_length), IavStatusInvalidArgument);
+    EXPECT_EQ(iav_kem_public_key_export(signature_key.get(), public_key.data(), &public_key_length),
+              IavStatusInvalidArgument);
+    EXPECT_EQ(iav_kem_public_key_export(kem_key.get(), nullptr, &public_key_length), IavStatusInvalidArgument);
+    EXPECT_EQ(iav_kem_public_key_export(kem_key.get(), public_key.data(), nullptr), IavStatusInvalidArgument);
+
+    std::vector<std::uint8_t> ciphertext(768U);
+    std::vector<std::uint8_t> shared_secret(32U);
+    std::size_t ciphertext_length = ciphertext.size();
+    std::size_t shared_secret_length = shared_secret.size();
+    EXPECT_EQ(iav_kem_encapsulate(static_cast<iav_algorithm>(99),
+                                  nullptr,
+                                  public_key_length,
+                                  ciphertext.data(),
+                                  &ciphertext_length,
+                                  shared_secret.data(),
+                                  &shared_secret_length),
+              IavStatusUnsupportedAlgorithm);
+    EXPECT_EQ(iav_kem_encapsulate(IavAlgorithmMlKem512,
+                                  nullptr,
+                                  public_key_length,
+                                  ciphertext.data(),
+                                  &ciphertext_length,
+                                  shared_secret.data(),
+                                  &shared_secret_length),
+              IavStatusInvalidArgument);
+    EXPECT_EQ(iav_kem_encapsulate(IavAlgorithmMlKem512,
+                                  public_key.data(),
+                                  public_key_length,
+                                  nullptr,
+                                  &ciphertext_length,
+                                  shared_secret.data(),
+                                  &shared_secret_length),
+              IavStatusInvalidArgument);
+    EXPECT_EQ(iav_kem_encapsulate(IavAlgorithmMlKem512,
+                                  public_key.data(),
+                                  public_key_length,
+                                  ciphertext.data(),
+                                  nullptr,
+                                  shared_secret.data(),
+                                  &shared_secret_length),
+              IavStatusInvalidArgument);
+    EXPECT_EQ(iav_kem_encapsulate(IavAlgorithmMlKem512,
+                                  public_key.data(),
+                                  public_key_length,
+                                  ciphertext.data(),
+                                  &ciphertext_length,
+                                  nullptr,
+                                  &shared_secret_length),
+              IavStatusInvalidArgument);
+    EXPECT_EQ(iav_kem_encapsulate(IavAlgorithmMlKem512,
+                                  public_key.data(),
+                                  public_key_length,
+                                  ciphertext.data(),
+                                  &ciphertext_length,
+                                  shared_secret.data(),
+                                  nullptr),
+              IavStatusInvalidArgument);
+    EXPECT_EQ(iav_kem_encapsulate(IavAlgorithmMlKem512,
+                                  public_key.data(),
+                                  public_key_length - 1U,
+                                  ciphertext.data(),
+                                  &ciphertext_length,
+                                  shared_secret.data(),
+                                  &shared_secret_length),
+              IavStatusInvalidArgument);
+    ASSERT_EQ(iav_kem_encapsulate(IavAlgorithmMlKem512,
+                                  public_key.data(),
+                                  public_key_length,
+                                  ciphertext.data(),
+                                  &ciphertext_length,
+                                  shared_secret.data(),
+                                  &shared_secret_length),
+              IavStatusOk);
+
+    EXPECT_EQ(
+        iav_kem_decapsulate(nullptr, ciphertext.data(), ciphertext_length, shared_secret.data(), &shared_secret_length),
+        IavStatusInvalidArgument);
+    EXPECT_EQ(
+        iav_kem_decapsulate(
+            signature_key.get(), ciphertext.data(), ciphertext_length, shared_secret.data(), &shared_secret_length),
+        IavStatusInvalidArgument);
+    EXPECT_EQ(
+        iav_kem_decapsulate(kem_key.get(), nullptr, ciphertext_length, shared_secret.data(), &shared_secret_length),
+        IavStatusInvalidArgument);
+    EXPECT_EQ(iav_kem_decapsulate(kem_key.get(), ciphertext.data(), ciphertext_length, nullptr, &shared_secret_length),
+              IavStatusInvalidArgument);
+    EXPECT_EQ(iav_kem_decapsulate(kem_key.get(), ciphertext.data(), ciphertext_length, shared_secret.data(), nullptr),
+              IavStatusInvalidArgument);
+    EXPECT_EQ(
+        iav_kem_decapsulate(
+            kem_key.get(), ciphertext.data(), ciphertext_length - 1U, shared_secret.data(), &shared_secret_length),
+        IavStatusInvalidArgument);
+}
+
 }  // namespace

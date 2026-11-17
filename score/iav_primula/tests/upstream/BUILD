@@ -37,6 +37,12 @@ cc_test(
 )
 
 cc_test(
+    name = "test_algorithm_registry",
+    srcs = ["test_algorithm_registry.c"],
+    deps = ["//score/iav_primula/liboqs:liboqs_partial"],
+)
+
+cc_test(
     name = "test_kem_ml_kem_512",
     srcs = ["test_kem.c"],
     args = ["ML-KEM-512"],
@@ -90,6 +96,35 @@ cc_test(
     srcs = ["test_kem_acvp_vectors.c"],
     args = ["$(location :mlkem_acvp_vectors_tsv)"],
     data = [":mlkem_acvp_vectors_tsv"],
+    deps = ["//score/iav_primula/liboqs:liboqs_partial"],
+)
+
+py_binary(
+    name = "convert_acvp_mldsa_vectors",
+    srcs = ["convert_acvp_mldsa_vectors.py"],
+    main = "convert_acvp_mldsa_vectors.py",
+)
+
+genrule(
+    name = "mldsa_acvp_vectors_tsv",
+    srcs = [
+        "vectors/acvp/ML-DSA-keyGen-FIPS204-internalProjection.json",
+        "vectors/acvp/ML-DSA-sigGen-FIPS204-internalProjection.json",
+        "vectors/acvp/ML-DSA-sigVer-FIPS204-internalProjection.json",
+    ],
+    outs = ["mldsa_acvp_vectors.tsv"],
+    cmd = "$(location :convert_acvp_mldsa_vectors) " +
+          "$(location vectors/acvp/ML-DSA-keyGen-FIPS204-internalProjection.json) " +
+          "$(location vectors/acvp/ML-DSA-sigGen-FIPS204-internalProjection.json) " +
+          "$(location vectors/acvp/ML-DSA-sigVer-FIPS204-internalProjection.json) > $@",
+    tools = [":convert_acvp_mldsa_vectors"],
+)
+
+cc_test(
+    name = "test_sig_acvp_vectors",
+    srcs = ["test_sig_acvp_vectors.c"],
+    args = ["$(location :mldsa_acvp_vectors_tsv)"],
+    data = [":mldsa_acvp_vectors_tsv"],
     deps = ["//score/iav_primula/liboqs:liboqs_partial"],
 )
 

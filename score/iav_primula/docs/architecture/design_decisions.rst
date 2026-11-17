@@ -27,3 +27,4 @@ IAV-Primula liboqs integration.
    adr/ADR-0002-IAV-Primula-FFI-Glue-Ownership
    adr/ADR-0003-Vendored-liboqs-Test-Vectors
    adr/ADR-0004-Order-4-ML-KEM-ACVP-Vectors
+   adr/ADR-0005-Order-5-ML-DSA-ACVP-Vectors
