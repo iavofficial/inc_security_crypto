@@ -31,7 +31,7 @@ cc_library(
 )
 
 cc_library(
-    name = "pqc_provider",
+    name = "pqc_provider_staticlib",
     srcs = ["src/ffi.cpp"],
     visibility = ["//visibility:public"],
     deps = [

@@ -28,8 +28,9 @@ Feature Architecture File
    :id: feat__mtef
    :version: 1
    :security: YES
-   :safety: ASIL_B
+   :safety: QM
    :status: valid
+   :includes: logic_arc_int__example_feature__if_1, logic_arc_int__example_feature__if_2, logic_arc_int__example_feature__if_3
 
    This is the example feature which shall normally defined in the platform repo.
 
@@ -37,7 +38,7 @@ Feature Architecture File
    :id: feat_arc_sta__example_feature__sta
    :version: 1
    :security: YES
-   :safety: ASIL_B
+   :safety: QM
    :status: valid
    :includes: logic_arc_int__example_feature__if_1, logic_arc_int__example_feature__if_2, logic_arc_int__example_feature__if_3
    :fulfils: feat_req__example_feature__example_req
@@ -57,7 +58,6 @@ Feature Architecture File
    :security: YES
    :safety: ASIL_B
    :status: valid
-   :included_by: feat__mtef
    :fulfils: feat_req__example_feature__example_req
 
    .. needarch::
@@ -73,7 +73,6 @@ Feature Architecture File
    :security: YES
    :safety: ASIL_B
    :status: valid
-   :included_by: feat__mtef
    :fulfils: feat_req__example_feature__example_req
 
    .. needarch::
@@ -89,7 +88,6 @@ Feature Architecture File
    :security: YES
    :safety: ASIL_B
    :status: valid
-   :included_by: feat__mtef
    :fulfils: feat_req__example_feature__example_req
 
 
@@ -330,6 +328,6 @@ Requirements for the Example
    :safety: ASIL_B
    :derived_from: feat_req__example_feature__example_req
    :status: valid
-   :satisfied_by: comp__mod_temp_component_example_1, comp__mod_temp_component_example_2, comp__mod_temp_archex_sub_component_1, comp__mod_temp_archex_sub_component_2, comp__mod_temp_archex_sub_component_3
+   :satisfied_by: comp__mod_temp_component_example_2
 
    The component shall provide the Logical Operation 4 to get the ..

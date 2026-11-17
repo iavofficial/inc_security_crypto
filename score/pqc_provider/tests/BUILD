@@ -17,7 +17,7 @@ cc_test(
     name = "ffi_test",
     srcs = ["ffi_test.cpp"],
     deps = [
-        "//score/pqc_provider",
+        "//score/pqc_provider:pqc_provider_staticlib",
         "@googletest//:gtest_main",
     ],
 )
