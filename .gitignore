@@ -94,3 +94,7 @@ target/
 
 # LLVM coverage report output
 /coverage_*/
+
+# Codex and tooling related dirs
+.codex
+.agents
