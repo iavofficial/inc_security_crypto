@@ -32,8 +32,8 @@ cc_test(
     deps = [
         "//score/crypto/src/daemon/common",
         "//score/crypto/src/daemon/provider/handler:verify_handler_operations",
-        "//score/crypto/src/daemon/provider/score_provider/pqc_provider:provider_pqc_provider_library",
         "//score/crypto/src/daemon/provider/score_provider/operations/verify:score_verify_handler",
+        "//score/crypto/src/daemon/provider/score_provider/pqc_provider:provider_pqc_provider_library",
         "@googletest//:gtest_main",
     ],
 )

@@ -40,7 +40,7 @@ daemon::provider::score_provider::ProviderCreator PqcProviderBackendAdapter::Get
         // or HMAC, which are provided by OpenSSL.
         .provider_type = "SPECIALIZED",
         .create_provider = []() -> std::unique_ptr<daemon::provider::IProvider> {
-            return std::make_unique<daemon::provider::score_provider::pqc_provider::PqcProviderProvider>();
+            return std::make_unique<daemon::provider::score_provider::pqc_provider::PqcProvider>();
         }};
 }
 

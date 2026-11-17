@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 /// @file pqc_provider_key_handler.hpp
-/// @brief Key handler for PQC Provider provider keys.
+/// @brief Key handler for PQC provider keys.
 
 #ifndef SCORE_CRYPTO_DAEMON_PROVIDER_PQC_PROVIDER_KEY_HANDLER_HPP
 #define SCORE_CRYPTO_DAEMON_PROVIDER_PQC_PROVIDER_KEY_HANDLER_HPP

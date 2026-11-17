@@ -18,7 +18,7 @@
 namespace score::crypto::daemon::provider::score_provider::pqc_provider
 {
 
-bool PqcProviderProvider::InitialiseBackend(const ProviderInitContext& ctx)
+bool PqcProvider::InitialiseBackend(const ProviderInitContext& ctx)
 {
     const bool initialized = true;
     if (initialized)
@@ -28,7 +28,7 @@ bool PqcProviderProvider::InitialiseBackend(const ProviderInitContext& ctx)
     return initialized;
 }
 
-void PqcProviderProvider::Shutdown()
+void PqcProvider::Shutdown()
 {
     if (!IsInitialized())
     {
@@ -44,32 +44,32 @@ void PqcProviderProvider::Shutdown()
     ScoreProvider::Shutdown();
 }
 
-std::shared_ptr<key_management::IKeyFactory> PqcProviderProvider::GetKeyFactory()
+std::shared_ptr<key_management::IKeyFactory> PqcProvider::GetKeyFactory()
 {
     return m_factory;
 }
 
-std::shared_ptr<key_management::IKeySlotHandler> PqcProviderProvider::GetKeySlotHandler(
+std::shared_ptr<key_management::IKeySlotHandler> PqcProvider::GetKeySlotHandler(
     const key_management::KeySlotConfig& config)
 {
-    // TODO: return PqcProvider-specific key slot handler if supported.
+    // TODO: return a PQC-provider-specific key slot handler if supported.
     return ScoreProvider::GetKeySlotHandler(config);
 }
 
-void PqcProviderProvider::SetKeyManagementService(std::shared_ptr<key_management::KeyManagementService> service)
+void PqcProvider::SetKeyManagementService(std::shared_ptr<key_management::KeyManagementService> service)
 {
     m_keyManagementService = std::move(service);
 }
 
-/// @brief Create the PQC Provider-specific handler factory.
+/// @brief Create the PQC-provider-specific handler factory.
 ///
 /// The provider exposes only the generic handler-factory interface to the
 /// daemon. PQC implementation details remain below that boundary.
-std::shared_ptr<handler::ICryptoHandlerFactory> PqcProviderProvider::CreateHandlerFactory()
+std::shared_ptr<handler::ICryptoHandlerFactory> PqcProvider::CreateHandlerFactory()
 {
     return std::make_shared<PqcProviderHandlerFactory>(m_factory,
-                                                       nullptr,  // PqcProvider slot operations are currently unsupported.
-                                                       m_keyManagementService);
+                                                      nullptr,  // PqcProvider slot operations are currently unsupported.
+                                                      m_keyManagementService);
 }
 
 }  // namespace score::crypto::daemon::provider::score_provider::pqc_provider

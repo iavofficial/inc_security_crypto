@@ -26,7 +26,7 @@ namespace score::crypto::backend::score_provider::pqc_provider
 ///
 /// Provides factory creation metadata for the PQC Provider post-quantum
 /// crypto backend. This adapter is included at compile time via
-/// backend/score_provider/active_backends_list.hpp when the PqcProvider backend
+/// backend/score_provider/active_backends_list.hpp when the PQC provider backend
 /// is enabled in the Bazel configuration.
 ///
 /// The PQC Provider backend implementation lives in:
@@ -35,7 +35,7 @@ namespace score::crypto::backend::score_provider::pqc_provider
 ///
 /// This adapter provides backend metadata and creates the corresponding
 /// provider instance. Cryptographic operations are implemented by the
-/// PQC Provider provider and its handlers.
+/// PQC provider and its handlers.
 class PqcProviderBackendAdapter final : public daemon::provider::score_provider::IBackendProviderAdapter
 {
   public:
@@ -53,7 +53,7 @@ class PqcProviderBackendAdapter final : public daemon::provider::score_provider:
     ///   - backend_id:    "pqc_provider"
     ///   - backend_name:  "PQC_PROVIDER"
     ///   - provider_type: "SPECIALIZED"
-    ///   - create_provider: constructs and returns an PqcProviderProvider
+    ///   - create_provider: constructs and returns a PqcProvider
     [[nodiscard]] daemon::provider::score_provider::ProviderCreator GetProviderCreator() const override;
 };
 

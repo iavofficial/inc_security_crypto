@@ -61,7 +61,7 @@ PqcProviderHandlerFactory::PqcProviderHandlerFactory(std::shared_ptr<key_managem
 {
     if (!common::IsPqcSignatureAlgorithm(algorithm))
     {
-        return MakeUnsupportedAlgorithmError("Algorithm is not a supported pqcProvider signature algorithm: " +
+        return MakeUnsupportedAlgorithmError("Algorithm is not a supported pqc_provider signature algorithm: " +
                                              std::string{algorithm.name});
     }
 
@@ -73,12 +73,11 @@ PqcProviderHandlerFactory::PqcProviderHandlerFactory(std::shared_ptr<key_managem
 {
     if (!common::IsPqcSignatureAlgorithm(algorithm))
     {
-        return MakeUnsupportedAlgorithmError("Algorithm is not a supported pqcProvider verification algorithm: " +
+        return MakeUnsupportedAlgorithmError("Algorithm is not a supported pqc_provider verification algorithm: " +
                                              std::string{algorithm.name});
     }
 
-    return std::make_shared<PqcProviderVerifyHandler>(std::make_unique<operations::verify::VerifyExecutor>(),
-                                                      algorithm);
+    return std::make_shared<PqcProviderVerifyHandler>(std::make_unique<operations::verify::VerifyExecutor>(), algorithm);
 }
 
 }  // namespace score::crypto::daemon::provider::score_provider::pqc_provider

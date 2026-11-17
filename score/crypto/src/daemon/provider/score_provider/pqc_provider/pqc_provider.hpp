@@ -12,10 +12,10 @@
  ********************************************************************************/
 
 /// @file pqc_provider.hpp
-/// @brief PQC Provider provider implementation for the score interface.
+/// @brief PQC provider implementation for the score interface.
 
-#ifndef SCORE_CRYPTO_DAEMON_PROVIDER_PQC_PROVIDER_HPP
-#define SCORE_CRYPTO_DAEMON_PROVIDER_PQC_PROVIDER_HPP
+#ifndef SCORE_CRYPTO_DAEMON_PROVIDER_PQC_PROVIDER_PROVIDER_HPP
+#define SCORE_CRYPTO_DAEMON_PROVIDER_PQC_PROVIDER_PROVIDER_HPP
 
 #include <memory>
 
@@ -27,21 +27,21 @@ namespace score::crypto::daemon::provider::score_provider::pqc_provider
 /// @brief PQC Provider is a provider for post-quantum cryptographic algorithms.
 ///
 /// Inherits ScoreProvider for provider lifecycle management and lazy handler
-/// factory creation. Provides PQC Provider-specific key management and
+/// factory creation. Provides PQC-provider-specific key management and
 /// cryptographic operation handlers without exposing implementation details
 /// to the daemon core.
-class PqcProviderProvider final : public ::score::crypto::daemon::provider::score_provider::ScoreProvider
+class PqcProvider final : public ::score::crypto::daemon::provider::score_provider::ScoreProvider
 {
   public:
-    PqcProviderProvider() = default;
-    ~PqcProviderProvider() override = default;
+    PqcProvider() = default;
+    ~PqcProvider() override = default;
 
-    PqcProviderProvider(const PqcProviderProvider&) = delete;
-    PqcProviderProvider& operator=(const PqcProviderProvider&) = delete;
-    PqcProviderProvider(PqcProviderProvider&&) = delete;
-    PqcProviderProvider& operator=(PqcProviderProvider&&) = delete;
+    PqcProvider(const PqcProvider&) = delete;
+    PqcProvider& operator=(const PqcProvider&) = delete;
+    PqcProvider(PqcProvider&&) = delete;
+    PqcProvider& operator=(PqcProvider&&) = delete;
 
-    // --- IProvider lifecycle (PQC Provider-specific) ---
+    // --- IProvider lifecycle (PQC-provider-specific) ---
     void Shutdown() override;
     [[nodiscard]] bool InitialiseBackend(const ProviderInitContext& ctx) override;
 
@@ -57,7 +57,7 @@ class PqcProviderProvider final : public ::score::crypto::daemon::provider::scor
     void SetKeyManagementService(std::shared_ptr<key_management::KeyManagementService> service) override;
 
   protected:
-    /// @brief Creates the PQC Provider-specific handler factory.
+    /// @brief Creates the PQC-provider-specific handler factory.
     [[nodiscard]] std::shared_ptr<handler::ICryptoHandlerFactory> CreateHandlerFactory() override;
 
   private:
@@ -67,4 +67,4 @@ class PqcProviderProvider final : public ::score::crypto::daemon::provider::scor
 
 }  // namespace score::crypto::daemon::provider::score_provider::pqc_provider
 
-#endif  // SCORE_CRYPTO_DAEMON_PROVIDER_PQC_PROVIDER_HPP
+#endif  // SCORE_CRYPTO_DAEMON_PROVIDER_PQC_PROVIDER_PROVIDER_HPP

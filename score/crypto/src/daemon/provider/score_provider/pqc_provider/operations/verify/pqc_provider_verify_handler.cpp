@@ -14,9 +14,9 @@
 #include "score/crypto/src/daemon/provider/score_provider/pqc_provider/operations/verify/pqc_provider_verify_handler.hpp"
 
 #include "score/crypto/src/daemon/common/algorithm_info.hpp"
-#include "score/crypto/src/daemon/provider/score_provider/operations/verify/verify_executor.hpp"
-#include "score/crypto/src/daemon/provider/score_provider/pqc_provider/key_management/pqc_provider_key_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/pqc_provider/pqc_provider_algorithm.hpp"
+#include "score/crypto/src/daemon/provider/score_provider/pqc_provider/key_management/pqc_provider_key_handler.hpp"
+#include "score/crypto/src/daemon/provider/score_provider/operations/verify/verify_executor.hpp"
 
 #include <utility>
 

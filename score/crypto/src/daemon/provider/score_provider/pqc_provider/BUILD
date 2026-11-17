@@ -51,7 +51,7 @@ cc_library(
         "//score/crypto/src/daemon/provider/score_provider/operations/key_management:score_key_management_handler",
         "//score/crypto/src/daemon/provider/score_provider/operations/sign:score_sign_handler",
         "//score/crypto/src/daemon/provider/score_provider/operations/verify:score_verify_handler",
-        "//score/pqc_provider",
         "//score/pqc_provider:pqc_provider_ffi_headers",
+        "//score/pqc_provider:pqc_provider_staticlib",
     ],
 )

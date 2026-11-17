@@ -11,10 +11,10 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include "score/crypto/src/daemon/provider/score_provider/pqc_provider/pqc_provider.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/pqc_provider/key_management/pqc_provider_key_factory.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/pqc_provider/key_management/pqc_provider_key_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/pqc_provider/key_management/pqc_provider_shared_secret_handler.hpp"
-#include "score/crypto/src/daemon/provider/score_provider/pqc_provider/pqc_provider.hpp"
 
 #include "score/crypto/src/api/types/common.hpp"
 #include "score/crypto/src/daemon/common/actors.hpp"
@@ -454,8 +454,8 @@ TEST_P(PqcProviderSlotOperationsTest, RejectsValidSlotRequestWithoutSlotHandler)
 
     // 4. Create the key-management handler through the real PqcProvider provider
     // factory, which currently injects nullptr as its slot handler.
-    PqcProviderProvider pqc_provider;
-    ASSERT_TRUE(pqc_provider.Initialize({kProviderId, "pqcProvider"}));
+    PqcProvider pqc_provider;
+    ASSERT_TRUE(pqc_provider.Initialize({kProviderId, "pqc_provider"}));
     pqc_provider.SetKeyManagementService(service);
     auto factory = pqc_provider.GetCryptoHandlerFactory();
     ASSERT_NE(factory, nullptr);

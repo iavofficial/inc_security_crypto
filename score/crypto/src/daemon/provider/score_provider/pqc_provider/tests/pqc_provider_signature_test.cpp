@@ -11,13 +11,13 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "score/crypto/src/daemon/common/actors.hpp"
 #include "score/crypto/src/daemon/provider/handler/handler_init_params.hpp"
+#include "score/crypto/src/daemon/common/actors.hpp"
 #include "score/crypto/src/daemon/provider/handler/operations/sign_handler_operations.hpp"
-#include "score/crypto/src/daemon/provider/score_provider/operations/sign/sign_executor.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/pqc_provider/key_management/pqc_provider_key_factory.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/pqc_provider/key_management/pqc_provider_key_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/pqc_provider/operations/sign/pqc_provider_sign_handler.hpp"
+#include "score/crypto/src/daemon/provider/score_provider/operations/sign/sign_executor.hpp"
 
 #include <gtest/gtest.h>
 

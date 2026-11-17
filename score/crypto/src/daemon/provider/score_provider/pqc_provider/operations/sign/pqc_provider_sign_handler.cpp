@@ -13,8 +13,8 @@
 
 #include "score/crypto/src/daemon/provider/score_provider/pqc_provider/operations/sign/pqc_provider_sign_handler.hpp"
 #include "score/crypto/src/daemon/common/algorithm_info.hpp"
-#include "score/crypto/src/daemon/provider/score_provider/operations/sign/sign_executor.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/pqc_provider/key_management/pqc_provider_key_handler.hpp"
+#include "score/crypto/src/daemon/provider/score_provider/operations/sign/sign_executor.hpp"
 
 #include "score/mw/log/logging.h"
 

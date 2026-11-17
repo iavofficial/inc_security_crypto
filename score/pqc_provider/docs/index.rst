@@ -31,7 +31,7 @@ PQC Provider Component
 Abstract
 ========
 
-PQC_PROVIDER is a cryptographic driver in Rust focused on integrating
+PQC_PROVIDER is a cryptographic driver in C++ focused on integrating
 post-quantum (PQ) algorithms and establishing a future-ready foundation for
 cryptographic processing in the S-CORE context. The component emphasizes a
 clear, robust, and maintainable architecture that provides safe and structured
@@ -48,11 +48,6 @@ integrators to use cryptographic operations and key-related processes in a
 uniform way. Extensibility is also considered from the beginning so that
 additional PQ algorithms and operations can be added in a controlled manner.
 
-By being implemented in Rust, PQC_PROVIDER benefits from strong memory-safety
-properties and improved robustness against common implementation errors.
-Overall, the component addresses the need for a modern, integration-friendly,
-and post-quantum-focused cryptographic driver baseline designed for long-term
-security and structured evolution.
 
 
 Rationale

@@ -14,12 +14,12 @@
 #include "score/crypto/src/daemon/provider/handler/handler_init_params.hpp"
 #include "score/crypto/src/daemon/provider/handler/operations/sign_handler_operations.hpp"
 #include "score/crypto/src/daemon/provider/handler/operations/verify_handler_operations.hpp"
-#include "score/crypto/src/daemon/provider/score_provider/operations/factory/score_handler_factory.hpp"
+#include "score/crypto/src/daemon/provider/score_provider/pqc_provider/pqc_provider.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/pqc_provider/key_management/pqc_provider_key_factory.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/pqc_provider/key_management/pqc_provider_key_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/pqc_provider/operations/sign/pqc_provider_sign_handler.hpp"
 #include "score/crypto/src/daemon/provider/score_provider/pqc_provider/operations/verify/pqc_provider_verify_handler.hpp"
-#include "score/crypto/src/daemon/provider/score_provider/pqc_provider/pqc_provider.hpp"
+#include "score/crypto/src/daemon/provider/score_provider/operations/factory/score_handler_factory.hpp"
 
 #include <gtest/gtest.h>
 
@@ -37,8 +37,8 @@ using namespace score::crypto::daemon::provider::score_provider::pqc_provider;
 TEST(PqcProviderApplicationIntegrationTest, CreatesSignHandlerFromProviderToAlgorithm)
 {
     // Initialize the provider with the test provider ID and provider name.
-    PqcProviderProvider provider;
-    ASSERT_TRUE(provider.Initialize(ProviderInitContext{common::ProviderId{7U}, "pqcProvider"}));
+    PqcProvider provider;
+    ASSERT_TRUE(provider.Initialize(ProviderInitContext{common::ProviderId{7U}, "pqc_provider"}));
 
     // Create the provider-neutral factory and request an ML-DSA SIGN handler.
     auto factory = provider.GetCryptoHandlerFactory();
@@ -76,8 +76,8 @@ TEST(PqcProviderApplicationIntegrationTest, CreatesSignHandlerFromProviderToAlgo
 TEST(PqcProviderApplicationIntegrationTest, CreatesVerifyHandlerAndReachesAlgorithmValidation)
 {
     // Initialize the provider before obtaining its handler factory.
-    PqcProviderProvider provider;
-    ASSERT_TRUE(provider.Initialize(ProviderInitContext{common::ProviderId{7U}, "pqcProvider"}));
+    PqcProvider provider;
+    ASSERT_TRUE(provider.Initialize(ProviderInitContext{common::ProviderId{7U}, "pqc_provider"}));
 
     // Create a VERIFY handler for the ML-DSA-44 algorithm.
     auto created = provider.GetCryptoHandlerFactory()->CreateHandler(

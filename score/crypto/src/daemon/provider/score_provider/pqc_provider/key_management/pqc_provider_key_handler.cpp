@@ -17,8 +17,8 @@
 namespace score::crypto::daemon::provider::score_provider::pqc_provider
 {
 PqcProviderKeyHandler::PqcProviderKeyHandler(pqc_provider_key_handle* key,
-                                             std::vector<std::uint8_t> pub,
-                                             const key_management::ProviderKeyHandle& handle) noexcept
+                                           std::vector<std::uint8_t> pub,
+                                           const key_management::ProviderKeyHandle& handle) noexcept
     : m_native_key{key}, m_public_key{std::move(pub)}, m_handle{handle}
 {
 }
