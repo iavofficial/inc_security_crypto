@@ -200,10 +200,6 @@ Expected<proto::ControlResponse, CryptoErrorCode> KeyManagementContextImpl::Send
     {
         return make_unexpected(request.error());
     }
-    if (!m_connection)
-    {
-        return make_unexpected(CryptoErrorCode::kConnectionFailed);
-    }
     return m_connection->SendRequest(request.value(), m_operation_timeout);
 }
 

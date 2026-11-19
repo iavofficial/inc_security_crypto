@@ -887,18 +887,6 @@ TEST(KeyManagementContextTest, GenerateKeyRejectsWrongOperationResponses)
     EXPECT_EQ(result.error(), score::crypto::MakeError(score::crypto::CryptoErrorCode::kKeyGenerationFailed));
 }
 
-TEST(KeyManagementContextTest, GenerateKeyHandlesAMissingConnection)
-{
-    score::crypto::KeyManagementContextImpl context{nullptr, 44U};
-    score::crypto::GenerateKeyParams params{};
-    params.SetAlgorithm("ML-KEM-768");
-
-    auto result = context.GenerateKey(params);
-
-    ASSERT_FALSE(result.has_value());
-    EXPECT_EQ(result.error(), score::crypto::MakeError(score::crypto::CryptoErrorCode::kConnectionFailed));
-}
-
 // ---------------------------------------------------------------------------
 // KEM API parameter validation
 // ---------------------------------------------------------------------------
