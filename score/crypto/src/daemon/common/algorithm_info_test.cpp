@@ -77,7 +77,7 @@ TEST(AlgorithmInfoTest, EcFieldSizeFollowsTheCurve)
         if ((row.key_type == ::score::crypto::KeyType::kEcc) &&
             (row.category == ::score::crypto::AlgorithmCategory::kSignature))
         {
-            EXPECT_EQ(row.output_size, 2U * EcFieldSize(row)) << row.name;
+            EXPECT_EQ(row.output_size_bytes, 2U * EcFieldSize(row)) << row.name;
         }
     }
 }
@@ -93,7 +93,7 @@ TEST(AlgorithmInfoTest, PqcKeyAlgorithmsUseStandardizedPrivateKeySizes)
     struct ExpectedKeySize
     {
         std::string_view name;
-        std::size_t private_key_size;
+        std::size_t encoded_private_key_size_bytes;
     };
     // Private-key byte sizes from FIPS 204 (ML-DSA) and FIPS 203 (ML-KEM).
     constexpr std::array<ExpectedKeySize, 6U> kExpectedSizes{{
@@ -110,7 +110,7 @@ TEST(AlgorithmInfoTest, PqcKeyAlgorithmsUseStandardizedPrivateKeySizes)
         SCOPED_TRACE(expected.name);
         const std::optional<std::size_t> size = LookupKeySize(Row(expected.name));
         ASSERT_TRUE(size.has_value());
-        EXPECT_EQ(size.value(), expected.private_key_size);
+        EXPECT_EQ(size.value(), expected.encoded_private_key_size_bytes);
     }
 }
 

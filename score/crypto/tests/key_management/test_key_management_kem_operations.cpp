@@ -571,6 +571,41 @@ TEST_F(KeyManagementExecutorKemTest, AsymmetricHandlesKeepPublicAndPrivateOperat
     }
 }
 
+TEST_F(KeyManagementExecutorKemTest, RawEcExportAuthorizationUsesPublicPermissions)
+{
+    struct Case
+    {
+        score::crypto::FormatType format;
+        Permission private_permissions;
+        Permission public_permissions;
+        bool permitted;
+    };
+    const std::array<Case, 6U> cases{{
+        {score::crypto::FormatType::kRaw, Permission::kNone, Permission::kExport, true},
+        {score::crypto::FormatType::kDer, Permission::kNone, Permission::kExport, false},
+        {score::crypto::FormatType::kPem, Permission::kNone, Permission::kExport, false},
+        {score::crypto::FormatType::kRaw, Permission::kExport, Permission::kNone, false},
+        {score::crypto::FormatType::kDer, Permission::kExport, Permission::kNone, true},
+        {score::crypto::FormatType::kPem, Permission::kExport, Permission::kNone, true},
+    }};
+
+    key_management::ProviderKeyHandle handle{};
+    handle.algorithm = *score::crypto::GetAlgorithmDescriptor("ECDSA-P256");
+    handle.material_kind = key_management::KeyMaterialKind::kPrivateKey;
+    handle.is_asymmetric = true;
+    for (const auto& test_case : cases)
+    {
+        handle.permissions = test_case.private_permissions;
+        handle.public_key_permissions = test_case.public_permissions;
+        const auto authorized = service->AuthorizeKeyOperation(handle, Permission::kExport, test_case.format);
+        EXPECT_EQ(authorized.has_value(), test_case.permitted);
+        if (!authorized.has_value())
+        {
+            EXPECT_EQ(authorized.error(), Error::kKeyOperationNotPermitted);
+        }
+    }
+}
+
 TEST_F(KeyManagementExecutorKemTest, SymmetricKeysAndSharedSecretsUseTheirOwnPermissions)
 {
     for (const key_management::KeyMaterialKind kind :

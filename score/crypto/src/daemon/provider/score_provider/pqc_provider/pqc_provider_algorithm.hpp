@@ -49,7 +49,7 @@ inline Expected<pqc_provider_algorithm, common::DaemonErrorCode> Algorithm(const
 /// @brief Return whether the provider maps this signature algorithm to its backend.
 [[nodiscard]] inline bool IsSignatureSupported(const AlgorithmDescriptor& algorithm) noexcept
 {
-    return algorithm.key_type == ::score::crypto::KeyType::kMlDsa && algorithm.output_size != 0U &&
+    return algorithm.key_type == ::score::crypto::KeyType::kMlDsa && algorithm.output_size_bytes != 0U &&
            Algorithm(algorithm).has_value();
 }
 }  // namespace score::crypto::daemon::provider::score_provider::pqc_provider

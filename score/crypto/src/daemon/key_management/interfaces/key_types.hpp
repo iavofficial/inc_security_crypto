@@ -62,7 +62,7 @@ struct ProviderKeyHandle
     bool is_asymmetric{false};
 
     /// Operations this key may perform. For an asymmetric key this governs the
-    /// private half only — see public_key_permissions and GrantedPermissionsFor().
+    /// private half; public operations use public_key_permissions.
     score::crypto::KeyOperationPermission permissions{score::crypto::KeyOperationPermission::kNone};
 
     /// Operations the public half may perform (asymmetric keys only).
@@ -79,52 +79,6 @@ struct ProviderKeyHandle
     std::size_t key_size{0U};
     KeyMaterialKind material_kind{KeyMaterialKind::kUnspecified};
 };
-
-/// @brief The permission set that governs @p required for this key.
-///
-/// Material explicitly identified as a public key uses public_key_permissions
-/// for every requested operation, including KEM encapsulation and export.
-/// An unset public_key_permissions grants all permissions.
-///
-/// For other asymmetric handles, the requested operation selects the half:
-/// verify, encrypt and wrap use public_key_permissions; other operations use
-/// permissions. Raw EC export emits only the public point, so it uses
-/// public_key_permissions when export_format is kRaw. Symmetric keys and
-/// shared secrets use permissions.
-/// The caller separately checks whether the algorithm and key material
-/// support the requested operation.
-///
-/// @param handle   The key whose permissions are being consulted.
-/// @param required The single permission bit the caller intends to exercise.
-/// @param export_format Encoding of an export operation; absent for other operations.
-[[nodiscard]] inline score::crypto::KeyOperationPermission GrantedPermissionsFor(
-    const ProviderKeyHandle& handle,
-    score::crypto::KeyOperationPermission required,
-    std::optional<score::crypto::FormatType> export_format = std::nullopt) noexcept
-{
-    using Permission = score::crypto::KeyOperationPermission;
-
-    if (handle.material_kind == KeyMaterialKind::kPublicKey)
-    {
-        return handle.public_key_permissions.value_or(Permission::kAll);
-    }
-
-    /// Operations that consume the public half of a key pair.
-    constexpr Permission kPublicHalfOperations = Permission::kVerify | Permission::kEncrypt | Permission::kWrap;
-
-    // HasPermission(kPublicHalfOperations, required) asks whether `required` is
-    // a subset of the public-half operations, i.e. "is this a public-half use?".
-    const bool exports_ec_public_point =
-        required == Permission::kExport && export_format == score::crypto::FormatType::kRaw &&
-        handle.algorithm.key_type == score::crypto::KeyType::kEcc;
-    if (handle.is_asymmetric &&
-        (score::crypto::HasPermission(kPublicHalfOperations, required) || exports_ec_public_point))
-    {
-        return handle.public_key_permissions.value_or(Permission::kAll);
-    }
-
-    return handle.permissions;
-}
 
 // ---------------------------------------------------------------------------
 // Request parameter structs

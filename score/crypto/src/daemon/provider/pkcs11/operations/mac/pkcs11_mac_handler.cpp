@@ -100,7 +100,7 @@ bool Pkcs11MacHandler::IsAlgorithmSupported(const AlgorithmDescriptor& algorithm
 
 std::size_t Pkcs11MacHandler::GetMacSize() const noexcept
 {
-    return IsAlgorithmSupported(m_algorithm) ? static_cast<std::size_t>(m_algorithm.output_size) : 0U;
+    return IsAlgorithmSupported(m_algorithm) ? static_cast<std::size_t>(m_algorithm.output_size_bytes) : 0U;
 }
 
 // ---------------------------------------------------------------------------

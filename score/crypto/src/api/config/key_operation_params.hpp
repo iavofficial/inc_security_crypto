@@ -260,8 +260,9 @@ struct EncapsulateKeyParams
 struct DecapsulateKeyParams
 {
     /// @brief Handle to the private key used for decapsulation (required).
-    /// Must reference a key resource (ResourceType::kKey) belonging to this
-    /// context's provider and permitting KeyOperationPermission::kAgree.
+    /// Must reference an existing private-key resource (ResourceType::kKey)
+    /// belonging to this context's provider and permitting KeyOperationPermission::kAgree.
+    /// Direct key-slot references (ResourceType::kKeySlot) are not supported.
     CryptoResourceId private_key{};
 
     /// @brief Ciphertext produced by the peer during encapsulation (required).
@@ -676,13 +677,22 @@ struct ImportKeyParams
     /// @note Algorithm support and key encoding are validated by the daemon/provider.
     score::Result<std::monostate> Validate() const noexcept
     {
-        if (algorithm.empty() || algorithm.truncated() || key_data.empty() ||
-            !key_data.data() ||
-            static_cast<std::uint8_t>(format) > static_cast<std::uint8_t>(FormatType::kRaw) ||
-            (static_cast<std::uint32_t>(permissions) & ~static_cast<std::uint32_t>(KeyOperationPermission::kAll)) !=
-                0U)
+        if (algorithm.empty() || algorithm.truncated() || key_data.empty() || !key_data.data() ||
+            (static_cast<std::uint32_t>(permissions) & ~static_cast<std::uint32_t>(KeyOperationPermission::kAll)) != 0U)
         {
             return score::Result<std::monostate>{score::unexpect, MakeError(CryptoErrorCode::kInvalidArgument)};
+        }
+
+        // Check that the identifier names a defined encoding.
+        // The provider determines whether that encoding is supported for the algorithm.
+        switch (format)
+        {
+            case FormatType::kDer:
+            case FormatType::kPem:
+            case FormatType::kRaw:
+                break;
+            default:
+                return score::Result<std::monostate>{score::unexpect, MakeError(CryptoErrorCode::kInvalidArgument)};
         }
         return std::monostate{};
     }

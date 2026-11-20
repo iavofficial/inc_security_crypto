@@ -83,7 +83,7 @@ bool OpenSslHmacHandler::IsAlgorithmSupported(const AlgorithmDescriptor& algorit
 
 std::size_t OpenSslHmacHandler::GetMacSize() const noexcept
 {
-    return IsAlgorithmSupported(m_algorithm) ? m_algorithm.output_size : 0U;
+    return IsAlgorithmSupported(m_algorithm) ? m_algorithm.output_size_bytes : 0U;
 }
 
 // ---------------------------------------------------------------------------

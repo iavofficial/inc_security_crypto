@@ -173,32 +173,42 @@ static_assert((static_cast<std::uint16_t>(Algorithm::kEcdsaP256Sha256) == 18U) &
 
 /// @brief Provider-independent properties of one algorithm.
 ///
-/// @note @c key_bits is the nominal key length: the AES variant, the curve
-///       order, or the default secret length for HMAC.
-/// @note @c output_size is the fixed length in bytes of the digest, MAC or
-///       signature. It is zero where the output length follows the input, as
-///       for ciphers. ECDSA signatures use the fixed-length IEEE P1363 r||s
-///       form, which is the wire format of this stack; RSA-PSS signatures are
-///       as long as the modulus and Ed25519 signatures are 64 bytes.
-/// @note For RSA @c key_bits is the modulus length; for Ed25519 it is 256.
-///       PQC parameter sets use explicit public/private key sizes instead of
-///       key_bits; output_size is the signature or KEM ciphertext length.
+/// @note @c key_bits is a nominal algorithm property: the AES key length, ECC
+///       curve size, RSA modulus length, default HMAC secret length, or 256 for
+///       Ed25519. It is not an encoded key length or a security-strength value.
+///       It is zero when not applicable. ML-DSA and ML-KEM parameter-set names
+///       do not denote key bit lengths, so their rows leave it zero.
+/// @note @c output_size_bytes is the fixed operation output length: digest for
+///       hashes, tag for MACs, signature for signature schemes, and ciphertext
+///       for KEM encapsulation. Zero means no fixed output size is specified,
+///       for example when a cipher's output length depends on its input.
+///       ECDSA uses IEEE P1363 r||s, RSA-PSS uses the modulus byte length, and
+///       Ed25519 signatures are 64 bytes. A KEM's additional secret output is
+///       described separately by @c shared_secret_size_bytes.
+/// @note The encoded key sizes describe a fixed encoding at the provider
+///       boundary. ML-KEM and ML-DSA use the raw public-key and expanded
+///       private-key encodings from FIPS 203 and FIPS 204. These are not sizes
+///       for seed representations, DER/PEM exports, or opaque provider handles.
+///       Zero means the encoding length is not specified in this catalog or
+///       does not apply. Classical key rows leave these sizes unspecified;
+///       query the provider for the selected format instead of inferring an
+///       encoded buffer length from @c key_bits.
 struct AlgorithmDescriptor
 {
     Algorithm id{Algorithm::kUnknown};
     std::string_view name{};
     AlgorithmCategory category{AlgorithmCategory::kUnknown};
     KeyType key_type{KeyType::kNone};
-    std::uint16_t key_bits{0U};
+    std::uint16_t key_bits{0U};  ///< Nominal key length in bits; zero when not applicable.
     HashFunction hash{HashFunction::kNone};
     EccCurve curve{EccCurve::kNone};
     CipherMode mode{CipherMode::kNone};
-    std::uint16_t output_size{0U};
-    std::uint8_t block_size{0U};
-    std::uint8_t iv_size{0U};
-    std::uint16_t public_key_size{0U};     ///< PQC public-key encoding length in bytes.
-    std::uint16_t private_key_size{0U};    ///< PQC private-key encoding length in bytes.
-    std::uint16_t shared_secret_size{0U};  ///< KEM shared-secret length; zero otherwise.
+    std::uint16_t output_size_bytes{0U};               ///< Fixed operation output length; zero when unspecified.
+    std::uint8_t block_size{0U};                       ///< Block length in bytes; zero when not applicable.
+    std::uint8_t iv_size{0U};                          ///< IV length in bytes; zero when not applicable.
+    std::uint16_t encoded_public_key_size_bytes{0U};   ///< Fixed public-key encoding length; zero when unspecified.
+    std::uint16_t encoded_private_key_size_bytes{0U};  ///< Fixed private-key encoding length; zero when unspecified.
+    std::uint16_t shared_secret_size_bytes{0U};        ///< KEM secret output length; zero for non-KEM algorithms.
 };
 
 namespace algorithm_catalog_detail
@@ -446,10 +456,10 @@ namespace algorithm_catalog_detail
                                                 std::string_view name,
                                                 AlgorithmCategory category,
                                                 KeyType key_type,
-                                                std::uint16_t public_key_size,
-                                                std::uint16_t private_key_size,
-                                                std::uint16_t output_size,
-                                                std::uint16_t shared_secret_size) noexcept
+                                                std::uint16_t encoded_public_key_size_bytes,
+                                                std::uint16_t encoded_private_key_size_bytes,
+                                                std::uint16_t output_size_bytes,
+                                                std::uint16_t shared_secret_size_bytes) noexcept
 {
     return {id,
             name,
@@ -459,12 +469,12 @@ namespace algorithm_catalog_detail
             HashFunction::kNone,
             EccCurve::kNone,
             CipherMode::kNone,
-            output_size,
+            output_size_bytes,
             0U,
             0U,
-            public_key_size,
-            private_key_size,
-            shared_secret_size};
+            encoded_public_key_size_bytes,
+            encoded_private_key_size_bytes,
+            shared_secret_size_bytes};
 }
 
 }  // namespace algorithm_catalog_detail
@@ -654,7 +664,10 @@ inline constexpr AlgorithmDescriptor kAlgorithmCatalog[] = {
 /// @brief Key length in bytes implied by an algorithm.
 ///
 /// For curves this is the byte length of one coordinate, so P-521 gives 66.
-/// For ML-DSA and ML-KEM this is the encoded private-key length.
+/// For ML-DSA and ML-KEM this is the expanded private-key encoding length.
+/// This helper is not a general import/export buffer-size query. Use the
+/// explicit encoding sizes when that encoding applies, or query the provider
+/// for the selected format.
 /// @return The length, or std::nullopt when the algorithm takes no key.
 [[nodiscard]] inline constexpr std::optional<std::size_t> GetKeySizeBytes(Algorithm algorithm) noexcept
 {
@@ -665,7 +678,7 @@ inline constexpr AlgorithmDescriptor kAlgorithmCatalog[] = {
     }
     if ((row->key_type == KeyType::kMlDsa) || (row->key_type == KeyType::kMlKem))
     {
-        return row->private_key_size;
+        return row->encoded_private_key_size_bytes;
     }
     return (static_cast<std::size_t>(row->key_bits) + 7U) / 8U;
 }
