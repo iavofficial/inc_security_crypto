@@ -39,3 +39,8 @@ cc_library(
         "//score/pqc_provider/liboqs:liboqs_partial",
     ],
 )
+
+test_suite(
+    name = "pqc_provider_tests",
+    tests = ["//score/pqc_provider/tests:ffi_test"],
+)
