@@ -131,7 +131,7 @@ TEST(PqcProviderVerificationTest, InitializesWithImportedPublicKeyAndReachesBack
     {
         SCOPED_TRACE(algorithm);
         const auto descriptor = *::score::crypto::GetAlgorithmDescriptor(algorithm);
-        const std::vector<std::uint8_t> public_key(descriptor.public_key_size, 0xA5U);
+        const std::vector<std::uint8_t> public_key(descriptor.encoded_public_key_size_bytes, 0xA5U);
         key_management::KeyImportRequest request{};
         request.algorithm = descriptor;
         request.format = score::crypto::FormatType::kRaw;
@@ -160,8 +160,8 @@ TEST(PqcProviderVerificationTest, RejectsReleasedPublicKey)
 {
     const auto descriptor = *::score::crypto::GetAlgorithmDescriptor("ML-DSA-44");
     PqcProviderKeyHandler key{nullptr,
-                            std::vector<std::uint8_t>(descriptor.public_key_size),
-                            SignatureHandle("ML-DSA-44", key_management::KeyMaterialKind::kPublicKey)};
+                              std::vector<std::uint8_t>(descriptor.encoded_public_key_size_bytes),
+                              SignatureHandle("ML-DSA-44", key_management::KeyMaterialKind::kPublicKey)};
     PqcProviderVerifyHandler handler{std::make_unique<Executor>(), descriptor};
     provider::handler::InitializationParams params{};
     params.provider_id = kProviderId;

@@ -90,7 +90,7 @@ Expected<std::monostate, DaemonErrorCode> OpenSslRsaPssVerifyHandler::Reset()
 
 std::size_t OpenSslRsaPssVerifyHandler::GetSignatureSize() const noexcept
 {
-    return IsAlgorithmSupported(m_algorithm) ? m_algorithm.output_size : 0U;
+    return IsAlgorithmSupported(m_algorithm) ? m_algorithm.output_size_bytes : 0U;
 }
 
 Expected<std::monostate, DaemonErrorCode> OpenSslRsaPssVerifyHandler::InitVerify()

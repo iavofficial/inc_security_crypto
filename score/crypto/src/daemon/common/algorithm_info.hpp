@@ -47,16 +47,18 @@ enum class PqcAlgorithmKind : std::uint8_t
 
 /// @brief Fixed-size properties for standardized PQC parameter sets.
 ///
-/// The sizes describe the byte representation used at the provider boundary.
-/// The provider remains responsible for validating the actual encoding.
+/// All sizes are in bytes and follow AlgorithmDescriptor's encoding contract:
+/// raw public keys and expanded private keys, with signature or ciphertext as
+/// the primary output and a separate shared-secret output for KEMs. The provider
+/// remains responsible for validating the actual encoding.
 struct PqcAlgorithmInfo
 {
-    std::string_view name;                     ///< Standardized algorithm identifier.
-    PqcAlgorithmKind kind;                     ///< Signature or KEM algorithm.
-    std::size_t public_key_size;               ///< Public key size in bytes.
-    std::size_t private_key_size;              ///< Private key size in bytes.
-    std::size_t signature_or_ciphertext_size;  ///< Signature or ciphertext size in bytes; zero when not applicable.
-    std::size_t shared_secret_size;            ///< Shared-secret size in bytes; zero for signature algorithms.
+    std::string_view name;                       ///< Standardized algorithm identifier.
+    PqcAlgorithmKind kind;                       ///< Defines whether the primary output is a signature or ciphertext.
+    std::size_t encoded_public_key_size_bytes;   ///< Raw public-key encoding length.
+    std::size_t encoded_private_key_size_bytes;  ///< Expanded private-key encoding length.
+    std::size_t signature_or_ciphertext_size_bytes;  ///< Primary output length.
+    std::size_t shared_secret_size_bytes;            ///< Additional KEM output length; zero for signature algorithms.
 };
 
 /// @brief Read standardized PQC sizes from an already resolved catalog descriptor.
@@ -71,10 +73,10 @@ struct PqcAlgorithmInfo
     return PqcAlgorithmInfo{
         algorithm.name,
         algorithm.key_type == ::score::crypto::KeyType::kMlDsa ? PqcAlgorithmKind::kSignature : PqcAlgorithmKind::kKem,
-        algorithm.public_key_size,
-        algorithm.private_key_size,
-        algorithm.output_size,
-        algorithm.shared_secret_size};
+        algorithm.encoded_public_key_size_bytes,
+        algorithm.encoded_private_key_size_bytes,
+        algorithm.output_size_bytes,
+        algorithm.shared_secret_size_bytes};
 }
 
 /// @brief Return whether the resolved row describes a PQC signature algorithm.
@@ -103,7 +105,7 @@ struct PqcAlgorithmInfo
     {
         if ((row.category == ::score::crypto::AlgorithmCategory::kHash) && (row.hash == hash))
         {
-            return row.output_size;
+            return row.output_size_bytes;
         }
     }
     return std::nullopt;
@@ -116,7 +118,9 @@ struct PqcAlgorithmInfo
 /// "RSA-PSS-2048-SHA256" or "ECDSA-P256-SHA256" names no key and yields
 /// std::nullopt, so it cannot be mistaken for a request for that many random
 /// bytes. For elliptic curves this is the byte length of one coordinate.
-/// For ML-DSA and ML-KEM it is the encoded private-key length.
+/// For ML-DSA and ML-KEM it is the expanded private-key encoding length.
+/// This is a default key-material size, not a size for arbitrary import/export
+/// formats; query the provider when a particular encoding is required.
 /// @return key size in bytes, or std::nullopt if the row labels no key.
 [[nodiscard]] inline constexpr std::optional<std::size_t> LookupKeySize(
     const ::score::crypto::AlgorithmDescriptor& algorithm) noexcept
@@ -124,7 +128,7 @@ struct PqcAlgorithmInfo
     if ((algorithm.key_type == ::score::crypto::KeyType::kMlDsa) ||
         (algorithm.key_type == ::score::crypto::KeyType::kMlKem))
     {
-        return algorithm.private_key_size;
+        return algorithm.encoded_private_key_size_bytes;
     }
     if ((algorithm.key_type == ::score::crypto::KeyType::kNone) ||
         ((algorithm.category == ::score::crypto::AlgorithmCategory::kSignature) &&
@@ -154,7 +158,7 @@ inline constexpr std::size_t kEd25519KeySize{
 /// Ed25519 signature size in bytes (RFC 8032).
 inline constexpr std::size_t kEd25519SignatureSize{
     ::score::crypto::GetAlgorithmDescriptor(::score::crypto::Algorithm::kEd25519).has_value()
-        ? ::score::crypto::GetAlgorithmDescriptor(::score::crypto::Algorithm::kEd25519)->output_size
+        ? ::score::crypto::GetAlgorithmDescriptor(::score::crypto::Algorithm::kEd25519)->output_size_bytes
         : 0U};
 
 static_assert((kEd25519KeySize == 32U) && (kEd25519SignatureSize == 64U), "Ed25519 sizes are fixed by RFC 8032");

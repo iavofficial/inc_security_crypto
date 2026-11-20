@@ -43,7 +43,7 @@ std::optional<std::uint64_t> Pkcs11HashHandler::GetDigestSize() const noexcept
     {
         return std::nullopt;
     }
-    return static_cast<std::uint64_t>(m_algorithm.output_size);
+    return static_cast<std::uint64_t>(m_algorithm.output_size_bytes);
 }
 
 // --- Construction / destruction ---

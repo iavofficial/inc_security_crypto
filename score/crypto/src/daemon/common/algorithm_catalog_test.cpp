@@ -32,7 +32,7 @@ using score::crypto::KeyType;
 
 static_assert(score::crypto::FromAlgorithmName("ECDSA-P384-SHA384") == Algorithm::kEcdsaP384Sha384);
 static_assert(score::crypto::ToAlgorithmName(Algorithm::kSha256) == "SHA256");
-static_assert(score::crypto::GetAlgorithmDescriptor(Algorithm::kEcdsaP384Sha384)->output_size == 96U);
+static_assert(score::crypto::GetAlgorithmDescriptor(Algorithm::kEcdsaP384Sha384)->output_size_bytes == 96U);
 static_assert(score::crypto::GetAlgorithmCategory("AES-256-CBC") == AlgorithmCategory::kCipher);
 
 TEST(AlgorithmCatalogTest, NamesAndIdentifiersAreUnique)
@@ -122,7 +122,7 @@ TEST(AlgorithmCatalogTest, EcdsaHasOneRowPerCurveAndSha2Digest)
             EXPECT_EQ(row->curve, curve.curve) << name;
             EXPECT_EQ(row->hash, digest.hash) << name;
             EXPECT_EQ(row->key_bits, curve.key_bits) << name;
-            EXPECT_EQ(row->output_size, curve.signature_size) << name;
+            EXPECT_EQ(row->output_size_bytes, curve.signature_size) << name;
         }
     }
 }
@@ -155,7 +155,7 @@ TEST(AlgorithmCatalogTest, SignatureRowsCarryCurveDigestAndP1363Size)
     EXPECT_EQ(p521->key_type, KeyType::kEcc);
     EXPECT_EQ(p521->curve, EccCurve::kP521);
     EXPECT_EQ(p521->hash, HashFunction::kSha512);
-    EXPECT_EQ(p521->output_size, 132U);
+    EXPECT_EQ(p521->output_size_bytes, 132U);
 }
 
 TEST(AlgorithmCatalogTest, RsaPssAndEd25519Rows)
@@ -166,14 +166,14 @@ TEST(AlgorithmCatalogTest, RsaPssAndEd25519Rows)
     EXPECT_EQ(pss->key_type, KeyType::kRsa);
     EXPECT_EQ(pss->key_bits, 3072U);
     EXPECT_EQ(pss->hash, HashFunction::kSha384);
-    EXPECT_EQ(pss->output_size, 384U);
+    EXPECT_EQ(pss->output_size_bytes, 384U);
 
     const auto ed = score::crypto::GetAlgorithmDescriptor("Ed25519");
     ASSERT_TRUE(ed.has_value());
     EXPECT_EQ(ed->category, AlgorithmCategory::kSignature);
     EXPECT_EQ(ed->key_type, KeyType::kEd25519);
     EXPECT_EQ(ed->hash, HashFunction::kNone);
-    EXPECT_EQ(ed->output_size, 64U);
+    EXPECT_EQ(ed->output_size_bytes, 64U);
 
     EXPECT_EQ(score::crypto::GetKeySizeBytes(Algorithm::kRsa4096), 512U);
     EXPECT_EQ(score::crypto::GetKeySizeBytes(Algorithm::kEd25519), 32U);

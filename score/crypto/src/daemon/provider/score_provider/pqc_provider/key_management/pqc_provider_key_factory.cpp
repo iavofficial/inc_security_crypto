@@ -67,11 +67,11 @@ Expected<std::size_t, common::DaemonErrorCode> GetKemCiphertextSize(
         return make_unexpected(key.error());
     }
     std::size_t size{0U};
-    if (key.value()->GetPublicKey(size) == nullptr || size != info->public_key_size)
+    if (key.value()->GetPublicKey(size) == nullptr || size != info->encoded_public_key_size_bytes)
     {
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
-    return info->signature_or_ciphertext_size;
+    return info->signature_or_ciphertext_size_bytes;
 }
 }  // namespace
 
@@ -108,7 +108,7 @@ Expected<key_management::IKeyHandler::Sptr, common::DaemonErrorCode> PqcProvider
 
     // Keep the native key owned even if allocating the public-key cache fails.
     std::unique_ptr<pqc_provider_key_handle, decltype(&pqc_provider_key_destroy)> native_key{key, &pqc_provider_key_destroy};
-    std::vector<std::uint8_t> pub(info->public_key_size);
+    std::vector<std::uint8_t> pub(info->encoded_public_key_size_bytes);
     std::size_t n = pub.size();
     const auto export_status = (info->kind == common::PqcAlgorithmKind::kKem)
                                    ? pqc_provider_kem_public_key_export(key, pub.data(), &n)
@@ -125,7 +125,7 @@ Expected<key_management::IKeyHandler::Sptr, common::DaemonErrorCode> PqcProvider
     h.public_key_permissions = request.public_key_permissions;
     h.is_asymmetric = true;
     h.algorithm = request.algorithm;
-    h.key_size = info->private_key_size;
+    h.key_size = info->encoded_private_key_size_bytes;
     h.material_kind = key_management::KeyMaterialKind::kPrivateKey;
     auto handler = std::make_shared<PqcProviderKeyHandler>(key, std::move(pub), h);
     static_cast<void>(native_key.release());
@@ -138,7 +138,7 @@ Expected<key_management::IKeyHandler::Sptr, common::DaemonErrorCode> PqcProvider
     auto info = common::LookupPqcAlgorithm(r.algorithm);
     if (r.format != score::crypto::FormatType::kRaw || !info ||
         ((info->kind != common::PqcAlgorithmKind::kSignature) && (info->kind != common::PqcAlgorithmKind::kKem)) ||
-        !r.key_data || (r.key_data_size != info->public_key_size))
+        !r.key_data || (r.key_data_size != info->encoded_public_key_size_bytes))
     {
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
@@ -152,7 +152,7 @@ Expected<key_management::IKeyHandler::Sptr, common::DaemonErrorCode> PqcProvider
     h.public_key_permissions = r.permissions;
     h.is_asymmetric = true;
     h.algorithm = r.algorithm;
-    h.key_size = info->public_key_size;
+    h.key_size = info->encoded_public_key_size_bytes;
     h.material_kind = key_management::KeyMaterialKind::kPublicKey;
     return std::make_shared<PqcProviderKeyHandler>(nullptr, std::move(pub), h);
 }
@@ -172,21 +172,21 @@ Expected<key_management::ProviderEncapsulationResult, common::DaemonErrorCode> P
     }
 
     const auto& key = static_cast<const PqcProviderKeyHandler&>(request.public_key);
-    std::size_t public_key_size{0U};
-    const auto* public_key = key.GetPublicKey(public_key_size);
+    std::size_t encoded_public_key_size_bytes{0U};
+    const auto* public_key = key.GetPublicKey(encoded_public_key_size_bytes);
     const auto info = common::LookupPqcAlgorithm(request.algorithm);
     const auto algorithm = Algorithm(request.algorithm);
     std::vector<std::uint8_t> ciphertext(ciphertext_size.value());
-    key_management::SecureKeyBytes secret(info->shared_secret_size);
+    key_management::SecureKeyBytes secret(info->shared_secret_size_bytes);
     std::size_t ciphertext_length = ciphertext.size();
     std::size_t secret_length = secret.bytes.size();
     const auto status = pqc_provider_kem_encapsulate(algorithm.value(),
-                                            public_key,
-                                            public_key_size,
-                                            ciphertext.data(),
-                                            &ciphertext_length,
-                                            secret.bytes.data(),
-                                            &secret_length);
+                                                     public_key,
+                                                     encoded_public_key_size_bytes,
+                                                     ciphertext.data(),
+                                                     &ciphertext_length,
+                                                     secret.bytes.data(),
+                                                     &secret_length);
     if (status != PqcProviderStatusOk || ciphertext_length != ciphertext.size() || secret_length != secret.bytes.size())
     {
         return make_unexpected(status == PqcProviderStatusUnsupportedAlgorithm ? common::DaemonErrorCode::kUnsupportedAlgorithm
@@ -211,12 +211,12 @@ Expected<key_management::IKeyHandler::Sptr, common::DaemonErrorCode> PqcProvider
         return make_unexpected(key.error());
     }
     if (key.value()->GetNativeHandle() == nullptr || request.ciphertext.data() == nullptr ||
-        request.ciphertext.size() != info->signature_or_ciphertext_size)
+        request.ciphertext.size() != info->signature_or_ciphertext_size_bytes)
     {
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
 
-    key_management::SecureKeyBytes secret(info->shared_secret_size);
+    key_management::SecureKeyBytes secret(info->shared_secret_size_bytes);
     std::size_t length = secret.bytes.size();
     const auto status = pqc_provider_kem_decapsulate(key.value()->GetNativeHandle(),
                                             request.ciphertext.data(),

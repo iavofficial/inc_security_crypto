@@ -78,9 +78,10 @@ Expected<std::monostate, common::DaemonErrorCode> PqcProviderVerifyHandler::Init
     if (key->GetNativeHandle() == nullptr)
     {
         // Imported public keys are stored as bytes without a native backend handle.
-        std::size_t public_key_size{0U};
+        std::size_t encoded_public_key_size_bytes{0U};
         if (handle.material_kind != key_management::KeyMaterialKind::kPublicKey ||
-            key->GetPublicKey(public_key_size) == nullptr || public_key_size != m_algorithm.public_key_size)
+            key->GetPublicKey(encoded_public_key_size_bytes) == nullptr ||
+            encoded_public_key_size_bytes != m_algorithm.encoded_public_key_size_bytes)
         {
             return make_unexpected(common::DaemonErrorCode::kIncompatibleKeyType);
         }
@@ -91,7 +92,7 @@ Expected<std::monostate, common::DaemonErrorCode> PqcProviderVerifyHandler::Init
 
 std::size_t PqcProviderVerifyHandler::GetSignatureSize() const noexcept
 {
-    return IsAlgorithmSupported(m_algorithm) ? m_algorithm.output_size : 0U;
+    return IsAlgorithmSupported(m_algorithm) ? m_algorithm.output_size_bytes : 0U;
 }
 
 Expected<bool, common::DaemonErrorCode> PqcProviderVerifyHandler::SingleShotVerify(
@@ -109,10 +110,11 @@ Expected<bool, common::DaemonErrorCode> PqcProviderVerifyHandler::SingleShotVeri
         return make_unexpected(common::DaemonErrorCode::kKeySlotEmpty);
     }
     const auto* native_key = m_key->GetNativeHandle();
-    std::size_t public_key_size{0U};
-    const auto* public_key = m_key->GetPublicKey(public_key_size);
+    std::size_t encoded_public_key_size_bytes{0U};
+    const auto* public_key = m_key->GetPublicKey(encoded_public_key_size_bytes);
     // Release() clears both the native handle and the public-key bytes.
-    if (native_key == nullptr && (public_key == nullptr || public_key_size != m_algorithm.public_key_size))
+    if (native_key == nullptr &&
+        (public_key == nullptr || encoded_public_key_size_bytes != m_algorithm.encoded_public_key_size_bytes))
     {
         return make_unexpected(common::DaemonErrorCode::kKeySlotEmpty);
     }
@@ -136,12 +138,12 @@ Expected<bool, common::DaemonErrorCode> PqcProviderVerifyHandler::SingleShotVeri
             return make_unexpected(signature_algorithm.error());
         }
         status = pqc_provider_verify_public_key(signature_algorithm.value(),
-                                       public_key,
-                                       public_key_size,
-                                       data.data(),
-                                       data.size(),
-                                       signature.data(),
-                                       signature.size());
+                                                public_key,
+                                                encoded_public_key_size_bytes,
+                                                data.data(),
+                                                data.size(),
+                                                signature.data(),
+                                                signature.size());
     }
     // Map backend verification status to the handler contract: an invalid
     // signature returns false, while backend errors are returned as failures.

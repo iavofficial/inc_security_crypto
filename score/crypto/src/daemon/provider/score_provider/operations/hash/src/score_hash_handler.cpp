@@ -81,7 +81,7 @@ Expected<ResponseParameters, DaemonErrorCode> ScoreHashHandler::GetDigestSize() 
     }
 
     ResponseParameters response;
-    response.push_back(static_cast<std::uint64_t>(m_algorithm.output_size));
+    response.push_back(static_cast<std::uint64_t>(m_algorithm.output_size_bytes));
     return response;
 }
 

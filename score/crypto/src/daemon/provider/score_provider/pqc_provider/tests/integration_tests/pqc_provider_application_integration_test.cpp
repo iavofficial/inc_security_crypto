@@ -78,7 +78,7 @@ TEST(PqcProviderApplicationIntegrationTest, RejectsUnmappedAndIncompleteSignatur
     unmapped.id = ::score::crypto::Algorithm::kUnknown;
     unmapped.name = "unmapped ML-DSA variant";
     auto missing_size = supported;
-    missing_size.output_size = 0U;
+    missing_size.output_size_bytes = 0U;
     const std::array<::score::crypto::AlgorithmDescriptor, 2U> algorithms{{unmapped, missing_size}};
 
     PqcProvider provider;
