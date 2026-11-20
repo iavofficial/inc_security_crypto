@@ -354,14 +354,8 @@ KeyManagementService::ResolveKeyForOperation(data_manager::ClientId client_id,
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidResourceId);
     }
 
-    auto key_node = ref_acc.value()->GetKeyEntry();
-    if (!key_node)
-    {
-        return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInternalError);
-    }
-
-    auto handler = key_node->GetKeyHandler();
-    if (!handler)
+    auto key_entry = ref_acc.value()->GetKeyEntry();
+    if (!key_entry)
     {
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInternalError);
     }
@@ -370,7 +364,7 @@ KeyManagementService::ResolveKeyForOperation(data_manager::ClientId client_id,
     // alive for the duration of the operation so a concurrent release from
     // another context cannot run ~KeyEntry -> IKeyHandler::Release() and free the
     // key material mid-use.
-    return key_node;
+    return key_entry;
 }
 
 // ---------------------------------------------------------------------------
