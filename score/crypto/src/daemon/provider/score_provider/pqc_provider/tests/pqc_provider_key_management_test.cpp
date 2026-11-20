@@ -20,6 +20,7 @@
 #include "score/crypto/src/daemon/common/actors.hpp"
 #include "score/crypto/src/daemon/common/context_types.hpp"
 #include "score/crypto/src/daemon/data_manager/data_manager.hpp"
+#include "score/crypto/src/daemon/key_management/core/key_management_authorization.hpp"
 #include "score/crypto/src/daemon/key_management/core/key_management_service.hpp"
 #include "score/crypto/src/daemon/key_management/interfaces/key_management_operations.hpp"
 #include "score/crypto/src/daemon/key_management/nodes/key_slot_data_node.hpp"
@@ -167,9 +168,8 @@ TEST(PqcProviderKeyManagementTest, ImportedPublicKeyWithVerifyPermissionCanVerif
     auto imported = ImportPublicKey(factory, public_key, Permission::kVerify);
     ASSERT_TRUE(imported.has_value());
     const auto& handle = imported.value()->GetHandle();
-    EXPECT_TRUE(score::crypto::HasPermission(
-        key_management::GrantedPermissionsFor(handle, Permission::kVerify),
-        Permission::kVerify));
+    EXPECT_TRUE(score::crypto::HasPermission(key_management::PermissionSetForOperation(handle, Permission::kVerify),
+                                             Permission::kVerify));
 }
 
 TEST(PqcProviderKeyManagementTest, ImportedPublicKeyPreservesMultiplePublicPermissions)
@@ -184,8 +184,8 @@ TEST(PqcProviderKeyManagementTest, ImportedPublicKeyPreservesMultiplePublicPermi
     const auto& handle = imported.value()->GetHandle();
     ASSERT_TRUE(handle.public_key_permissions.has_value());
     EXPECT_EQ(handle.public_key_permissions.value(), permissions);
-    EXPECT_TRUE(score::crypto::HasPermission(
-        key_management::GrantedPermissionsFor(handle, Permission::kVerify), Permission::kVerify));
+    EXPECT_TRUE(score::crypto::HasPermission(key_management::PermissionSetForOperation(handle, Permission::kVerify),
+                                             Permission::kVerify));
     EXPECT_TRUE(imported.value()->Export().has_value());
 }
 
@@ -198,8 +198,8 @@ TEST(PqcProviderKeyManagementTest, ImportedPublicKeyDeniesUnrequestedPublicPermi
     auto imported = ImportPublicKey(factory, public_key, Permission::kNone);
     ASSERT_TRUE(imported.has_value());
     const auto& handle = imported.value()->GetHandle();
-    EXPECT_FALSE(score::crypto::HasPermission(
-        key_management::GrantedPermissionsFor(handle, Permission::kVerify), Permission::kVerify));
+    EXPECT_FALSE(score::crypto::HasPermission(key_management::PermissionSetForOperation(handle, Permission::kVerify),
+                                              Permission::kVerify));
     auto denied = imported.value()->Export();
     ASSERT_FALSE(denied.has_value());
     EXPECT_EQ(denied.error(), common::DaemonErrorCode::kKeyOperationNotPermitted);

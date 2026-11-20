@@ -16,6 +16,7 @@
 #include "score/crypto/src/daemon/common/algorithm_catalog.hpp"
 #include "score/crypto/src/daemon/data_manager/data_node_accessor.hpp"
 #include "score/crypto/src/daemon/key_management/core/key_entry.hpp"
+#include "score/crypto/src/daemon/key_management/core/key_management_authorization.hpp"
 #include "score/crypto/src/daemon/key_management/nodes/key_data_node.hpp"
 #include "score/crypto/src/daemon/key_management/nodes/key_slot_data_node.hpp"
 
@@ -292,6 +293,25 @@ Expected<SlotResolution, score::crypto::daemon::common::DaemonErrorCode> KeyMana
 }
 
 // ---------------------------------------------------------------------------
+// AuthorizeKeyOperation
+// ---------------------------------------------------------------------------
+
+Expected<std::monostate, common::DaemonErrorCode> KeyManagementService::AuthorizeKeyOperation(
+    const ProviderKeyHandle& handle,
+    score::crypto::KeyOperationPermission permission,
+    std::optional<score::crypto::FormatType> export_format) const
+{
+    const auto permissions = permission == score::crypto::KeyOperationPermission::kExport && export_format.has_value()
+                                 ? PermissionSetForExport(handle, export_format.value())
+                                 : PermissionSetForOperation(handle, permission);
+    if (!score::crypto::HasPermission(permissions, permission))
+    {
+        return make_unexpected(common::DaemonErrorCode::kKeyOperationNotPermitted);
+    }
+    return std::monostate{};
+}
+
+// ---------------------------------------------------------------------------
 // AcquireKeyForOperation
 // ---------------------------------------------------------------------------
 
@@ -324,12 +344,10 @@ Expected<std::shared_ptr<KeyEntry>, common::DaemonErrorCode> KeyManagementServic
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
 
-    const score::crypto::KeyOperationPermission granted_permissions =
-        GrantedPermissionsFor(handler.GetHandle(), permission, export_format);
-
-    if (!score::crypto::HasPermission(granted_permissions, permission))
+    const auto authorized = AuthorizeKeyOperation(handler.GetHandle(), permission, export_format);
+    if (!authorized.has_value())
     {
-        return make_unexpected(common::DaemonErrorCode::kKeyOperationNotPermitted);
+        return make_unexpected(authorized.error());
     }
     return entry;
 }

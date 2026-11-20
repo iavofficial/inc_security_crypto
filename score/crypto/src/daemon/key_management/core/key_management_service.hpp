@@ -144,10 +144,18 @@ class KeyManagementService final
     // Context-level key binding
     // ------------------------------------------------------------------
 
+    /// Authorize an operation using metadata from a client-owned key or slot.
+    /// Provider affinity and algorithm compatibility are checked separately.
+    /// export_format selects permissions for the material emitted by an export.
+    [[nodiscard]] Expected<std::monostate, common::DaemonErrorCode> AuthorizeKeyOperation(
+        const ProviderKeyHandle& handle,
+        score::crypto::KeyOperationPermission permission,
+        std::optional<score::crypto::FormatType> export_format = std::nullopt) const;
+
     /// The handle that governs a key's permissions, before it is loaded or bound.
     ///
     /// Returns a whole ProviderKeyHandle rather than one permission value because
-    /// GrantedPermissionsFor() needs is_asymmetric and public_key_permissions as
+    /// PermissionSetForOperation() needs is_asymmetric and public_key_permissions as
     /// well as permissions to pick the half that applies. Answers from metadata
     /// alone, so a request the key does not permit is refused without touching
     /// key material. For a KeySlotDataNode the slot configuration's
@@ -237,7 +245,7 @@ class KeyManagementService final
 
     /// Resolve a client-owned key and retain its entry without serializing provider use.
     /// Both registry and handler provider identities must match the context.
-    /// Checks the requested permission using GrantedPermissionsFor().
+    /// Checks the requested permission using AuthorizeKeyOperation().
     /// export_format selects the public-half permission for raw EC public-point export.
     /// The caller validates the algorithm and key material for its operation.
     [[nodiscard]] Expected<std::shared_ptr<KeyEntry>, common::DaemonErrorCode> AcquireKeyForOperation(

@@ -63,6 +63,7 @@ cc_library(
         "nodes/key_slot_data_node.hpp",
         # core/
         "core/key_entry.hpp",
+        "core/key_management_authorization.hpp",
         "core/key_management_service.hpp",
         "core/key_registry.hpp",
         # detail/

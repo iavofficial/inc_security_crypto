@@ -260,8 +260,9 @@ struct EncapsulateKeyParams
 struct DecapsulateKeyParams
 {
     /// @brief Handle to the private key used for decapsulation (required).
-    /// Must reference a key resource (ResourceType::kKey) belonging to this
-    /// context's provider and permitting KeyOperationPermission::kAgree.
+    /// Must reference an existing private-key resource (ResourceType::kKey)
+    /// belonging to this context's provider and permitting KeyOperationPermission::kAgree.
+    /// Direct key-slot references (ResourceType::kKeySlot) are not supported.
     CryptoResourceId private_key{};
 
     /// @brief Ciphertext produced by the peer during encapsulation (required).

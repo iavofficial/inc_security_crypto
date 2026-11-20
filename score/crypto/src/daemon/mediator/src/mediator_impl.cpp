@@ -295,13 +295,12 @@ MediatorImpl::BindAndAuthorizeKey(std::uint64_t client_id,
         return score::crypto::make_unexpected(score::crypto::CryptoErrorCode::kInvalidArgument);
     }
 
-    const auto granted = key_management::GrantedPermissionsFor(handle.value(), required.value());
-    if (!score::crypto::HasPermission(granted, required.value()))
+    const auto authorized = m_km_service->AuthorizeKeyOperation(handle.value(), required.value());
+    if (!authorized.has_value())
     {
         score::mw::log::LogError() << "[SCORE_API_MED] ERROR - key does not permit this operation"
                                    << " (context_type=" << context_type << ", key_node_id=" << key_node_id
-                                   << ", required=" << static_cast<std::uint32_t>(required.value())
-                                   << ", granted=" << static_cast<std::uint32_t>(granted) << ")";
+                                   << ", required=" << static_cast<std::uint32_t>(required.value()) << ")";
         return score::crypto::make_unexpected(score::crypto::CryptoErrorCode::kKeyOperationNotPermitted);
     }
 
